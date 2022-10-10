@@ -134,7 +134,7 @@ const WindowsPathPage = () => {
 
 			if (p.indexOf('.\\') === 0) {
 				const pathArr = p.split('\\')
-				console.log('pathArr', pathArr)
+				// console.log('pathArr', pathArr)
 				copyText = `./${pathArr
 					.filter((v, i) => {
 						return i >= 1
@@ -153,12 +153,12 @@ const WindowsPathPage = () => {
 		}
 		if (convertType === 'PosixPath') {
 			if (fullPathPrefix === '/mnt') {
-				console.log('wsl')
+				// console.log('wsl')
 				p = p.replace('/mnt', '')
 			}
-			console.log(p)
+			// console.log(p)
 			const pathArr = p.split('/')
-			console.log(pathArr)
+			// console.log(pathArr)
 			if (pathArr?.[0] === '') {
 				copyText = `${pathArr?.[1].toLocaleUpperCase()}:\\${pathArr
 					.filter((_, i) => {
@@ -178,7 +178,7 @@ const WindowsPathPage = () => {
 
 			if (p.indexOf('./') === 0) {
 				const pathArr = p.split('/')
-				console.log('pathArr', pathArr)
+				// console.log('pathArr', pathArr)
 				copyText = `.\\${pathArr
 					.filter((v, i) => {
 						return i >= 1
