@@ -92,7 +92,7 @@ const HeaderComponent = () => {
 							>
 								<saki-menu-item padding='0' value={'WindowsPath'}>
 									<div className='tblml-item'>
-										<a target='_blank' href='/windowsPathToPosixPath'>
+										<a href='/windowsPathToPosixPath'>
 											{t('pageTitle', {
 												ns: 'windowsPathToPosixPathPage',
 											})}
@@ -101,7 +101,7 @@ const HeaderComponent = () => {
 								</saki-menu-item>
 								<saki-menu-item padding='0' value={'WindowsPath'}>
 									<div className='tblml-item'>
-										<a target='_blank' href='/randomPassword'>
+										<a href='/randomPassword'>
 											{t('pageTitle', {
 												ns: 'randomPasswordPage',
 											})}
