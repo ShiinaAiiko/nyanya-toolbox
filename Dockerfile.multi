@@ -29,7 +29,7 @@ COPY --from=BUILD_IMAGE \
 RUN \ 
   yarn global add spa-http-server --registry https://registry.npmmirror.com/
 
-EXPOSE 23161
+EXPOSE 23200
 
-CMD ["http-server","./dist","--cors","--silent","-p","23161"]
+CMD ["http-server","./dist","--cors","--silent","-p","23200"]
 
