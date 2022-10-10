@@ -1,0 +1,44 @@
+{
+	"name": "saki-sso-client",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"nodemon": "nodemon ./nodemon.js",
+		"dev": "cp -r ./config.dev.json ./config.temp.json && rm -rf ./.next && cross-env CLIENT_ENV=development next dev -p 23200",
+		"build": "next build",
+		"devstart": "yarn run build && cross-env CLIENT_ENV=development next start -p 23200",
+		"start": "next build && cross-env CLIENT_ENV=production next start -p 23200",
+		"export": "next build && next export",
+		"docker": "./docker.sh start",
+		"log": "./docker.sh logs"
+	},
+	"dependencies": {
+		"@nyanyajs/utils": "^1.0.8",
+		"@reduxjs/toolkit": "^1.7.0",
+		"@saki-ui/core": "^1.0.0",
+		"axios": "^0.24.0",
+		"blueimp-md5": "^2.19.0",
+		"cross-env": "^7.0.3",
+		"i18next": "^21.8.16",
+		"next": "^12.0.4",
+		"nyanyajs-log": "^1.0.7",
+		"protobufjs": "^6.11.2",
+		"qs": "^6.10.1",
+		"react": "^17.0.2",
+		"react-dom": "^17.0.2",
+		"react-i18next": "^11.18.3",
+		"react-redux": "^7.2.6",
+		"redux": "^4.1.2",
+		"socket.io-client": "^4.4.0"
+	},
+	"devDependencies": {
+		"@types/blueimp-md5": "^2.18.0",
+		"@types/node": "^14.14.10",
+		"@types/nprogress": "^0.2.0",
+		"@types/qs": "^6.9.7",
+		"@types/react": "^17.0.0",
+		"@types/react-redux": "^7.1.16",
+		"sass": "^1.43.4",
+		"typescript": "^4.1.2"
+	}
+}

@@ -1,0 +1,34 @@
+{
+	"common": {
+		"appTitle": "Saki 帳號",
+		"logoTitle": "帳號",
+		"logout": "註銷",
+		"login": "登入",
+		"register": "註冊"
+	},
+	"languages": {
+		"en-US": "英文",
+		"zh-CN": "中文(簡體)",
+		"zh-TW": "中文(繁體)",
+		"system": "使用設備語言"
+	},
+	"windowsPathToPosixPathPage": {
+		"pageTitle": "將 Windows 路徑轉換為 Posix 路徑",
+		"subtitle": "用於wsl、git bash",
+		"convert": "轉換",
+		"copy": "複製",
+		"convertAndCopy": "轉換和復制",
+		"windowsPath": "Windows 路徑",
+		"posixPath": "Posix 路徑"
+	},
+	"prompt": {
+		"next": "繼續",
+		"back": "後退",
+		"delete": "刪除",
+		"cancel": "取消",
+		"confirm": "確認",
+		"copySuccessfully": "複製成功！",
+		"windowsPathDoesNotExist": "Windows 路徑不存在。",
+		"posixPathDoesNotExist": "Posix 路徑不存在。"
+	}
+}

@@ -1,0 +1,35 @@
+FROM node:16.15.1 as BUILD_IMAGE
+
+WORKDIR /app
+
+ENV CLIENT_ENV=production
+# ENV NODE_ENV=production
+
+COPY .yarnrc .npmrc /root/
+COPY package.json yarn.lock ./
+
+RUN \
+  yarn install --frozen-lockfile
+
+COPY . .
+
+RUN \
+  yarn export
+
+FROM node:16.13.1-alpine3.13
+
+ENV CLIENT_ENV=production
+
+WORKDIR /
+
+COPY --from=BUILD_IMAGE \
+  /app/out \
+  /dist
+
+RUN \ 
+  yarn global add spa-http-server --registry https://registry.npmmirror.com/
+
+EXPOSE 23161
+
+CMD ["http-server","./dist","--cors","--silent","-p","23161"]
+

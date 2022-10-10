@@ -1,0 +1,34 @@
+{
+	"common": {
+		"appTitle": "NyaNya Toolbox",
+		"logoTitle": "Toolbox",
+		"logout": "Log out",
+		"login": "Log in",
+		"register": "Register"
+	},
+	"languages": {
+		"en-US": "English",
+		"zh-CN": "Chinese(Simplified)",
+		"zh-TW": "Chinese(Traditional)",
+		"system": "Use device language"
+	},
+	"windowsPathToPosixPathPage": {
+		"pageTitle": "Convert Windows Path to Posix Path",
+		"subtitle": "for wsl, Git Bash",
+		"convert": "Convert",
+		"copy": "Copy",
+		"convertAndCopy": "Convert and copy",
+		"windowsPath": "Windows path",
+		"posixPath": "Posix path"
+	},
+	"prompt": {
+		"next": "Next",
+		"back": "Back",
+		"delete": "Delete",
+		"cancel": "Cancel",
+		"confirm": "Confirm",
+		"copySuccessfully": "Copy successfully!",
+		"windowsPathDoesNotExist": "Windows path does not exist.",
+		"posixPathDoesNotExist": "Posix path does not exist."
+	}
+}
