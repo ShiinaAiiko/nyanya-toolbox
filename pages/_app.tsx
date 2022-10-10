@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { Router } from 'next/router'
 import '../layouts/Toolbox.scss'
+import "./randomPassword.scss"
 import "./windowsPathToPosixPath.scss"
 import '../components/Footer.scss'
 import '../components/Header.scss'
+
 import { useRouter } from 'next/router'
 import { Provider } from 'react-redux'
 import store from '../store'

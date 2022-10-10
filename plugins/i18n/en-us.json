@@ -2,9 +2,8 @@
 	"common": {
 		"appTitle": "NyaNya Toolbox",
 		"logoTitle": "Toolbox",
-		"logout": "Log out",
-		"login": "Log in",
-		"register": "Register"
+		"copy": "Copy",
+		"aiikoBlog": "Aiiko Blog"
 	},
 	"languages": {
 		"en-US": "English",
@@ -16,10 +15,16 @@
 		"pageTitle": "Convert Windows Path to Posix Path",
 		"subtitle": "for wsl, Git Bash",
 		"convert": "Convert",
-		"copy": "Copy",
 		"convertAndCopy": "Convert and copy",
 		"windowsPath": "Windows path",
 		"posixPath": "Posix path"
+	},
+	"randomPasswordPage": {
+		"pageTitle": "Random Password",
+		"subtitle": "",
+		"length": "Length",
+		"numbers": "Numbers",
+		"symbols": "Symbols"
 	},
 	"prompt": {
 		"next": "Next",

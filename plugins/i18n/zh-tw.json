@@ -1,10 +1,9 @@
 {
 	"common": {
-		"appTitle": "Saki 帳號",
+		"appTitle": "NyaNya 工具箱",
 		"logoTitle": "帳號",
-		"logout": "註銷",
-		"login": "登入",
-		"register": "註冊"
+		"copy": "複製",
+		"aiikoBlog": "愛喵博客"
 	},
 	"languages": {
 		"en-US": "英文",
@@ -16,10 +15,16 @@
 		"pageTitle": "將 Windows 路徑轉換為 Posix 路徑",
 		"subtitle": "用於wsl、git bash",
 		"convert": "轉換",
-		"copy": "複製",
 		"convertAndCopy": "轉換和復制",
 		"windowsPath": "Windows 路徑",
 		"posixPath": "Posix 路徑"
+	},
+	"randomPasswordPage": {
+		"pageTitle": "随机密码",
+		"subtitle": "",
+		"length": "长度",
+		"numbers": "數字",
+		"symbols": "符号"
 	},
 	"prompt": {
 		"next": "繼續",

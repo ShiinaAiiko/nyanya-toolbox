@@ -10,9 +10,11 @@ import {
 	methods,
 	configSlice,
 } from '../store'
+import { useTranslation } from 'react-i18next'
 import { bindEvent } from '@saki-ui/core'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 const HeaderComponent = () => {
+	const { t, i18n } = useTranslation('randomPasswordPage')
 	const [mounted, setMounted] = useState(false)
 	useEffect(() => {
 		setMounted(true)
@@ -91,14 +93,27 @@ const HeaderComponent = () => {
 								<saki-menu-item padding='0' value={'WindowsPath'}>
 									<div className='tblml-item'>
 										<a target='_blank' href='/windowsPathToPosixPath'>
-											Windows路径转换成Posix路径
+											{t('pageTitle', {
+												ns: 'windowsPathToPosixPathPage',
+											})}
+										</a>
+									</div>
+								</saki-menu-item>
+								<saki-menu-item padding='0' value={'WindowsPath'}>
+									<div className='tblml-item'>
+										<a target='_blank' href='/randomPassword'>
+											{t('pageTitle', {
+												ns: 'randomPasswordPage',
+											})}
 										</a>
 									</div>
 								</saki-menu-item>
 								<saki-menu-item padding='0' value={'AiikoBlog'}>
 									<div className='tblml-item'>
 										<a target='_blank' href='https://aiiko.club'>
-											爱喵日记
+											{t('aiikoBlog', {
+												ns: 'common',
+											})}
 										</a>
 									</div>
 								</saki-menu-item>

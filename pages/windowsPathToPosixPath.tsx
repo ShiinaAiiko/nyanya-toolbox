@@ -25,31 +25,11 @@ import * as nyanyalog from 'nyanyajs-log'
 import config from '../config'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop } from '@nyanyajs/utils'
-import { getRegExp } from '../plugins/methods'
+import { getRegExp, copyText } from '../plugins/methods'
 import { route } from 'next/dist/server/router'
 
-function unsecuredCopyToClipboard(text: string) {
-	const textArea = document.createElement('textarea')
-	textArea.value = text
-	document.body.appendChild(textArea)
-	textArea.focus()
-	textArea.select()
-	try {
-		document.execCommand('copy')
-	} catch (err) {
-		console.error('Unable to copy to clipboard', err)
-	}
-	document.body.removeChild(textArea)
-}
-const copyText = (text: string) => {
-	if (window.isSecureContext && navigator.clipboard) {
-		navigator.clipboard.writeText(text)
-	} else {
-		unsecuredCopyToClipboard(text)
-	}
-}
 const WindowsPathPage = () => {
-	const { t, i18n } = useTranslation('registerPage')
+	const { t, i18n } = useTranslation('windowsPathToPosixPathPage')
 	const [mounted, setMounted] = useState(false)
 	const [convertType, setConvertType] = useState<'WindowsPath' | 'PosixPath'>(
 		'WindowsPath'
@@ -402,7 +382,7 @@ const WindowsPathPage = () => {
 											type='Primary'
 										>
 											{t('copy', {
-												ns: 'windowsPathToPosixPathPage',
+												ns: 'common',
 											})}
 										</saki-button>
 									) : (
