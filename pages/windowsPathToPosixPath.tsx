@@ -28,6 +28,26 @@ import { deepCopy, QueueLoop } from '@nyanyajs/utils'
 import { getRegExp } from '../plugins/methods'
 import { route } from 'next/dist/server/router'
 
+function unsecuredCopyToClipboard(text: string) {
+	const textArea = document.createElement('textarea')
+	textArea.value = text
+	document.body.appendChild(textArea)
+	textArea.focus()
+	textArea.select()
+	try {
+		document.execCommand('copy')
+	} catch (err) {
+		console.error('Unable to copy to clipboard', err)
+	}
+	document.body.removeChild(textArea)
+}
+const copyText = (text: string) => {
+	if (window.isSecureContext && navigator.clipboard) {
+		navigator.clipboard.writeText(text)
+	} else {
+		unsecuredCopyToClipboard(text)
+	}
+}
 const WindowsPathPage = () => {
 	const { t, i18n } = useTranslation('registerPage')
 	const [mounted, setMounted] = useState(false)
@@ -219,7 +239,7 @@ const WindowsPathPage = () => {
 			}).open()
 			return
 		}
-		window.navigator.clipboard.writeText(text || newWindowsPath)
+		copyText(text || newWindowsPath)
 		newWindowsPathInputEl?.select(0, text || newWindowsPath.length)
 		snackbar({
 			message: t('copySuccessfully', {
