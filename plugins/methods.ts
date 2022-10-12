@@ -56,13 +56,14 @@ export const getRandomPassword = (
 
 	let str = ''
 	for (let i = 0; i < num; i++) {
+		console.log('i => ', i)
 		let randNum = Number(random(0, randStr.length - 1))
 		if (i === 0) {
 			randNum = Number(random(0, alphabet.length - 1))
 			str += randStr.substring(randNum, randNum + 1)
+		} else {
+			str += randStr.substring(randNum, randNum + 1)
 		}
-
-		str += randStr.substring(randNum, randNum + 1)
 	}
 	return str
 }
