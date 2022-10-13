@@ -92,29 +92,39 @@ const HeaderComponent = () => {
 							>
 								<saki-menu-item padding='0' value={'WindowsPath'}>
 									<div className='tblml-item'>
-										<Link href='/windowsPathToPosixPath' replace>
-											{t('pageTitle', {
-												ns: 'windowsPathToPosixPathPage',
-											})}
+										<Link href='/windowsPathToPosixPath' passHref>
+											<a target='_blank' rel='noopener noreferrer'>
+												{t('pageTitle', {
+													ns: 'windowsPathToPosixPathPage',
+												})}
+											</a>
 										</Link>
 									</div>
 								</saki-menu-item>
 								<saki-menu-item padding='0' value={'WindowsPath'}>
 									<div className='tblml-item'>
-										<Link href='/randomPassword' replace>
-											{t('pageTitle', {
-												ns: 'randomPasswordPage',
-											})}
+										<Link href='/randomPassword' passHref>
+											<a target='_blank' rel='noopener noreferrer'>
+												{t('pageTitle', {
+													ns: 'randomPasswordPage',
+												})}
+											</a>
 										</Link>
 									</div>
 								</saki-menu-item>
 								<saki-menu-item padding='0' value={'AiikoBlog'}>
 									<div className='tblml-item'>
-										<a target='_blank' href='https://aiiko.club'>
-											{t('aiikoBlog', {
+										<Link
+											href='https://github.com/ShiinaAiiko/nyanya-toolbox'
+											passHref
+										>
+											<a target='_blank' rel='noopener noreferrer'>
+												{/* {t('aiikoBlog', {
 												ns: 'common',
-											})}
-										</a>
+											})} */}
+												Github
+											</a>
+										</Link>
 									</div>
 								</saki-menu-item>
 							</saki-menu>

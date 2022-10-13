@@ -20,5 +20,11 @@
 		.f-r-copyright {
 			font-size: 12px;
 		}
+		a {
+			color: #000;
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 	}
 }

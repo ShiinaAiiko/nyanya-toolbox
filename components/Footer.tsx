@@ -128,13 +128,25 @@ const FooterComponent = (): JSX.Element => {
 			</div>
 			<div className='f-right'>
 				<div className='f-r-copyright'>
-					{'© ' +
-						new Date().getFullYear() +
-						' ' +
-						t('appTitle', {
-							ns: 'common',
-							lng: 'en-US',
-						})}
+					<span>
+						{'© ' +
+							new Date().getFullYear() +
+							' ' +
+							t('appTitle', {
+								ns: 'common',
+								lng: 'en-US',
+							})}
+					</span>
+					<span> - </span>
+					<a
+						target='_blank'
+						href='https://github.com/ShiinaAiiko/nyanya-toolbox'
+					>
+						{/* {t('aiikoBlog', {
+												ns: 'common',
+											})} */}
+						Github
+					</a>
 				</div>
 			</div>
 		</div>

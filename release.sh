@@ -6,7 +6,7 @@ branch="main"
 configFilePath="config.pro.json"
 registryUrl="https://registry.npmmirror.com/"
 DIR=$(cd $(dirname $0) && pwd)
-allowMethods=("protos stop npmconfig install gitpull dockerremove start logs")
+allowMethods=("protos stop rm npmconfig install gitpull dockerremove start logs")
 
 npmconfig() {
   echo "-> 配置npm config"
@@ -61,8 +61,8 @@ start() {
   rm -rf $DIR/config.temp.json
 
   echo "-> 准备运行Docker"
-  docker stop $name
-  docker rm $name
+  stop
+  rm
 
   docker run \
   --name=$name \
@@ -75,6 +75,9 @@ start() {
 
 stop() {
   docker stop $name
+}
+rm() {
+  docker rm $name
 }
 
 protos() {
