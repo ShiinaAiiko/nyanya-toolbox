@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { Router } from 'next/router'
 import '../layouts/Toolbox.scss'
-import "./randomPassword.scss"
-import "./windowsPathToPosixPath.scss"
+import './randomPassword.scss'
+import './windowsPathToPosixPath.scss'
 import '../components/Footer.scss'
 import '../components/Header.scss'
 
@@ -36,20 +36,4 @@ export default function App({ Component, pageProps }: any) {
 			{getLayout(<Component router={router} {...pageProps} />)}
 		</Provider>
 	)
-	// return getLayout(<Component router={router} {...pageProps} />)
-
-	// return (
-	// 	<>
-	// 		<Head>
-	// 			<title>SSO</title>
-	// 			<meta httpEquiv='X-UA-Compatible' content='IE=edge'></meta>
-	// 			<meta
-	// 				name='viewport'
-	// 				content='width=device-width, initial-scale=1.0'
-	// 			></meta>
-	// 		</Head>
-
-	// 		<LayoutTree Component={Component} pageProps={pageProps} />
-	// 	</>
-	// )
 }

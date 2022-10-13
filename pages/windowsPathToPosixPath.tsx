@@ -1,12 +1,9 @@
 import Head from 'next/head'
 import ToolboxLayout from '../layouts/Toolbox'
 import Link from 'next/link'
-// import './index.module.scss'
-// import styles from './index.module.scss'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-// import { getApiUrl, goRedirectUri } from '../plugins/public'
 import io from 'socket.io-client'
 import FooterComponent from '../components/Footer'
 import path from 'path'
@@ -158,7 +155,6 @@ const WindowsPathPage = () => {
 
 			if (p.indexOf('./') === 0) {
 				const pathArr = p.split('/')
-				// console.log('pathArr', pathArr)
 				copyText = `.\\${pathArr
 					.filter((v, i) => {
 						return i >= 1
@@ -174,24 +170,6 @@ const WindowsPathPage = () => {
 					})
 					.join('\\')}`
 			}
-			// if (p.indexOf(':\\') === 1) {
-			// 	copyText = `${fullPathPrefix}/${pathArr?.[0]?.toLocaleLowerCase()}/${pathArr?.[1]
-			// 		.split('\\')
-			// 		.map((v) => {
-			// 			return v.indexOf(' ') >= 0 ? `"${v}"` : v
-			// 		})
-			// 		.join('/')}`
-			// } else {
-			// 	if (p.indexOf('\\') === 0) {
-			// 		p = p.replace('\\', '')
-			// 	}
-			// 	copyText = `./${p
-			// 		.split('\\')
-			// 		.map((v) => {
-			// 			return v.indexOf(' ') >= 0 ? `"${v}"` : v
-			// 		})
-			// 		.join('/')}`
-			// }
 		}
 
 		setNewWindowsPath(copyText)

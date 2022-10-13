@@ -1,13 +1,9 @@
 import Head from 'next/head'
 import ToolboxLayout from '../layouts/Toolbox'
 import Link from 'next/link'
-// import './index.module.scss'
-// import styles from './index.module.scss'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-// import { getApiUrl, goRedirectUri } from '../plugins/public'
-import io from 'socket.io-client'
 import FooterComponent from '../components/Footer'
 import path from 'path'
 import {
@@ -20,9 +16,6 @@ import {
 } from '../store'
 import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { unwrapResult } from '@reduxjs/toolkit'
-import * as nyanyalog from 'nyanyajs-log'
-import config from '../config'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop } from '@nyanyajs/utils'
 import { getRegExp, copyText, getRandomPassword } from '../plugins/methods'
@@ -174,10 +167,6 @@ const WindowsPathPage = () => {
 											tap: () => {
 												copyText(password)
 
-												// newWindowsPathInputEl?.select(
-												// 	0,
-												// 	text || newWindowsPath.length
-												// )
 												snackbar({
 													message: t('copySuccessfully', {
 														ns: 'prompt',

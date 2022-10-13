@@ -2,7 +2,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-// import './App.module.scss'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 import {
 	RootState,
@@ -13,12 +12,7 @@ import {
 	configSlice,
 } from '../store'
 import { useTranslation } from 'react-i18next'
-// import { userAgent } from './userAgent'
-import { userAgent, CipherSignature } from '@nyanyajs/utils'
 import { bindEvent } from '@saki-ui/core'
-import debounce from '@nyanyajs/utils/dist/debounce'
-import * as nyanyalog from 'nyanyajs-log'
-// import parserFunc from 'ua-parser-js'
 
 const FooterComponent = (): JSX.Element => {
 	const { t, i18n } = useTranslation()
