@@ -1,0 +1,28 @@
+{
+	"appList": [
+		{
+			"title": {
+				"zh-CN": "将 Windows 路径转换为 Posix 路径",
+				"zh-TW": "將 Windows 路徑轉換為 Posix 路徑",
+				"en-US": "Convert Windows Path to Posix Path"
+			},
+			"url": "http://tools.aiiko.club/windowsPathToPosixPath"
+		},
+		{
+			"title": {
+				"zh-CN": "随机密码",
+				"zh-TW": "隨機密碼",
+				"en-US": "Random Password"
+			},
+			"url": "http://tools.aiiko.club/randomPassword"
+		},
+		{
+			"title": {
+				"zh-CN": "喵链接",
+				"zh-TW": "喵鏈接",
+				"en-US": "Meow Links"
+			},
+			"url": "https://link.aiiko.club"
+		}
+	]
+}

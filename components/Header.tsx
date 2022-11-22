@@ -13,17 +13,35 @@ import {
 import { useTranslation } from 'react-i18next'
 import { bindEvent } from '@saki-ui/core'
 import { useSelector, useStore, useDispatch } from 'react-redux'
+import axios from 'axios'
+import { appListUrl } from '../config'
 const HeaderComponent = () => {
 	const { t, i18n } = useTranslation('randomPasswordPage')
 	const [mounted, setMounted] = useState(false)
 	useEffect(() => {
 		setMounted(true)
+		getAppList()
 	}, [])
 	const router = useRouter()
 	const { redirectUri, deviceId, appId, disableHeader } = router.query
 	const layout = useSelector((state: RootState) => state.layout)
 	const config = useSelector((state: RootState) => state.config)
 	const [openMenuDropDownMenu, setOpenMenuDropDownMenu] = useState(false)
+	const [appList, setAppList] = useState<
+		{
+			title: any
+			url: string
+		}[]
+	>([])
+
+	const getAppList = async () => {
+		const res = await axios({
+			method: 'GET',
+			url: appListUrl,
+		})
+		console.log(res.data)
+		setAppList(res.data.appList)
+	}
 
 	return (
 		<div className='tb-header'>
@@ -72,61 +90,23 @@ const HeaderComponent = () => {
 							<saki-menu
 								ref={bindEvent({
 									selectvalue: async (e) => {
-										// console.log(e.detail.value)
-										// switch (e.detail.value) {
-										// 	case 'WindowsPath':
-										// 		router.replace('/windowsPath')
-
-										// 		break
-										// 	case 'AiikoBlog':
-										// 		router.replace('https://aiiko.club')
-
-										// 		break
-
-										// 	default:
-										// 		break
-										// }
 										setOpenMenuDropDownMenu(false)
 									},
 								})}
 							>
-								<saki-menu-item padding='0' value={'WindowsPath'}>
-									<div className='tblml-item'>
-										<Link href='/windowsPathToPosixPath' passHref>
-											<a target='_blank' rel='noopener noreferrer'>
-												{t('pageTitle', {
-													ns: 'windowsPathToPosixPathPage',
-												})}
-											</a>
-										</Link>
-									</div>
-								</saki-menu-item>
-								<saki-menu-item padding='0' value={'WindowsPath'}>
-									<div className='tblml-item'>
-										<Link href='/randomPassword' passHref>
-											<a target='_blank' rel='noopener noreferrer'>
-												{t('pageTitle', {
-													ns: 'randomPasswordPage',
-												})}
-											</a>
-										</Link>
-									</div>
-								</saki-menu-item>
-								<saki-menu-item padding='0' value={'AiikoBlog'}>
-									<div className='tblml-item'>
-										<Link
-											href='https://github.com/ShiinaAiiko/nyanya-toolbox'
-											passHref
-										>
-											<a target='_blank' rel='noopener noreferrer'>
-												{/* {t('aiikoBlog', {
-												ns: 'common',
-											})} */}
-												Github
-											</a>
-										</Link>
-									</div>
-								</saki-menu-item>
+								{appList.map((v, i) => {
+									return (
+										<saki-menu-item key={i} padding='0' value={v.url}>
+											<div className='tblml-item'>
+												<Link href={v.url} passHref>
+													<a target='_blank' rel='noopener noreferrer'>
+														{v.title[i18n.language]}
+													</a>
+												</Link>
+											</div>
+										</saki-menu-item>
+									)
+								})}
 							</saki-menu>
 						</div>
 					</saki-dropdown>
