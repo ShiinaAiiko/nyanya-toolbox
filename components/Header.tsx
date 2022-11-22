@@ -39,7 +39,6 @@ const HeaderComponent = () => {
 			method: 'GET',
 			url: appListUrl,
 		})
-		console.log(res.data)
 		setAppList(res.data.appList)
 	}
 
