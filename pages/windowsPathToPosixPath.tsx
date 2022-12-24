@@ -258,7 +258,7 @@ const WindowsPathPage = () => {
 								type='Textarea'
 								width='100%'
 								min-height='150px'
-								margin='20px 0 0'
+								margin='40px 0 0'
 								padding='10px'
 								font-size='16px'
 								border='1px solid var(--primary-color)'
