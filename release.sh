@@ -34,6 +34,7 @@ gitpull() {
 dockerremove() {
   echo "-> 删除无用镜像"
   docker rm $(docker ps -q -f status=exited)
+  docker rmi -f $name
   docker rmi -f $(docker images | grep '<none>' | awk '{print $3}')
 }
 
@@ -75,6 +76,7 @@ start() {
 
 stop() {
   docker stop $name
+  rm
 }
 rm() {
   docker rm $name

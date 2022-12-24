@@ -6,6 +6,7 @@ import './randomPassword.scss'
 import './windowsPathToPosixPath.scss'
 import '../components/Footer.scss'
 import '../components/Header.scss'
+import '../components/MenuDropdown.scss'
 
 import { useRouter } from 'next/router'
 import { Provider } from 'react-redux'

@@ -134,7 +134,6 @@ const FooterComponent = (): JSX.Element => {
 							' ' +
 							t('appTitle', {
 								ns: 'common',
-								lng: 'en-US',
 							})}
 					</span>
 					<span> - </span>

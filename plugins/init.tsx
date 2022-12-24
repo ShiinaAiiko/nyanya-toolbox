@@ -6,7 +6,7 @@ import { useSelector, useStore, useDispatch } from 'react-redux'
 
 import * as nyanyalog from 'nyanyajs-log'
 import { initPublic } from './public'
-import { sakiui } from '../config'
+import { sakiui, meowApps } from '../config'
 import './i18n/i18n'
 nyanyalog.timer()
 
@@ -28,8 +28,10 @@ const Init = () => {
 		<>
 			<Head>
 				<link rel='icon' href='./favicon.ico' />
-				<script noModule src={sakiui.jsurl} data-rh='true'></script>
-				<script type='module' src={sakiui.esmjsurl} data-rh='true'></script>
+				<script noModule src={sakiui.jsurl}></script>
+				<script type='module' src={sakiui.esmjsurl}></script>
+				<script noModule src={meowApps.jsurl}></script>
+				<script type='module' src={meowApps.esmjsurl}></script>
 			</Head>
 		</>
 	)

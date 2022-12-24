@@ -1,32 +1,23 @@
 .tb-header {
 	display: flex;
 	justify-content: space-between;
+  align-items: center;
 	height: 50px;
 	border: 1px solid #eee;
 
 	.tb-h-left {
+		display: flex;
+		justify-content: flex-start;
+    align-items: center;
 		padding: 0 0 0 10px;
-		.logo-text {
-			height: 50px;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			font-size: 18px;
-			color: #555;
-		}
 	}
 	.tb-h-center {
 	}
 	.tb-h-right {
 		padding: 0 10px 0 0;
-		.tb-h-r-icon {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			margin: 7px 0;
-			.icon {
-			}
-		}
+		display: flex;
+		justify-content: flex-end;
+    align-items: center;
+		
 	}
 }
