@@ -5,6 +5,7 @@ import {
 	configureStore,
 } from '@reduxjs/toolkit'
 import { getI18n } from 'react-i18next'
+import store from '.'
 
 import { Languages, languages, defaultLanguage } from '../plugins/i18n/i18n'
 import { storage } from './storage'
@@ -19,7 +20,7 @@ export const configMethods = {
 		async (language: LanguageType, thunkAPI) => {
 			thunkAPI.dispatch(configSlice.actions.setLanguage(language))
 
-			console.log('navigator.language', language, navigator.language)
+			// console.log('navigator.language', language, navigator.language)
 			if (language === 'system') {
 				const languages = ['zh-CN', 'zh-TW', 'en-US']
 				if (languages.indexOf(navigator.language) >= 0) {
@@ -41,6 +42,9 @@ export const configMethods = {
 			} else {
 				getI18n().changeLanguage(language)
 			}
+
+			store.dispatch(configSlice.actions.setLang(getI18n().language))
+
 			await storage.global.set('language', language)
 		}
 	),
@@ -51,6 +55,7 @@ export const configSlice = createSlice({
 	name: 'config',
 	initialState: {
 		language: language,
+		lang: '',
 		languages: ['system', ...languages],
 	},
 	reducers: {
@@ -62,6 +67,15 @@ export const configSlice = createSlice({
 			}
 		) => {
 			state.language = params.payload
+		},
+		setLang: (
+			state,
+			params: {
+				payload: string
+				type: string
+			}
+		) => {
+			state.lang = params.payload
 		},
 	},
 })

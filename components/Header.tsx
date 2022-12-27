@@ -22,6 +22,8 @@ const HeaderComponent = () => {
 	useEffect(() => {
 		setMounted(true)
 	}, [])
+	const store = useStore()
+
 	const router = useRouter()
 	const { redirectUri, deviceId, appId, disableHeader } = router.query
 	const layout = useSelector((state: RootState) => state.layout)
@@ -42,7 +44,7 @@ const HeaderComponent = () => {
 			<div className='tb-h-center'></div>
 			<div className='tb-h-right'>
 				{mounted && (
-					<meow-apps-dropdown language={i18n.language}></meow-apps-dropdown>
+					<meow-apps-dropdown language={config.lang}></meow-apps-dropdown>
 				)}
 			</div>
 		</div>

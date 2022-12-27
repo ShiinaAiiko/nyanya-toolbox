@@ -24,8 +24,6 @@ const ToolboxLayout = ({ children }: propsType): JSX.Element => {
 	const { t, i18n } = useTranslation()
 	// console.log('Index Layout')
 
-	const store = useStore()
-
 	// const cccc = useSelector((state: RootState) => state.)
 	const dispatch = useDispatch<AppDispatch>()
 

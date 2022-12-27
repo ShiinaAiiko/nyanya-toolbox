@@ -325,7 +325,7 @@ const AvatarBadgeGeneratorPage = () => {
 						<input
 							ref={uploadAvatarInput}
 							onChange={(e) => {
-								console.log(e.target.files)
+								// console.log(e.target.files)
 								if (e?.target?.files?.[0]) {
 									setUploadAvatar(URL.createObjectURL(e.target.files?.[0]))
 								}
@@ -404,7 +404,7 @@ const AvatarBadgeGeneratorPage = () => {
 															}}
 															ref={uploadBadgeInput}
 															onChange={(e) => {
-																console.log(e.target.files)
+																// console.log(e.target.files)
 																if (e?.target?.files?.[0]) {
 																	setBadgeIconList(
 																		badgeIconList.concat([
