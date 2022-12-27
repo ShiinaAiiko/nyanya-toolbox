@@ -26,6 +26,10 @@
 		"numbers": "数字",
 		"symbols": "符号"
 	},
+	"avatarGeneratorPage": {
+		"pageTitle": "头像角标生成器",
+		"subtitle": "为头像添加角标"
+	},
 	"prompt": {
 		"next": "下一步",
 		"back": "返回",

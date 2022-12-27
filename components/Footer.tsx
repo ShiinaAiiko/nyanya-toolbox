@@ -128,14 +128,12 @@ const FooterComponent = (): JSX.Element => {
 			</div>
 			<div className='f-right'>
 				<div className='f-r-copyright'>
-					<span>
-						{'© ' +
-							new Date().getFullYear() +
-							' ' +
-							t('appTitle', {
-								ns: 'common',
-							})}
-					</span>
+					<span>{'© ' + new Date().getFullYear() + ' '}</span>
+					<a target='_blank' href={'/'}>
+						{t('appTitle', {
+							ns: 'common',
+						})}
+					</a>
 					<span> - </span>
 					<a
 						target='_blank'

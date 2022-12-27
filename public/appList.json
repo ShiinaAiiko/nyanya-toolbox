@@ -23,6 +23,14 @@
 				"en-US": "Meow Links"
 			},
 			"url": "https://link.aiiko.club"
+		},
+		{
+			"title": {
+				"zh-CN": "头像角标生成器",
+				"zh-TW": "頭像角標生成器",
+				"en-US": "Avatar Badge Generator"
+			},
+			"url": "http://tools.aiiko.club/avatarBadgeGenerator"
 		}
 	]
 }

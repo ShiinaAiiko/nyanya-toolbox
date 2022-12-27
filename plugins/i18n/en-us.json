@@ -26,6 +26,10 @@
 		"numbers": "Numbers",
 		"symbols": "Symbols"
 	},
+	"avatarGeneratorPage": {
+		"pageTitle": "Avatar badge Generator",
+		"subtitle": "Add a badge to your avatar"
+	},
 	"prompt": {
 		"next": "Next",
 		"back": "Back",
