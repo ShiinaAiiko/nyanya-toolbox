@@ -26,7 +26,7 @@ import { getRegExp, copyText } from '../plugins/methods'
 import { route } from 'next/dist/server/router'
 
 const AvatarBadgeGeneratorPage = () => {
-	const { t, i18n } = useTranslation('avatarGeneratorPage')
+	const { t, i18n } = useTranslation('avatarBadgeGeneratorPage')
 	const [mounted, setMounted] = useState(false)
 	const [convertType, setConvertType] = useState<'WindowsPath' | 'PosixPath'>(
 		'WindowsPath'
@@ -43,12 +43,12 @@ const AvatarBadgeGeneratorPage = () => {
 	const [badgeBorderRadiusDropDown, setBadgeBorderRadiusDropDown] =
 		useState(false)
 	const [badgeBorderRadius, setBadgeBorderRadius] = useState('50%')
-	const [badgeSize, setBadgeSize] = useState(56)
+	const [badgeSize, setBadgeSize] = useState(75)
 	const [badgeBorderSize, setBadgeBorderSize] = useState(5)
 	const [badgeBorderColor, setBadgeBorderColor] = useState('#fff')
 	const [badgePositionDropDown, setBadgePositionDropDown] = useState(false)
 	const [badgePosition, setBadgePosition] = useState('BottomRight')
-	const [badgeDistanceBorder, setBadgeDistanceBorder] = useState(20)
+	const [badgeDistanceBorder, setBadgeDistanceBorder] = useState(27)
 
 	const [badgeIconList, setBadgeIconList] = useState<
 		{
@@ -84,7 +84,7 @@ const AvatarBadgeGeneratorPage = () => {
 		dispatch(
 			layoutSlice.actions.setLayoutHeaderLogoText(
 				t('pageTitle', {
-					ns: 'avatarGeneratorPage',
+					ns: 'avatarBadgeGeneratorPage',
 				})
 			)
 		)
@@ -202,6 +202,19 @@ const AvatarBadgeGeneratorPage = () => {
 	}
 
 	const outputCvs = async () => {
+		if (!uploadAvatar) {
+			snackbar({
+				message: t('pleaseUploadYourAvatar', {
+					ns: 'prompt',
+				}),
+				autoHideDuration: 2000,
+				vertical: 'top',
+				horizontal: 'center',
+				backgroundColor: 'var(--primary-color)',
+				color: '#fff',
+			}).open()
+			return
+		}
 		let cvs = avatarCvs.current
 		if (!cvs) return
 		const { resizeByUrl } = images
@@ -250,7 +263,7 @@ const AvatarBadgeGeneratorPage = () => {
 			<Head>
 				<title>
 					{t('pageTitle', {
-						ns: 'avatarGeneratorPage',
+						ns: 'avatarBadgeGeneratorPage',
 					}) +
 						' - ' +
 						t('appTitle', {
@@ -262,12 +275,12 @@ const AvatarBadgeGeneratorPage = () => {
 				<div className='agp-main'>
 					<div className='agp-m-title'>
 						{t('pageTitle', {
-							ns: 'avatarGeneratorPage',
+							ns: 'avatarBadgeGeneratorPage',
 						})}
 					</div>
 					<div className='agp-m-subtitle'>
 						{t('subtitle', {
-							ns: 'avatarGeneratorPage',
+							ns: 'avatarBadgeGeneratorPage',
 						})}
 					</div>
 
@@ -341,11 +354,17 @@ const AvatarBadgeGeneratorPage = () => {
 								<saki-tabs-item
 									font-size='14px'
 									label='account-security'
-									name={'角标'}
+									name={t('badge', {
+										ns: 'avatarBadgeGeneratorPage',
+									})}
 								>
 									<div className='agp-m-badge'>
 										<div className='agp-m-b-image'>
-											<div className='agp-title'>角标</div>
+											<div className='agp-title'>
+												{t('badge', {
+													ns: 'avatarBadgeGeneratorPage',
+												})}
+											</div>
 											<div className='agp-images-wrap'>
 												<div className='agp-iw-images'>
 													{badgeIconList.map((v, i) => {
@@ -407,10 +426,19 @@ const AvatarBadgeGeneratorPage = () => {
 									</div>
 
 									<div className='agp-m-style'>
-										<div className='agp-s-title'>样式</div>
+										<div className='agp-s-title'>
+											{t('style', {
+												ns: 'avatarBadgeGeneratorPage',
+											})}
+										</div>
 										<div className='agp-s-main'>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>大小:</span>
+												<span className='item-title'>
+													{t('size', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-input
 														ref={bindEvent({
@@ -434,7 +462,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>位置:</span>
+												<span className='item-title'>
+													{t('position', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-dropdown
 														visible={badgePositionDropDown}
@@ -459,7 +492,20 @@ const AvatarBadgeGeneratorPage = () => {
 																})}
 															>
 																<div className='item-c-b-content'>
-																	<span>{badgePosition}</span>
+																	<span>
+																		{t(
+																			badgePosition
+																				.substring(0, 1)
+																				.toLowerCase() +
+																				badgePosition.substring(
+																					1,
+																					badgePosition.length
+																				),
+																			{
+																				ns: 'avatarBadgeGeneratorPage',
+																			}
+																		)}
+																	</span>
 																	<svg
 																		className='icon'
 																		viewBox='0 0 1024 1024'
@@ -488,25 +534,41 @@ const AvatarBadgeGeneratorPage = () => {
 																	padding='10px 26px'
 																	value={'TopLeft'}
 																>
-																	<div>Top left</div>
+																	<div>
+																		{t('topLeft', {
+																			ns: 'avatarBadgeGeneratorPage',
+																		})}
+																	</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'TopRight'}
 																>
-																	<div>Top right</div>
+																	<div>
+																		{t('topRight', {
+																			ns: 'avatarBadgeGeneratorPage',
+																		})}
+																	</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'BottomLeft'}
 																>
-																	<div>Bottom left</div>
+																	<div>
+																		{t('bottomLeft', {
+																			ns: 'avatarBadgeGeneratorPage',
+																		})}
+																	</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'BottomRight'}
 																>
-																	<div>Bottom right</div>
+																	<div>
+																		{t('bottomRight', {
+																			ns: 'avatarBadgeGeneratorPage',
+																		})}
+																	</div>
 																</saki-menu-item>
 															</saki-menu>
 														</div>
@@ -514,7 +576,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>边界半径:</span>
+												<span className='item-title'>
+													{t('borderRadius', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-dropdown
 														visible={badgeBorderRadiusDropDown}
@@ -594,7 +661,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>距离边界:</span>
+												<span className='item-title'>
+													{t('distanceBorder', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-input
 														ref={bindEvent({
@@ -618,7 +690,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>边框大小:</span>
+												<span className='item-title'>
+													{t('borderSize', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-input
 														ref={bindEvent({
@@ -642,7 +719,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>边框颜色:</span>
+												<span className='item-title'>
+													{t('borderColor', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-input
 														ref={bindEvent({
@@ -674,13 +756,24 @@ const AvatarBadgeGeneratorPage = () => {
 								<saki-tabs-item
 									font-size='14px'
 									label='personal-info'
-									name={'头像'}
+									name={t('avatar', {
+										ns: 'avatarBadgeGeneratorPage',
+									})}
 								>
 									<div className='agp-m-style'>
-										<div className='agp-s-title'>头像演示样式</div>
+										<div className='agp-s-title'>
+											{t('avatarStyle', {
+												ns: 'avatarBadgeGeneratorPage',
+											})}
+										</div>
 										<div className='agp-s-main'>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>边界半径:</span>
+												<span className='item-title'>
+													{t('borderRadius', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-dropdown
 														visible={avatarBorderRadiusDropDown}
@@ -780,13 +873,24 @@ const AvatarBadgeGeneratorPage = () => {
 								<saki-tabs-item
 									font-size='14px'
 									label='personal-info'
-									name={'输出图片'}
+									name={t('output', {
+										ns: 'avatarBadgeGeneratorPage',
+									})}
 								>
 									<div className='agp-m-style'>
-										<div className='agp-s-title'>输出参数</div>
+										<div className='agp-s-title'>
+											{t('outputParameters', {
+												ns: 'avatarBadgeGeneratorPage',
+											})}
+										</div>
 										<div className='agp-s-main'>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>分辨率:</span>
+												<span className='item-title'>
+													{t('resolution', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-dropdown
 														visible={outputSizeDropdown}
@@ -809,7 +913,9 @@ const AvatarBadgeGeneratorPage = () => {
 																})}
 															>
 																<div className='item-c-b-content'>
-																	<span>{outputSize + 'px'}</span>
+																	<span>
+																		{outputSize + 'px x ' + outputSize + 'px'}
+																	</span>
 																	<svg
 																		className='icon'
 																		viewBox='0 0 1024 1024'
@@ -838,25 +944,25 @@ const AvatarBadgeGeneratorPage = () => {
 																	padding='10px 26px'
 																	value={'80'}
 																>
-																	<div>80px</div>
+																	<div>80px x 80px</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'160'}
 																>
-																	<div>160px</div>
+																	<div>160px x 160px</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'200'}
 																>
-																	<div>200px</div>
+																	<div>200px x 200px</div>
 																</saki-menu-item>
 																<saki-menu-item
 																	padding='10px 26px'
 																	value={'500'}
 																>
-																	<div>500px</div>
+																	<div>500px x 500px</div>
 																</saki-menu-item>
 															</saki-menu>
 														</div>
@@ -864,7 +970,12 @@ const AvatarBadgeGeneratorPage = () => {
 												</div>
 											</div>
 											<div className='agp-s-m-item'>
-												<span className='item-title'>质量:</span>
+												<span className='item-title'>
+													{t('quality', {
+														ns: 'avatarBadgeGeneratorPage',
+													})}
+													:
+												</span>
 												<div className='item-content'>
 													<saki-input
 														ref={bindEvent({
@@ -905,7 +1016,11 @@ const AvatarBadgeGeneratorPage = () => {
 													font-size='14px'
 													type='Primary'
 												>
-													<div>Download</div>
+													<div>
+														{t('download', {
+															ns: 'prompt',
+														})}
+													</div>
 												</saki-button>
 											</div>
 										</div>

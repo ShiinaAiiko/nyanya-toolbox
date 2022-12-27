@@ -26,9 +26,27 @@
 		"numbers": "數字",
 		"symbols": "符号"
 	},
-	"avatarGeneratorPage": {
+	"avatarBadgeGeneratorPage": {
 		"pageTitle": "頭像角標生成器",
-		"subtitle": "為頭像添加角標"
+		"subtitle": "為頭像添加角標",
+		"badge": "角標",
+		"style": "樣式",
+		"size": "大小",
+		"position": "位置",
+		"topLeft": "左上角",
+		"topRight": "右上角",
+		"bottomLeft": "左下角",
+		"bottomRight": "右下角",
+		"borderRadius": "邊界半徑",
+		"distanceBorder": "到邊界距離",
+		"borderSize": "邊框大小",
+		"borderColor": "邊框顏色",
+		"avatar": "頭像",
+		"avatarStyle": "頭像樣式",
+		"output": "輸出",
+		"outputParameters": "輸出參數",
+		"resolution": "分辨率",
+		"quality": "質量"
 	},
 	"prompt": {
 		"next": "繼續",
@@ -38,6 +56,8 @@
 		"confirm": "確認",
 		"copySuccessfully": "複製成功！",
 		"windowsPathDoesNotExist": "Windows 路徑不存在。",
-		"posixPathDoesNotExist": "Posix 路徑不存在。"
+		"posixPathDoesNotExist": "Posix 路徑不存在。",
+		"download": "下載",
+		"pleaseUploadYourAvatar": "請上傳你的頭像"
 	}
 }

@@ -26,9 +26,27 @@
 		"numbers": "Numbers",
 		"symbols": "Symbols"
 	},
-	"avatarGeneratorPage": {
+	"avatarBadgeGeneratorPage": {
 		"pageTitle": "Avatar badge Generator",
-		"subtitle": "Add a badge to your avatar"
+		"subtitle": "Add a badge to your avatar",
+		"badge": "Badge",
+		"style": "Style",
+		"size": "Size",
+		"position": "Position",
+		"topLeft": "Top left",
+		"topRight": "Top right",
+		"bottomLeft": "Bottom left",
+		"bottomRight": "Bottom right",
+		"borderRadius": "Border radius",
+		"distanceBorder": "Distance to border",
+		"borderSize": "Border size",
+		"borderColor": "Border color",
+		"avatar": "Avatar",
+		"avatarStyle": "Avatar style",
+		"output": "Output",
+		"outputParameters": "Output Parameters",
+		"resolution": "Resolution",
+		"quality": "Quality"
 	},
 	"prompt": {
 		"next": "Next",
@@ -38,6 +56,8 @@
 		"confirm": "Confirm",
 		"copySuccessfully": "Copy successfully!",
 		"windowsPathDoesNotExist": "Windows path does not exist.",
-		"posixPathDoesNotExist": "Posix path does not exist."
+		"posixPathDoesNotExist": "Posix path does not exist.",
+		"download": "Download",
+		"pleaseUploadYourAvatar": "Please upload your avatar."
 	}
 }
