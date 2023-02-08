@@ -33,6 +33,7 @@ declare global {
 			'saki-modal-buttons': any
 			'saki-switch': any
 			'meow-apps-dropdown': any
+			'saki-base-style': any
 		}
 	}
 	namespace Window {

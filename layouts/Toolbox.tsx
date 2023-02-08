@@ -44,7 +44,8 @@ const ToolboxLayout = ({ children }: propsType): JSX.Element => {
 				></meta>
 			</Head>
 			<div className='tool-box-layout'>
-				<>
+        <>
+          <saki-base-style></saki-base-style>
 					<HeaderComponent></HeaderComponent>
 					<div className={'tb-main '}>{children}</div>
 				</>
