@@ -144,6 +144,10 @@ const FooterComponent = (): JSX.Element => {
 											})} */}
 						Github
 					</a>
+					<span> - </span>
+					<a target='_blank' href='https://im.aiiko.club/invite/78L2tkleM?t=0'>
+						{'Shiina Aiiko'}
+					</a>
 				</div>
 			</div>
 		</div>
