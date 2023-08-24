@@ -37,3 +37,5 @@ dump.rdb
 
 /client
 !/client/out
+
+go.work*

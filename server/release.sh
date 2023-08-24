@@ -1,6 +1,6 @@
 #! /bin/bash
 name="meow-toolbox"
-port=16120
+port=23201
 branch="main"
 # configFilePath="config.dev.json"
 configFilePath="config.pro.json"
@@ -35,6 +35,7 @@ start() {
   docker build \
     -t \
     $name \
+    --network host \
     $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
     . \
     -f Dockerfile.multi

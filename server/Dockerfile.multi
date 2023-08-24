@@ -40,20 +40,20 @@ COPY . .
 RUN \
   chmod -R 700 release.sh && \
   bash ./release.sh protos && \
-  go build -o meow-links main.go 
+  go build -o nyanya-toolbox main.go 
 
 FROM alpine:3.10
 
 WORKDIR /
 
 COPY --from=BUILD_IMAGE \
-  /app/meow-links \
+  /app/nyanya-toolbox \
   /
-COPY --from=BUILD_IMAGE \
-  /app/client/ \
-  /client
+# COPY --from=BUILD_IMAGE \
+#   /app/client/ \
+#   /client
 
 
-EXPOSE 16120
+EXPOSE 23201
 
-CMD ["./meow-links","--config","config.json"]
+CMD ["./nyanya-toolbox","--config","config.json"]
