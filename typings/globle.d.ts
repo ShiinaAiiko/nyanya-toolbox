@@ -34,6 +34,7 @@ declare global {
 			'saki-switch': any
 			'meow-apps-dropdown': any
 			'saki-base-style': any
+			'saki-title': any
 		}
 	}
 	namespace Window {

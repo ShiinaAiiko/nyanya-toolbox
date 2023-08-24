@@ -23,7 +23,6 @@ import config from '../config'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop, Debounce, images } from '@nyanyajs/utils'
 import { getRegExp, copyText } from '../plugins/methods'
-import { route } from 'next/dist/server/router'
 
 const AvatarBadgeGeneratorPage = () => {
 	const { t, i18n } = useTranslation('avatarBadgeGeneratorPage')

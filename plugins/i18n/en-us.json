@@ -48,6 +48,14 @@
 		"resolution": "Resolution",
 		"quality": "Quality"
 	},
+	"ipPage": {
+		"pageTitle": "Search IP or Domain Name Details",
+		"subtitle": "",
+		"inputPlaceholder": "Type a Ip or Domain Name",
+		"myIPDetails": "My Ip Details",
+		"IPDetails": "Ip Details",
+		"search": "Search"
+	},
 	"prompt": {
 		"next": "Next",
 		"back": "Back",
@@ -58,6 +66,7 @@
 		"windowsPathDoesNotExist": "Windows path does not exist.",
 		"posixPathDoesNotExist": "Posix path does not exist.",
 		"download": "Download",
-		"pleaseUploadYourAvatar": "Please upload your avatar."
+		"pleaseUploadYourAvatar": "Please upload your avatar.",
+		"ipEmptyTip": "IP cannot be empty"
 	}
 }

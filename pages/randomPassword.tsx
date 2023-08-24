@@ -19,7 +19,6 @@ import { useTranslation } from 'react-i18next'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop } from '@nyanyajs/utils'
 import { getRegExp, copyText, getRandomPassword } from '../plugins/methods'
-import { route } from 'next/dist/server/router'
 
 const WindowsPathPage = () => {
 	const { t, i18n } = useTranslation('registerPage')

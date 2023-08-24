@@ -40,15 +40,15 @@ body {
 	padding: 0;
 }
 
-input {
-	&::-webkit-input-placeholder,
-	&::-moz-placeholder,
-	&:-ms-input-placeholder,
-	&::placeholder {
-		// color: #ADD8E6;
-		font-size: 12px !important;
-	}
-}
+// input {
+// 	&::-webkit-input-placeholder,
+// 	&::-moz-placeholder,
+// 	&:-ms-input-placeholder,
+// 	&::placeholder {
+// 		// color: #ADD8E6;
+// 		font-size: 16px;
+// 	}
+// }
 
 ul,
 ol {

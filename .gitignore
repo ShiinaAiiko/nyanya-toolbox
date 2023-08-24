@@ -30,3 +30,9 @@ package-lock.json
 /protos/v1
 /protos/**/*.js
 /protos/**/*.d.ts
+
+ssh.sh
+
+.npmrc
+.yarnrc
+build.tgz

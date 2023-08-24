@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package base;
+
+message RequestType {
+  string data = 1;
+  string token = 2;
+  string deviceId = 3;
+  // user.UserAgent userAgent = 4;
+}
+
+message ResponseType {
+  int64 code = 1;
+  string msg = 2;
+  string cnMsg = 3;
+  string error = 4;
+  string requestId = 5;
+  int64 requestTime = 6;
+  string author = 7;
+  string platform = 8;
+  string data = 9;
+}
+
+message ResponseEncryptDataType {
+  string data = 1;
+  string key = 2;
+}
+
+message RequestEncryptDataType {
+  string data = 1;
+  string key = 2;
+}

@@ -31,6 +31,14 @@
 				"en-US": "Avatar Badge Generator"
 			},
 			"url": "http://tools.aiiko.club/avatarBadgeGenerator"
+		},
+		{
+			"title": {
+				"zh-CN": "查询IP或域名详情",
+				"zh-TW": "查詢IP或域名詳情",
+				"en-US": "Search IP or Domain Name Details"
+			},
+			"url": "http://tools.aiiko.club/ip"
 		}
 	]
 }

@@ -48,6 +48,14 @@
 		"resolution": "分辨率",
 		"quality": "质量"
 	},
+	"ipPage": {
+		"pageTitle": "查询IP或域名详情",
+		"subtitle": "",
+		"inputPlaceholder": "输入 IP 或域名",
+		"myIPDetails": "我的IP详情",
+		"IPDetails": "IP 详情",
+		"search": "搜索"
+	},
 	"prompt": {
 		"next": "下一步",
 		"back": "返回",
@@ -58,6 +66,7 @@
 		"windowsPathDoesNotExist": "Windows 路径不存在。",
 		"posixPathDoesNotExist": "Posix 路径不存在。",
 		"download": "下载",
-		"pleaseUploadYourAvatar": "请上传你的头像"
+		"pleaseUploadYourAvatar": "请上传你的头像",
+		"ipEmptyTip": "IP不能为空"
 	}
 }

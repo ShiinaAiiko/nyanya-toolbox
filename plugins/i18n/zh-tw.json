@@ -48,6 +48,14 @@
 		"resolution": "分辨率",
 		"quality": "質量"
 	},
+	"ipPage": {
+		"pageTitle": "查詢IP或域名詳情",
+		"subtitle": "",
+		"inputPlaceholder": "輸入 IP 或域名",
+		"myIPDetails": "我的 IP 詳情",
+		"IPDetails": "IP 詳情",
+		"search": "搜索"
+	},
 	"prompt": {
 		"next": "繼續",
 		"back": "後退",
@@ -58,6 +66,7 @@
 		"windowsPathDoesNotExist": "Windows 路徑不存在。",
 		"posixPathDoesNotExist": "Posix 路徑不存在。",
 		"download": "下載",
-		"pleaseUploadYourAvatar": "請上傳你的頭像"
+		"pleaseUploadYourAvatar": "請上傳你的頭像",
+		"ipEmptyTip": "IP不能為空"
 	}
 }

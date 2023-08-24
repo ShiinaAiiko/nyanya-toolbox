@@ -23,7 +23,6 @@ import config from '../config'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop } from '@nyanyajs/utils'
 import { getRegExp, copyText } from '../plugins/methods'
-import { route } from 'next/dist/server/router'
 
 const WindowsPathPage = () => {
 	const { t, i18n } = useTranslation('windowsPathToPosixPathPage')

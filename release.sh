@@ -6,7 +6,7 @@ branch="main"
 configFilePath="config.pro.json"
 registryUrl="https://registry.npmmirror.com/"
 DIR=$(cd $(dirname $0) && pwd)
-allowMethods=("protos stop rm npmconfig install gitpull dockerremove start logs")
+allowMethods=("unzip zip protos stop rm npmconfig install gitpull dockerremove start logs")
 
 npmconfig() {
   echo "-> 配置npm config"
@@ -47,37 +47,57 @@ start() {
   echo "-> 正在准备相关资源"
   cp -r ./$configFilePath $DIR/config.temp.json
   # 获取npm配置
+  # yarn config set cache-folder ~/.yarn/cache
+  # yarn config set prefix  ~/.yarn/prefix
+  # yarn config set global-folder  ~/.yarn/global
+  # yarn config set link-folder ~/.yarn/link
   cp -r ~/.npmrc $DIR
   cp -r ~/.yarnrc $DIR
 
   echo "-> 准备构建Docker"
   docker build \
-  -t $name \
-  $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
-  . \
-  -f Dockerfile.multi
+    -t $name \
+    $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
+    . \
+    -f Dockerfile.multi
+
   rm $DIR/.npmrc
   rm $DIR/.yarnrc
   rm -rf $DIR/config.temp.json
 
   echo "-> 准备运行Docker"
   stop
-  rm
 
   docker run \
-  --name=$name \
-  -v $DIR/$configFilePath:/config.temp.json \
-  $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
-  -p $port:$port \
-  --restart=always \
-  -d $name
+    --name=$name \
+    -v $DIR/$configFilePath:/config.temp.json \
+    $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
+    -p $port:$port \
+    --restart=always \
+    -d $name
+
+  echo "-> 整理文件资源"
+  docker cp $name:/build.tgz $DIR/build.tgz
+  stop
+
+  ./ssh.sh run
+
+  rm $DIR/build.tgz
+}
+
+unzip() {
+  rm -rf ./out
+  mkdir -p ./out
+  tar -zxvf ./build.tgz -C ./out/
+  rm -rf build.tgz
+}
+
+zip() {
+  tar cvzf /build.tgz -C /dist .
 }
 
 stop() {
   docker stop $name
-  rm
-}
-rm() {
   docker rm $name
 }
 

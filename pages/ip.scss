@@ -1,0 +1,108 @@
+.ip-page {
+	display: flex;
+	justify-content: flex-start;
+	flex-direction: column;
+	align-items: center;
+
+	.ip-main {
+		padding: 20px;
+		width: 100%;
+		min-width: 200px;
+		max-width: 700px;
+		.ip-m-title {
+			margin: 10px 0 0px;
+			font-size: 26px;
+			font-weight: 700;
+			text-align: center;
+		}
+		.ip-m-subtitle {
+			font-size: 16px;
+			color: #222;
+			text-align: center;
+		}
+		.ip-m-buttons {
+			margin: 20px 0 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			@media (max-width: 768px) {
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				.ip-m-b-left {
+					margin-bottom: 20px;
+				}
+				.ip-m-b-center {
+					margin-bottom: 20px;
+				}
+
+				.ip-m-b-right {
+					margin-bottom: 20px;
+				}
+			}
+			.ip-m-b-left {
+				flex: 1;
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+				.range {
+					display: flex;
+					justify-content: flex-start;
+					align-items: center;
+					span {
+						margin: 0 6px;
+					}
+				}
+			}
+			.ip-m-b-center {
+				flex: 1;
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.ip-m-b-right {
+				flex: 1;
+				display: flex;
+				justify-content: flex-end;
+				white-space: nowrap;
+			}
+		}
+		.ip-m-details {
+			padding: 20px 0;
+			.ip-m-d-list {
+				margin: 10px 0 0;
+				border: 1px solid var(--saki-default-color);
+				border-radius: 10px;
+				overflow: hidden;
+				& > div {
+					display: flex;
+					justify-content: flex-start;
+					padding: 10px 0px;
+					border-bottom: 1px solid #eee;
+					&.header {
+						color: #999;
+						& > div:nth-child(1) {
+							color: #999;
+						}
+						& > div:nth-child(2) {
+							color: #999;
+						}
+					}
+					&:hover {
+						background-color: #eee;
+					}
+					& > div:nth-child(1) {
+						width: 160px;
+						color: #000;
+						padding: 0 6px 0 12px;
+					}
+					& > div:nth-child(2) {
+						width: calc(100% - 150px);
+						word-break: break-all;
+						padding: 0 12px 0 6px;
+					}
+				}
+			}
+		}
+	}
+}
