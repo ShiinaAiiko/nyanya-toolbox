@@ -50,7 +50,7 @@ func RoleMiddleware() gin.HandlerFunc {
 
 		isHttpServer := strings.Contains(c.Request.URL.Path, "/api")
 		if isHttpServer {
-			Log.Info(c.Request)
+			// Log.Info(c.Request)
 			role := Roles[c.Request.URL.Path]
 			if role == nil {
 				res := response.ResponseType{}

@@ -189,7 +189,7 @@ const WindowsPathPage = () => {
 									</saki-button>
 								</div>
 							</div>
-							<FooterComponent></FooterComponent>
+							 <FooterComponent></FooterComponent>
 						</>
 					)}
 				</div>

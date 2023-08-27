@@ -22,7 +22,7 @@ export const languages: Languages[] = Object.keys(resources).map((v: any) => {
 
 export type Languages = keyof typeof resources
 
-export const defaultLanguage: Languages = 'en-US'
+export const defaultLanguage: Languages = 'zh-CN'
 
 i18n
 	.use(initReactI18next) // passes i18n down to react-i18next

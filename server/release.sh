@@ -1,5 +1,5 @@
 #! /bin/bash
-name="meow-toolbox"
+name="meow-toolbox-server"
 port=23201
 branch="main"
 # configFilePath="config.dev.json"

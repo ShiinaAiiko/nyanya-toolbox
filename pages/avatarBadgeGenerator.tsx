@@ -1030,7 +1030,7 @@ const AvatarBadgeGeneratorPage = () => {
 					) : (
 						''
 					)}
-					<FooterComponent></FooterComponent>
+					 <FooterComponent></FooterComponent>
 				</div>
 			</div>
 		</>

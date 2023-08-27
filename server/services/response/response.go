@@ -172,7 +172,7 @@ func (res *ResponseType) GetResponse() *ResponseType {
 		res.CnMsg = "请求成功"
 	}
 	if res.Platform == "" {
-		res.Platform = "NyaNya toolbox"
+		res.Platform = "NyaNya Toolbox"
 	}
 	if res.Author == "" {
 		res.Author = "Shiina Aiiko."

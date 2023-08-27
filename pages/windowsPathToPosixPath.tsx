@@ -400,7 +400,7 @@ const WindowsPathPage = () => {
 								border-radius='10px'
 							></saki-input>
 
-							<FooterComponent></FooterComponent>
+							 <FooterComponent></FooterComponent>
 						</>
 					)}
 				</div>

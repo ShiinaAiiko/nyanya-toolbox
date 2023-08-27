@@ -19,33 +19,65 @@ import { useTranslation } from 'react-i18next'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, NyaNyaWasm, QueueLoop } from '@nyanyajs/utils'
 import { getRegExp, copyText, getRandomPassword } from '../plugins/methods'
-// import { getGeoInfo } from 'findme-js'
+import { getGeoInfo } from 'findme-js'
 
 const IpPage = () => {
 	const { t, i18n } = useTranslation('ipPage')
 	const [mounted, setMounted] = useState(false)
+	const api = useSelector((state: RootState) => state.api)
 
-	const [ip, setIp] = useState('')
-	const [password, setPassword] = useState('')
-	const [length, setLength] = useState(16)
-	const [passwordInclude, setPasswordInclude] = useState<
-		('Number' | 'Character')[]
-	>(['Number'])
+	const [ip, setIp] = useState(
+		''
+		// 'google.com'
+		// 'aiiko.club',
+	)
+	const [isMyIp, setIsMyIp] = useState(false)
+	const [loading, setLoading] = useState(false)
+	const [connectionOSM, setConnectionOSM] = useState(true)
+	const [map, setMap] = useState<any>()
 
-	const [ipInfo, setIpInfo] = useState<
-		{
-			key: string
-			value: string
-		}[]
-	>([])
+	const [ipInfo, setIpInfo] = useState<{
+		ipv4: string
+		ipv6: string
+		country: string
+		regionName: string
+		city: string
+		lon: string
+		lat: string
+		timezone: string
+		isp: string
+		org: string
+	}>({
+		ipv4: '',
+		ipv6: '',
+		country: '',
+		regionName: '',
+		city: '',
+		lon: '',
+		lat: '',
+		timezone: '',
+		isp: '',
+		org: '',
+	})
 
 	const dispatch = useDispatch<AppDispatch>()
 
 	useEffect(() => {
 		setMounted(true)
-		// findIpInfo('')
-
-		setPassword(getRandomPassword(length, passwordInclude))
+		const init = async () => {
+			try {
+				setConnectionOSM(
+					(await fetch('https://tile.openstreetmap.org')).status === 200
+				)
+			} catch (error) {
+				// console.log(error)
+				setConnectionOSM(false)
+			}
+		}
+		init()
+		// setTimeout(() => {
+		// 	findIpInfo('aiiko.club')
+		// }, 1000)
 	}, [])
 
 	useEffect(() => {
@@ -53,55 +85,131 @@ const IpPage = () => {
 	}, [i18n.language])
 
 	const findIpInfo = async (ip: string) => {
-		if (!ip) {
+		try {
+			console.log(ip, 'ip')
+			if (!ip) {
+				snackbar({
+					message: t('ipEmptyTip', {
+						ns: 'prompt',
+					}),
+					autoHideDuration: 2000,
+					vertical: 'top',
+					horizontal: 'center',
+					backgroundColor: 'var(--primary-color)',
+					color: '#fff',
+				}).open()
+				return
+			}
+			setLoading(true)
+
+			const res = await (
+				await fetch(
+					api.apiUrl +
+						api.apiUrls.v1.baseUrl +
+						api.apiUrls.v1.ipDetails +
+						'?ip=' +
+						(ip === 'me' ? '' : ip) +
+						'&language=' +
+						i18n.language
+				)
+			).json()
+			console.log('res', res)
+			if (res?.code === 200 && res?.data?.lat) {
+				const ipInfoObj = {
+					ipv4: res?.data?.ipv4,
+					ipv6: res?.data?.ipv6,
+					country: res?.data?.country,
+					regionName: res?.data?.regionName,
+					city: res?.data?.city,
+					lon: res?.data?.lon,
+					lat: res?.data?.lat,
+					timezone: res?.data?.timezone,
+					isp: res?.data?.isp,
+					org: res?.data?.org,
+				}
+				setIpInfo(ipInfoObj)
+				const L = (window as any).L
+				if (L) {
+					var m = map
+
+					if (!m) {
+						m = L.map('ip-m-d-map', {
+							// center: [Number(res?.data?.lat), Number(res?.data?.lon)],
+						})
+						m.setView(
+							[Number(ipInfoObj.lat), Number(ipInfoObj.lon)],
+							// [
+							//   120.3814, -1.09],
+							connectionOSM ? 13 : 9
+						)
+						setMap(m)
+					} else {
+						m.panTo([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
+					}
+					console.log('connectionOSM', connectionOSM)
+					L.tileLayer(
+						// 'GaoDe.Normal.Map',
+						connectionOSM
+							? `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
+							: 'https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}',
+						// : 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+						// `https://c.tile.openstreetmap.org/{z}/{x}/{y}.png`,
+						// `https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}`,
+						// `https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}`,
+						{
+							maxZoom: 19,
+							attribution: `&copy; ${
+								connectionOSM
+									? '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+									: '<a href="https://map.geoq.cn/copyright">ArcGIS</a>'
+							}`,
+						}
+					).addTo(m)
+					L.marker([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
+						.addTo(m)
+						.bindPopup(
+							`${ipInfoObj.ipv4}`
+							// `${ipInfoObj.country}, ${ipInfoObj.regionName}, ${ipInfoObj.city}`
+						)
+						.openPopup()
+					// console.log('map', map)
+				}
+				setLoading(false)
+				snackbar({
+					message: t('querySuccessfully', {
+						ns: 'prompt',
+					}),
+					autoHideDuration: 2000,
+					vertical: 'top',
+					horizontal: 'center',
+					backgroundColor: 'var(--primary-color)',
+					color: '#fff',
+				}).open()
+			} else {
+				snackbar({
+					message: t('queryFailed', {
+						ns: 'prompt',
+					}),
+					autoHideDuration: 2000,
+					vertical: 'top',
+					horizontal: 'center',
+					backgroundColor: '#f06386',
+					color: '#fff',
+				}).open()
+				setLoading(false)
+			}
+		} catch (error) {
+			console.error(error)
 			snackbar({
-				message: t('ipEmptyTip', {
-					ns: 'prompt',
-				}),
+				message: String(error),
 				autoHideDuration: 2000,
 				vertical: 'top',
 				horizontal: 'center',
-				backgroundColor: 'var(--primary-color)',
+				backgroundColor: '#f06386',
 				color: '#fff',
 			}).open()
-			return
+			setLoading(false)
 		}
-		const res = await (
-			await fetch(
-				'http://ip-api.com/json/' +
-					(ip === 'me' ? '' : ip) +
-					`?fields=status,message,continent,continentCode,country,countryCode,region,\
-    regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query`
-			)
-		).json()
-		console.log(
-			'findIpInfo',
-			res,
-			Object.keys(res).map((k) => {
-				return {
-					key: k,
-					value: res[k],
-				}
-			})
-		)
-		setIpInfo(
-			Object.keys(res).map((k) => {
-				return {
-					key: k,
-					value: res[k],
-				}
-			})
-		)
-		snackbar({
-			message: t('getSuccessfully', {
-				ns: 'prompt',
-			}),
-			autoHideDuration: 2000,
-			vertical: 'top',
-			horizontal: 'center',
-			backgroundColor: 'var(--primary-color)',
-			color: '#fff',
-		}).open()
 	}
 
 	return (
@@ -116,6 +224,17 @@ const IpPage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<link
+					rel='stylesheet'
+					href='https://unpkg.com/leaflet@1.9.3/dist/leaflet.css'
+					integrity='sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI='
+					crossOrigin=''
+				/>
+				<script
+					src='https://unpkg.com/leaflet@1.9.3/dist/leaflet.js'
+					integrity='sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM='
+					crossOrigin=''
+				></script>
 			</Head>
 			<div className='ip-page'>
 				<div className='ip-main'>
@@ -128,6 +247,9 @@ const IpPage = () => {
 								ref={bindEvent({
 									changevalue(e) {
 										setIp(e.detail)
+									},
+									pressenter() {
+										findIpInfo(ip)
 									},
 								})}
 								width='100%'
@@ -150,7 +272,8 @@ const IpPage = () => {
 								<div className='ip-m-b-right'>
 									<saki-button
 										ref={bindEvent({
-											tap: () => {
+                      tap: () => {
+                        setIsMyIp(true)
 												findIpInfo('me')
 											},
 										})}
@@ -158,22 +281,25 @@ const IpPage = () => {
 										padding='8px 18px'
 										font-size='14px'
 										type='Normal'
+										loading={isMyIp && loading}
 									>
 										{t('myIPDetails')}
 									</saki-button>
 									<saki-button
 										ref={bindEvent({
 											tap: async () => {
-												const api = await NyaNyaWasm.WasmAPI()
-												console.log('api', api)
-												console.log('api', await api.net.lookupIP('im.aiiko.club'))
-												// findIpInfo(ip)
+												// const api = await NyaNyaWasm.WasmAPI()
+												// console.log('api', api)
+												// console.log('api', await api.net.lookupIP('im.aiiko.club'))
+                        setIsMyIp(false)
+												findIpInfo(ip)
 											},
 										})}
 										margin='0 0 0 10px'
 										padding='8px 18px'
 										font-size='14px'
 										type='Primary'
+										loading={!isMyIp && loading}
 									>
 										{t('search')}
 									</saki-button>
@@ -181,30 +307,68 @@ const IpPage = () => {
 							</div>
 						</>
 					)}
-					{ipInfo.length ? (
+					{ipInfo?.country ? (
 						<div className='ip-m-details'>
 							<saki-title level='3' color='default'>
 								{t('IPDetails') + ' '}
-								{`<${
-									ipInfo.filter((v) => {
-										return v.key === 'query'
-									})?.[0]?.value || ''
-								}>`}
+								{/* {`<${ipInfo?.ipv4}>`} */}
 							</saki-title>
 							<div className='ip-m-d-list'>
-								<div className='header'>
-									<div>Keyword</div>
-									<div>Detail</div>
+								<div className='list-header'>
+									<div>{t('keyword')}</div>
+									<div>{t('detail')}</div>
 								</div>
-								{ipInfo.map((v) => {
-									console.log(v)
-									return (
-										<div>
-											<div>{v.key}</div>
-											<div>{v.value}</div>
-										</div>
-									)
-								})}
+								<div className='list-item'>
+									<div>{t('ipv4')}</div>
+									<div>{ipInfo.ipv4 || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('ipv6')}</div>
+									<div>{ipInfo.ipv6 || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('country')}</div>
+									<div>{ipInfo.country || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('regionName')}</div>
+									<div>{ipInfo.regionName || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('city')}</div>
+									<div>{ipInfo.city || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('isp')}</div>
+									<div>{ipInfo.isp || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('org')}</div>
+									<div>{ipInfo.org || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('lat')}</div>
+									<div>{ipInfo.lat || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('lon')}</div>
+									<div>{ipInfo.lon || '---'}</div>
+								</div>
+								<div className='list-item'>
+									<div>{t('timezone')}</div>
+									<div>{ipInfo.timezone || '---'}</div>
+								</div>
+								{true ? (
+									<div id='ip-m-d-map'></div>
+								) : (
+									<div className='ip-map-none'>
+										<span>
+											{t('connectMapFailed', {
+												ns: 'prompt',
+											})}
+										</span>
+									</div>
+								)}
 							</div>
 						</div>
 					) : (
@@ -215,7 +379,7 @@ const IpPage = () => {
 							margin: '150px 0 0',
 						}}
 					></div>
-					{mounted && <FooterComponent></FooterComponent>}
+					<FooterComponent></FooterComponent>
 				</div>
 			</div>
 		</>

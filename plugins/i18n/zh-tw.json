@@ -54,7 +54,19 @@
 		"inputPlaceholder": "輸入 IP 或域名",
 		"myIPDetails": "我的 IP 詳情",
 		"IPDetails": "IP 詳情",
-		"search": "搜索"
+		"search": "查詢",
+		"keyword": "關鍵詞",
+		"detail": "詳細信息",
+		"ipv4": "IPv4",
+		"ipv6": "IPv6",
+		"country": "國家",
+		"regionName": "省",
+		"city": "城市",
+		"isp": "互聯網服務供應商",
+		"org": "公司/組織",
+		"lon": "經度",
+		"lat": "緯度",
+		"timezone": "時區"
 	},
 	"prompt": {
 		"next": "繼續",
@@ -67,6 +79,9 @@
 		"posixPathDoesNotExist": "Posix 路徑不存在。",
 		"download": "下載",
 		"pleaseUploadYourAvatar": "請上傳你的頭像",
-		"ipEmptyTip": "IP不能為空"
+		"ipEmptyTip": "IP或者域名不能為空",
+		"querySuccessfully": "查詢成功！",
+		"queryFailed": "查詢失敗，請重新輸入IP或域名",
+		"connectMapFailed": "無法連接地圖，請檢查網絡。"
 	}
 }

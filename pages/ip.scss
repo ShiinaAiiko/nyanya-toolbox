@@ -74,20 +74,29 @@
 				border: 1px solid var(--saki-default-color);
 				border-radius: 10px;
 				overflow: hidden;
-				& > div {
+				.list-header {
 					display: flex;
 					justify-content: flex-start;
 					padding: 10px 0px;
 					border-bottom: 1px solid #eee;
-					&.header {
+					color: #999;
+					& > div:nth-child(1) {
+						width: 160px;
+						padding: 0 6px 0 12px;
 						color: #999;
-						& > div:nth-child(1) {
-							color: #999;
-						}
-						& > div:nth-child(2) {
-							color: #999;
-						}
 					}
+					& > div:nth-child(2) {
+						color: #999;
+						width: calc(100% - 150px);
+						word-break: break-all;
+						padding: 0 12px 0 6px;
+					}
+				}
+				.list-item {
+					display: flex;
+					justify-content: flex-start;
+					padding: 10px 0px;
+					border-bottom: 1px solid #eee;
 					&:hover {
 						background-color: #eee;
 					}
@@ -100,6 +109,22 @@
 						width: calc(100% - 150px);
 						word-break: break-all;
 						padding: 0 12px 0 6px;
+					}
+				}
+				#ip-m-d-map {
+					// height: 380px;
+					padding-bottom: calc(60%);
+				}
+				.ip-map-none {
+					padding-bottom: calc(60%);
+					position: relative;
+					span {
+						position: absolute;
+						left: 50%;
+						top: 50%;
+						transform: translate(-50%, -50%);
+						color: #999;
+						font-size: 22px;
 					}
 				}
 			}

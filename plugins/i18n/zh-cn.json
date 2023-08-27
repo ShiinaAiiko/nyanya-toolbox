@@ -54,7 +54,19 @@
 		"inputPlaceholder": "输入 IP 或域名",
 		"myIPDetails": "我的IP详情",
 		"IPDetails": "IP 详情",
-		"search": "搜索"
+		"search": "查询",
+		"keyword": "关键词",
+		"detail": "详细信息",
+		"ipv4": "IPv4",
+		"ipv6": "IPv6",
+		"country": "国家",
+		"regionName": "省",
+		"city": "城市",
+		"isp": "互联网服务供应商",
+		"org": "公司/组织",
+		"lon": "经度",
+		"lat": "纬度",
+		"timezone": "时区"
 	},
 	"prompt": {
 		"next": "下一步",
@@ -67,6 +79,9 @@
 		"posixPathDoesNotExist": "Posix 路径不存在。",
 		"download": "下载",
 		"pleaseUploadYourAvatar": "请上传你的头像",
-		"ipEmptyTip": "IP不能为空"
+		"ipEmptyTip": "IP或者域名不能为空",
+		"querySuccessfully": "查询成功！",
+		"queryFailed": "查询失败，请重新输入IP或域名",
+    "connectMapFailed":"无法连接地图，请检查网络。"
 	}
 }

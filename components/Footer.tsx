@@ -30,100 +30,104 @@ const FooterComponent = (): JSX.Element => {
 		<div className='footer-component'>
 			<div className='f-left'>
 				<div className='f-language'>
-					<saki-dropdown
-						visible={showLanguageDropdown}
-						floating-direction='Center'
-						ref={bindEvent({
-							close: () => {
-								setShowLanguageDropdown(false)
-							},
-						})}
-					>
-						<saki-button
+					{mounted ? (
+						<saki-dropdown
+							visible={showLanguageDropdown}
+							floating-direction='Center'
 							ref={bindEvent({
-								tap: () => {
-									console.log('more')
-									setShowLanguageDropdown(true)
+								close: () => {
+									setShowLanguageDropdown(false)
 								},
 							})}
-							bg-color='transparent'
-							padding='10px 6px 10px 12px'
-							title='Language'
-							border='none'
-							type='Normal'
 						>
-							<div className='f-l-button'>
-								<span>
-									{t(config.language, {
-										ns: 'languages',
-									})}
-								</span>
-								<svg
-									className='icon'
-									viewBox='0 0 1024 1024'
-									version='1.1'
-									xmlns='http://www.w3.org/2000/svg'
-									p-id='1644'
-								>
-									<path
-										d='M725.333333 426.666667L512 640 298.666667 426.666667z'
-										p-id='1645'
-									></path>
-								</svg>
-							</div>
-						</saki-button>
-						<div slot='main'>
-							<saki-menu
+							<saki-button
 								ref={bindEvent({
-									selectvalue: async (e) => {
-										dispatch(methods.config.setLanguage(e.detail.value))
-										switch (e.detail.value) {
-											case 'logout':
-												break
-											case 'deleteDevice':
-												break
-
-											default:
-												break
-										}
-										setShowLanguageDropdown(false)
+									tap: () => {
+										console.log('more')
+										setShowLanguageDropdown(true)
 									},
 								})}
+								bg-color='transparent'
+								padding='10px 6px 10px 12px'
+								title='Language'
+								border='none'
+								type='Normal'
 							>
-								{config.languages.map((v) => {
-									return (
-										<saki-menu-item
-											key={v}
-											padding='10px 18px'
-											font-size='14px'
-											value={v}
-										>
-											<div
-												style={{
-													cursor: 'pointer',
-												}}
+								<div className='f-l-button'>
+									<span>
+										{t(config.language, {
+											ns: 'languages',
+										})}
+									</span>
+									<svg
+										className='icon'
+										viewBox='0 0 1024 1024'
+										version='1.1'
+										xmlns='http://www.w3.org/2000/svg'
+										p-id='1644'
+									>
+										<path
+											d='M725.333333 426.666667L512 640 298.666667 426.666667z'
+											p-id='1645'
+										></path>
+									</svg>
+								</div>
+							</saki-button>
+							<div slot='main'>
+								<saki-menu
+									ref={bindEvent({
+										selectvalue: async (e) => {
+											dispatch(methods.config.setLanguage(e.detail.value))
+											switch (e.detail.value) {
+												case 'logout':
+													break
+												case 'deleteDevice':
+													break
+
+												default:
+													break
+											}
+											setShowLanguageDropdown(false)
+										},
+									})}
+								>
+									{config.languages.map((v) => {
+										return (
+											<saki-menu-item
+												key={v}
+												padding='10px 18px'
+												font-size='14px'
+												value={v}
 											>
-												<span>
-													{v !== 'system'
-														? t(v, {
-																ns: 'languages',
-														  }) +
-														  ' - ' +
-														  t(v, {
-																ns: 'languages',
-																lng: v,
-														  })
-														: t(v, {
-																ns: 'languages',
-														  })}
-												</span>
-											</div>
-										</saki-menu-item>
-									)
-								})}
-							</saki-menu>
-						</div>
-					</saki-dropdown>
+												<div
+													style={{
+														cursor: 'pointer',
+													}}
+												>
+													<span>
+														{v !== 'system'
+															? t(v, {
+																	ns: 'languages',
+															  }) +
+															  ' - ' +
+															  t(v, {
+																	ns: 'languages',
+																	lng: v,
+															  })
+															: t(v, {
+																	ns: 'languages',
+															  })}
+													</span>
+												</div>
+											</saki-menu-item>
+										)
+									})}
+								</saki-menu>
+							</div>
+						</saki-dropdown>
+					) : (
+						''
+					)}
 				</div>
 			</div>
 			<div className='f-right'>

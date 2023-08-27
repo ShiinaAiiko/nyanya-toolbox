@@ -54,7 +54,19 @@
 		"inputPlaceholder": "Type a Ip or Domain Name",
 		"myIPDetails": "My Ip Details",
 		"IPDetails": "Ip Details",
-		"search": "Search"
+		"search": "Search",
+		"keyword": "Keyword",
+		"detail": "Detail",
+		"ipv4": "IPv4",
+		"ipv6": "IPv6",
+		"country": "Country",
+		"regionName": "RegionName",
+		"city": "City",
+		"isp": "ISP",
+		"org": "Organize",
+		"lon": "Longitude",
+		"lat": "Katitude",
+		"timezone": "Timezone"
 	},
 	"prompt": {
 		"next": "Next",
@@ -67,6 +79,9 @@
 		"posixPathDoesNotExist": "Posix path does not exist.",
 		"download": "Download",
 		"pleaseUploadYourAvatar": "Please upload your avatar.",
-		"ipEmptyTip": "IP cannot be empty"
+		"ipEmptyTip": "IP or domain name cannot be empty",
+		"querySuccessfully": "Query successful!",
+		"queryFailed": "Query failed, please retype the IP or domain name",
+    "connectMapFailed":"Unable to connect to the map, please check the network."
 	}
 }

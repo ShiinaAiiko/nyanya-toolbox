@@ -1,17 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import md5 from 'blueimp-md5'
-import store, { RootState, userSlice } from '../index'
-// import { request } from '../../plugins/methods'
-// import { api, sso, passwordKey } from '../../config'
-// import { storage } from '../storage'
-import { useRouter } from 'next/router'
-import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
+import { server } from '../../config'
 
 export const apiMethods = {}
 
 export const apiSlice = createSlice({
 	name: 'api',
-	initialState: {},
+	initialState: {
+		apiUrl: server.url,
+		apiUrls: {
+			v1: {
+				baseUrl: '/api/v1',
+				urlToIp: '/url/toIp',
+				ipDetails: '/ip/details',
+			},
+		},
+	},
 	reducers: {},
 	extraReducers: (builder) => {},
 })
