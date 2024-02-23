@@ -1,0 +1,173 @@
+@import '../../assets/style/editor.scss';
+
+.file-transfer-page {
+	display: flex;
+	justify-content: flex-start;
+	flex-direction: column;
+	align-items: center;
+
+	.ft-m-title {
+		margin: 30px 0 0px;
+		font-size: 26px;
+		font-weight: 700;
+		text-align: center;
+	}
+	.ft-m-subtitle {
+		font-size: 16px;
+		color: #222;
+		text-align: center;
+	}
+	.ft-main {
+		display: flex;
+
+		justify-content: flex-start;
+		flex-direction: column;
+		align-items: center;
+		margin: 10px auto;
+		width: calc(100% - 20px);
+		min-width: 200px;
+		// max-width: 700px;
+		.ft-m-new-token {
+			display: flex;
+			justify-content: center;
+			flex-direction: column;
+			align-items: center;
+			margin: 20px 0;
+
+			width: 100%;
+			max-width: 600px;
+
+			saki-card {
+				width: 100%;
+				.su-m-history-item-l-subtitle {
+					font-size: 12px;
+					color: #555;
+				}
+				.su-m-history-item-right {
+					display: flex;
+					justify-content: flex-end;
+				}
+			}
+		}
+		.ft-m-c-header {
+		}
+		.ft-m-container {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			border-radius: 10px;
+			border: 1px solid #eee;
+			margin-bottom: 10px;
+
+			.chat-emoji {
+				width: 30px;
+			}
+			.ft-m-c-main {
+				// flex: 1;
+				.ft-m-c-m-wait {
+					width: 100%;
+					height: 100%;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					color: #999;
+					font-size: 22px;
+				}
+			}
+			.ft-m-c-inputbar {
+			}
+		}
+	}
+}
+
+.message-input-bar {
+	// background-color: #f1f3f4;
+	width: 100%;
+	// height: 100px;
+	padding: 0 10px;
+	margin: 10px 0 10px;
+	background-color: #fff;
+	// background-color: goldenrod;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	.message-inputbar-input {
+		flex: 1;
+		.inputbar-text {
+			background-color: rgb(243, 243, 243);
+			padding: 12px 16px;
+			border-radius: 25px;
+		}
+	}
+	.message-left-buttons {
+		display: flex;
+		margin-bottom: 4px;
+	}
+	.message-right-buttons {
+		display: flex;
+		margin-bottom: 4px;
+	}
+}
+
+.message-inputbar-emoji {
+	width: 300px;
+	height: 400px;
+	// background-color: #eee;
+	.message-emoji-item {
+		display: flex;
+	}
+	saki-tabs {
+		flex: 1;
+	}
+}
+
+.mie-emoji-page {
+	.mie-e-list {
+		padding: 0 10px;
+		.mie-e-category {
+			margin-bottom: 10px;
+			.mie-e-c-list {
+				display: flex;
+				flex-wrap: wrap;
+			}
+		}
+	}
+}
+
+.message-inputbar-button-file {
+	.message-b-f-item {
+		display: flex;
+	}
+}
+
+.message-header-device-list {
+	.m-h-dl-item {
+		display: flex;
+		justify-content: space-between;
+		.item-left {
+			padding-right: 4px;
+			.i-l-title {
+				padding-right: 4px;
+			}
+			.i-l-tag {
+				background-color: var(--saki-default-color);
+				color: #fff;
+				font-size: 10px;
+				border-radius: 4px;
+				padding: 2px 4px;
+			}
+			.i-l-subtitle {
+				font-size: 14px;
+				color: #999;
+				padding-left: 4px;
+			}
+		}
+		.item-right {
+			display: flex;
+			align-items: center;
+			span {
+				color: #999;
+			}
+		}
+	}
+}

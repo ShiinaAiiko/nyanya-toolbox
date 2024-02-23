@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package moveCarQRC;
+
+message MoveCarQRCItem {
+  string id = 1;
+  string authorId = 2;
+  string phone = 3;
+  string carNumber = 4;
+  string slogan = 5;
+  string email = 6;
+  string wechat = 7;
+
+  string colorTheme = 11;
+
+  int64 status = 8;
+  int64 createTime = 9;
+  int64 lastUpdateTime = 10;
+  // int64 deleteTime = 11;
+}
+
+message MoveCarQRCEditItem {
+  // 必填
+  string phone = 1;
+  // 必填
+  string carNumber = 2;
+  // 必填
+  string slogan = 3;
+  string email = 4;
+  string wechat = 5;
+  
+  string colorTheme = 6;
+}
+
+message CreateMoveCarQRC {
+  message Request { MoveCarQRCEditItem moveCarQRC = 1; }
+  message Response { MoveCarQRCItem moveCarQRC = 1; }
+}
+
+message GetMoveCarQRCList {
+  message Request {
+    // 可选
+    // repeated string id = 1;
+    // 可选 CreateTimeASC / CreateTimeDESC, 升序（ASC）或降序（DESC）
+    string sort = 4;
+    int64 pageNum = 5;
+    int64 pageSize = 6;
+  }
+  message Response {
+    int64 total = 1;
+    repeated MoveCarQRCItem list = 2;
+  }
+}
+
+message GetMoveCarQRC {
+  message Request {
+   string id = 1;
+  }
+  message Response { MoveCarQRCItem moveCarQRC = 1; }
+}
+
+message UpdateMoveCarQRC {
+  message Request {
+    string id = 1;
+    MoveCarQRCEditItem moveCarQRC = 2;
+  }
+  message Response { MoveCarQRCItem moveCarQRC = 1; }
+}
+
+message DeleteMoveCarQRC {
+  message Request { string id = 1; }
+  message Response {}
+}

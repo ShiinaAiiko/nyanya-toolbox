@@ -14,6 +14,7 @@ RUN \
 COPY . .
 
 RUN \
+  ./release.sh download:saki-ui-react && \
   yarn export
 
 FROM node:16.13.1-alpine3.13
@@ -27,10 +28,12 @@ COPY --from=BUILD_IMAGE \
   /dist
 
 RUN \ 
-  yarn global add spa-http-server --registry https://registry.npmmirror.com/ && \
+  # yarn global add spa-http-server --registry https://registry.npmmirror.com/ && \
   tar cvzf /build.tgz  -C /dist .
 
 EXPOSE 23200
 
-CMD ["http-server","./dist","--cors","--silent","-p","23200"]
+CMD ["pwd"]
+
+# CMD ["http-server","./dist","--cors","--silent","-p","23200"]
 

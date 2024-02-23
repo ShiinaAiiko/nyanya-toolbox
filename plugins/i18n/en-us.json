@@ -3,7 +3,13 @@
 		"appTitle": "NyaNya Toolbox",
 		"logoTitle": "Toolbox",
 		"copy": "Copy",
-		"aiikoBlog": "Aiiko Blog"
+		"aiikoBlog": "Aiiko Blog",
+
+		"photo": "Photo",
+		"video": "Video",
+		"file": "File",
+
+		"404": "The page does not exist"
 	},
 	"languages": {
 		"en-US": "English",
@@ -25,6 +31,52 @@
 		"length": "Length",
 		"numbers": "Numbers",
 		"symbols": "Symbols"
+	},
+	"moveCarQRCPage": {
+		"pageTitle": "Move Car QR Code",
+		"subtitle": "It's free and can be modified. Paste the QR code on the car window and you can contact the car owner by scanning the QR code.",
+
+		"indexInputPh": "Type in phone number to generate QR code",
+		"generateQRC": "Create",
+		"history": "History",
+
+		"id": "ID",
+		"typePhone": "Phone number",
+		"typeCarNumber": "License plate number",
+		"typeSlogan": "Slogan",
+		"colorTheme": "Theme color",
+		"default": "Default",
+		"green": "Green",
+		"blue": "Blue",
+		"updateMoveCarQRC": "Update Move Car QR Code",
+		"createMoveCarQRC": "Create Move Car QR Code",
+
+		"callCarOwner": "Call the car owner",
+		"callCarOwnerContent": "Are you sure you want to call the car owner?",
+		"getFreeQRC": "Get free QR code",
+
+		"openUrl": "View details page",
+		"showAvatar": "Show avatar",
+		"downloadQRC": "Download QR Code",
+
+		"deleteThisMCQRC": "Delete this Move Car QR code",
+		"deleteThisMCQRCContent": "Are you sure you want to delete this Move Car QR code?",
+
+		"createQRCAfterLogin": "You are not logged in yet. You can create a QR code for moving the car after logging in.",
+
+		"usageDays": "This QR code has been used for {{day}} days",
+
+		"useAvatar": "Use avatar",
+		"uploadImages": "Upload image"
+	},
+	"fileTransferPage": {
+		"pageTitle": "Web File Transfer",
+		"subtitle": "",
+		"connectedDevicesDesc": "{{count}} devices connected",
+		"host": "Host",
+		"prflx": "LAN",
+		"srflx": "P2P",
+		"replay": "Network"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "Avatar badge Generator",
@@ -68,6 +120,14 @@
 		"lat": "Katitude",
 		"timezone": "Timezone"
 	},
+	"navigatePage": {
+		"pageTitle": "Navigation speed test",
+		"subtitle": ""
+	},
+	"tripPage": {
+		"pageTitle": "Trip route track",
+		"subtitle": ""
+	},
 	"prompt": {
 		"next": "Next",
 		"back": "Back",
@@ -82,6 +142,35 @@
 		"ipEmptyTip": "IP or domain name cannot be empty",
 		"querySuccessfully": "Query successful!",
 		"queryFailed": "Query failed, please retype the IP or domain name",
-    "connectMapFailed":"Unable to connect to the map, please check the network."
+		"connectMapFailed": "Unable to connect to the map, please check the network.",
+
+		"pin": "Pin",
+		"addSticker": "Add to Custom Stickers",
+		"select": "Select",
+		"reply": "Reply",
+		"forward": "Forward",
+		"edit": "Edit",
+
+		"disconnect": "Disconnect",
+
+		"networkSpeed": "Network speed {{speed}}",
+
+		"update": "Update",
+		"create": "Create",
+		"call": "Call",
+
+		"login": "Login",
+		"logout": "Logout",
+		"logoutContent": "Are you sure you want to log out of this account?",
+
+		"avatarAddedSuccessfully": "Avatar added successfully!",
+		"deleteSuccessfully": "Deleted successfully!",
+		"createSuccessfully": "Created successfully!",
+		"updateSuccessfully": "updated successfully!",
+		"downloadSuccessfully": "Downloaded successfully!",
+		"logoutSuccessfully": "Logout successfully!",
+
+		"cannotBeEmpty": "Can not be empty",
+		"phoneRuleErr": "The phone number is wrong, please re-type it."
 	}
 }

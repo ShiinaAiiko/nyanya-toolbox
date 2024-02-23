@@ -5,11 +5,14 @@ import (
 	"os"
 
 	conf "github.com/ShiinaAiiko/nyanya-toolbox/server/config"
+	mongodb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/mongo"
 	redisdb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/redis"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/gin_service"
+	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/socketio_service"
 
 	"github.com/cherrai/nyanyago-utils/nlog"
 	"github.com/cherrai/nyanyago-utils/nredis"
+	sso "github.com/cherrai/saki-sso-go"
 
 	// sfu "github.com/pion/ion-sfu/pkg/sfu"
 
@@ -56,8 +59,16 @@ func main() {
 		}, conf.BaseKey, log)
 		conf.Redisdb.CreateKeys(conf.RedisCacheKeys)
 
-		// mongodb.ConnectMongoDB(conf.Config.Mongodb.Currentdb.Uri, conf.Config.Mongodb.Currentdb.Name)
+		conf.SSO = sso.New(&sso.SakiSsoOptions{
+			AppId:  conf.Config.SSO.AppId,
+			AppKey: conf.Config.SSO.AppKey,
+			Host:   conf.Config.SSO.Host,
+			Rdb:    conf.Redisdb,
+		})
+		mongodb.ConnectMongoDB(conf.Config.Mongodb.Currentdb.Uri, conf.Config.Mongodb.Currentdb.Name)
 
+		// log.Info("conf.Config.Mongodb.Currentdb", conf.Config.Mongodb.Currentdb)
+		socketio_service.Init()
 		gin_service.Init()
 		return nil
 	})

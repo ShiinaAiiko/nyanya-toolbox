@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main --config config.test.json"
+  bin = "./tmp/main --config config.dev.json"
   cmd = "go build -o ./tmp/main ."
   delay = 2000
   exclude_dir = ["client","assets","static", "tmp","temp", "vendor", "testdata"]

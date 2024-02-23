@@ -3,7 +3,11 @@
 		"appTitle": "NyaNya 工具箱",
 		"logoTitle": "帳號",
 		"copy": "複製",
-		"aiikoBlog": "愛喵博客"
+		"aiikoBlog": "愛喵博客",
+
+		"photo": "照片",
+		"video": "視頻",
+		"file": "文件"
 	},
 	"languages": {
 		"en-US": "英文",
@@ -25,6 +29,52 @@
 		"length": "长度",
 		"numbers": "數字",
 		"symbols": "符号"
+	},
+	"moveCarQRCPage": {
+		"pageTitle": "挪車二維碼",
+		"subtitle": "免費取得、隨時修改、永久使用，將二維碼貼在車窗上，即可透過掃描該二維碼可以聯繫到車主。",
+
+		"indexInputPh": "輸入手機號碼以產生二維碼",
+		"generateQRC": "建立挪車二維碼",
+		"history": "歷史",
+
+		"id": "ID",
+		"typePhone": "手機號碼",
+		"typeCarNumber": "車牌號碼",
+		"typeSlogan": "標語",
+		"colorTheme": "主題色",
+		"default": "預設",
+		"green": "綠色",
+		"blue": "藍色",
+		"updateMoveCarQRC": "更新挪車二維碼",
+		"createMoveCarQRC": "建立挪車二維碼",
+
+		"callCarOwner": "撥打車主電話",
+		"callCarOwnerContent": "您確定要打電話給車主嗎？",
+		"getFreeQRC": "免費取得二維碼",
+
+		"openUrl": "查看詳情頁面",
+		"showAvatar": "顯示頭像",
+		"downloadQRC": "下載二維碼",
+
+		"deleteThisMCQRC": "刪除此挪車二維碼",
+		"deleteThisMCQRCContent": "確定要刪除此挪車二維碼嗎？",
+
+		"createQRCAfterLogin": "您尚未登錄，登入後方可建立挪車二維碼",
+
+		"usageDays": "此二維碼已使用{{day}}天了",
+
+		"useAvatar": "使用头像",
+		"uploadImages": "上传图片"
+	},
+	"fileTransferPage": {
+		"pageTitle": "Web檔案傳輸",
+		"subtitle": "",
+		"connectedDevicesDesc": "已連接了{{count}}個設備",
+		"host": "主機",
+		"prflx": "區域網路",
+		"srflx": "P2P",
+		"replay": "網路"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "頭像角標生成器",
@@ -68,6 +118,14 @@
 		"lat": "緯度",
 		"timezone": "時區"
 	},
+	"navigatePage": {
+		"pageTitle": "導航測速喵",
+		"subtitle": ""
+	},
+	"tripPage": {
+		"pageTitle": "行程路線軌跡",
+		"subtitle": ""
+	},
 	"prompt": {
 		"next": "繼續",
 		"back": "後退",
@@ -82,6 +140,35 @@
 		"ipEmptyTip": "IP或者域名不能為空",
 		"querySuccessfully": "查詢成功！",
 		"queryFailed": "查詢失敗，請重新輸入IP或域名",
-		"connectMapFailed": "無法連接地圖，請檢查網絡。"
+		"connectMapFailed": "無法連接地圖，請檢查網絡。",
+
+		"pin": "收藏",
+		"addSticker": "添加到自定義表情",
+		"select": "選擇",
+		"reply": "回复",
+		"forward": "轉發",
+		"edit": "編輯",
+
+		"disconnect": "斷開連線",
+
+		"networkSpeed": "傳輸速率 {{speed}}",
+
+		"update": "更新",
+		"create": "建立",
+		"call": "立即撥打",
+
+		"login": "登入",
+		"logout": "登出",
+		"logoutContent": "您確定要退出此帳號嗎？",
+
+		"avatarAddedSuccessfully": "頭像新增成功！",
+		"deleteSuccessfully": "刪除成功！",
+		"createSuccessfully": "創建成功！",
+		"updateSuccessfully": "更新成功！",
+		"downloadSuccessfully": "下載成功！",
+		"logoutSuccessfully": "登出成功!",
+
+		"cannotBeEmpty": "不能為空",
+		"phoneRuleErr": "手機號碼錯誤，請重新輸入"
 	}
 }

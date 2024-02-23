@@ -7,9 +7,38 @@ import { useSelector, useStore, useDispatch } from 'react-redux'
 import axios, { AxiosRequestConfig } from 'axios'
 
 import store, { userSlice } from '../store'
+import { snackbar } from '@saki-ui/core'
 
 export const getRegExp = (type: 'email') => {
 	return /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
+}
+export const emojiToText = (message: string) => {
+	return message.replace(
+		/<img [^>]*class=['"]([^'"]+)[^>]*src=['"]([^'"]+)[^>]*data-name=['"]([^'"]+)[^>]*>/g,
+		(el: string, className: string, src: string, name: string) => {
+			if (className === 'mwc-emoji') {
+				return '[' + name + ']'
+			}
+			console.log(el)
+			// 暂时不允许这种方式发图片。
+			return ''
+		}
+	)
+}
+export const emojiToImg = (message: string) => {
+	return message.replace(/\[(.+?)\]/g, (el: string, name: string) => {
+		// console.log(el, name)
+		const { emoji } = store.getState()
+		let obj = emoji.emojiListObj[name]
+		if (obj) {
+			return `<img class="mwc-emoji" 
+        alt="${obj.name}" 
+        title="${obj.name}"
+        src="${obj.src}" 
+        data-name="${obj.name}">`
+		}
+		return el
+	})
 }
 
 export const copyText = (text: string) => {
@@ -62,4 +91,86 @@ export const getRandomPassword = (
 		str += randStr.substring(randNum, randNum + 1)
 	}
 	return str
+}
+
+export const download = async (src: string, filename: string) => {
+	const res = await axios.get(src, {
+		responseType: 'blob',
+	})
+	var a = document.createElement('a')
+	// var filename = src.substring(src.lastIndexOf('/') + 1) + '.' + fileSuffix
+	// console.log('download', filename, src, fileSuffix)
+	a.href = window.URL.createObjectURL(res.data)
+	a.download = filename
+	a.target = '_blank'
+	URL.revokeObjectURL(src)
+	a.click()
+}
+
+export const developing = () => {
+	snackbar({
+		message: '该功能暂未开放',
+		autoHideDuration: 2000,
+		vertical: 'top',
+		horizontal: 'center',
+		backgroundColor: 'var(--saki-default-color)',
+		color: '#fff',
+	}).open()
+}
+
+export const Query = (
+	url: string,
+	query: {
+		[k: string]: string
+	}
+) => {
+	let obj: {
+		[k: string]: string
+	} = {}
+	let o = Object.assign(obj, query)
+	let s = qs.stringify(
+		Object.keys(o).reduce(
+			(fin, cur) => (o[cur] !== '' ? { ...fin, [cur]: o[cur] } : fin),
+			{}
+		)
+	)
+	return url + (s ? '?' + s : '')
+}
+
+export const showSnackbar = (
+	message: string,
+	color?: string,
+	backgroundColor?: string
+) => {
+	snackbar({
+		message,
+		autoHideDuration: 2000,
+		vertical: 'top',
+		horizontal: 'center',
+		backgroundColor: backgroundColor || 'var(--primary-color)',
+		color: color || '#fff',
+	}).open()
+}
+
+export const hidePhone = (phone: string) => {
+	if (phone.length >= 11) {
+		return phone
+			.split('')
+			.map((v, i) => {
+				if (i < 3 || i > 8) {
+					return v
+				}
+				return '*'
+			})
+			.join('')
+	}
+  return phone
+    .split('')
+    .map((v, i) => {
+      if (i < 2 || i > 5) {
+        return v
+      }
+      return '*'
+    })
+    .join('')
 }

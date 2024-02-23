@@ -6,7 +6,7 @@ branch="main"
 configFilePath="config.pro.json"
 registryUrl="https://registry.npmmirror.com/"
 DIR=$(cd $(dirname $0) && pwd)
-allowMethods=("unzip zip protos stop rm npmconfig install gitpull dockerremove start logs")
+allowMethods=("download:saki-ui-react dev unzip zip protos stop rm npmconfig install gitpull dockerremove start logs")
 
 npmconfig() {
   echo "-> 配置npm config"
@@ -35,6 +35,15 @@ dockerremove() {
   echo "-> 删除无用镜像"
   docker rm $(docker ps -q -f status=exited)
   docker rmi -f $(docker images | grep '<none>' | awk '{print $3}')
+}
+
+dev() {
+  yarn exportLocal
+  tar cvzf ./build.tgz -C ./out .
+
+  ./ssh.sh run
+
+  rm $DIR/build.tgz
 }
 
 start() {
@@ -97,6 +106,12 @@ zip() {
   tar cvzf /build.tgz -C /dist .
 }
 
+download:saki-ui-react() {
+  wget https://saki-ui.aiiko.club/packages/saki-ui-react-v1.0.1.tgz -O saki-ui-react.tgz
+  tar zxvf ./saki-ui-react.tgz -C ./components
+  rm -rf ./saki-ui*
+}
+
 stop() {
   docker stop $name
   docker rm $name
@@ -104,10 +119,14 @@ stop() {
 
 protos() {
   echo "-> 准备编译Protobuf"
-  cp -r ../protos $DIR/protos_temp
-  yarn protosv1
+  cp -r ./server/protos $DIR/protos_temp
+  yarn protos
   rm -rf $DIR/protos_temp
   echo "-> 编译Protobuf成功"
+
+  cd ./server
+  ./release.sh protos
+  cd ..
 }
 
 logs() {

@@ -12,10 +12,17 @@ import (
 )
 
 var (
-	log           = nlog.New()
+	Log           = nlog.New()
+	log           = Log
 	Config        *typings.Config
 	G             = goroutinepanic.G
 	FileTokenSign = "saass_2022_6_4"
+	// TrunAddress      = "turn:192.168.1.104:3478"
+	// TrunAddress      = "turn:tools.aiiko.club:3478"
+	// TrunAuthSecret   = "saass_2022_6_4"
+	// TrunAuthDuration = 60
+	// SfuAuthSecret    = "saass_2022_6_4"
+	// SfuAuthDuration  = 60
 	// 文件到期后根据时间进行删除 未做
 	// []string{"Image", "Video", "Audio", "Text", "File"}
 	FileExpirationRemovalDeadline = 60 * 3600 * 24 * time.Second
@@ -35,6 +42,6 @@ func GetConfig(configPath string) {
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
-	log.Info("conf", conf)
+	// log.Info("conf", conf)
 	Config = conf
 }

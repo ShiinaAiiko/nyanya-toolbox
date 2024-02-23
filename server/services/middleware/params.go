@@ -3,7 +3,9 @@ package middleware
 import (
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/protos"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/response"
+	sso "github.com/cherrai/saki-sso-go"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 )
 
 func Params() gin.HandlerFunc {
@@ -32,7 +34,7 @@ func Params() gin.HandlerFunc {
 			default:
 				break
 			}
-			// c.Set("data", data)
+			c.Set("data", data)
 			// log.Info("data", data)
 
 			dataProto := new(protos.RequestType)
@@ -45,13 +47,14 @@ func Params() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+			// log.Info(dataProto)
 			c.Set("data", dataProto.Data)
 			c.Set("token", dataProto.Token)
 			c.Set("deviceId", dataProto.DeviceId)
 
-			// ua := new(sso.UserAgent)
-			// copier.Copy(ua, dataProto.UserAgent)
-			// c.Set("userAgent", ua)
+			ua := new(sso.UserAgent)
+			copier.Copy(ua, dataProto.UserAgent)
+			c.Set("userAgent", ua)
 
 			c.Next()
 			return

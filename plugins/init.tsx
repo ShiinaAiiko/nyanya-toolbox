@@ -7,14 +7,12 @@ import { useSelector, useStore, useDispatch } from 'react-redux'
 import * as nyanyalog from 'nyanyajs-log'
 import { initPublic } from './public'
 import { sakiui, meowApps } from '../config'
-import './i18n/i18n'
+import Script from 'next/script'
+
 nyanyalog.timer()
 
 const Init = () => {
-	const router = useRouter()
 	const dispatch = useDispatch<AppDispatch>()
-	const api = useSelector((state: RootState) => state.api)
-	const store = useStore()
 
 	useEffect(() => {
 		initPublic()
@@ -24,14 +22,23 @@ const Init = () => {
 		init()
 	}, [])
 
+	console.log('413213213')
+
 	return (
 		<>
 			<Head>
-				<link rel='icon' href='./favicon.ico' />
-				<script noModule src={sakiui.jsurl}></script>
-				<script type='module' src={sakiui.esmjsurl}></script>
-				<script noModule src={meowApps.jsurl}></script>
-				<script type='module' src={meowApps.esmjsurl}></script>
+				<link rel='icon' href='/favicon.ico' />
+
+				<meta httpEquiv='X-UA-Compatible' content='IE=edge'></meta>
+				<meta
+					name='viewport'
+					content='width=device-width, initial-scale=1.0'
+				></meta>
+
+				<script noModule src={sakiui.jsurl} async></script>
+				<script type='module' src={sakiui.esmjsurl} async></script>
+				<script noModule src={meowApps.jsurl} async></script>
+				<script type='module' src={meowApps.esmjsurl} async></script>
 			</Head>
 		</>
 	)

@@ -2,12 +2,13 @@ syntax = "proto3";
 
 option go_package = "./;protos";
 package base;
+import "user.proto";
 
 message RequestType {
   string data = 1;
   string token = 2;
   string deviceId = 3;
-  // user.UserAgent userAgent = 4;
+  user.UserAgent userAgent = 4;
 }
 
 message ResponseType {

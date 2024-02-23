@@ -35,9 +35,28 @@ declare global {
 			'meow-apps-dropdown': any
 			'saki-base-style': any
 			'saki-title': any
+			'saki-chat-layout-side-navigator': any
+			'saki-chat-layout-side-navigator-menu-item': any
+			'saki-chat-layout-bottom-navigator': any
+			'saki-chat-layout': any
+			'saki-chat-layout-bottom-navigator-item': any
+			'saki-icon': any
+			'saki-chat-message-container': any
+			'saki-chat-message-header': any
+			'saki-row': any
+			'saki-col': any
+			'saki-chat-bubble': any
+			'saki-chat-bubble-file': any
+			'saki-chat-select': any
+			'saki-scroll-loading': any
+			'saki-chat-reply': any
+			'saki-chat-edit': any
+			'saki-chat-bubble-reply': any
+			'saki-images': any
 		}
 	}
 	namespace Window {
 		electron: any
+		MediaStream: any
 	}
 }

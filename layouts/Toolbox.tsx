@@ -18,15 +18,59 @@ import { userAgent, CipherSignature, NyaNyaWasm } from '@nyanyajs/utils'
 import debounce from '@nyanyajs/utils/dist/debounce'
 import * as nyanyalog from 'nyanyajs-log'
 import HeaderComponent from '../components/Header'
+import SakiSSOLoginComponent from '../components/SakiSSOLogin'
+import {
+	defaultLanguage,
+	detectionLanguage,
+	changeLanguage,
+	resources,
+	languages,
+} from '../plugins/i18n/i18n'
+import {
+	SakiBaseStyle,
+	SakiColor,
+	SakiInit,
+	SakiInitLanguage,
+	SakiTemplateFooter,
+} from '../components/saki-ui-react/components'
+import { Query } from '../plugins/methods'
+import { storage } from '../store/storage'
 // import parserFunc from 'ua-parser-js'
 
-const ToolboxLayout = ({ children }: propsType): JSX.Element => {
+const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 	const { t, i18n } = useTranslation()
+
+	const { lang } = pageProps
+
+	if (pageProps && process.env.OUTPUT === 'export') {
+		const lang =
+			pageProps?.router?.asPath?.split('/')?.[1] ||
+			pageProps?.lang ||
+			(typeof window === 'undefined' ? defaultLanguage : detectionLanguage())
+		// isInPwa()
+
+		// console.log(
+		// 	'isInPwa',
+		// 	isInPwa(),
+		// 	detectionLanguage() as any,
+		// )
+		pageProps && i18n.language !== lang && changeLanguage(lang)
+	}
+	console.log('lang', lang)
+
+	useEffect(() => {
+		const l = lang || 'system'
+
+		l && dispatch(methods.config.setLanguage(l))
+	}, [lang])
+
 	const [mounted, setMounted] = useState(false)
 	// console.log('Index Layout')
 
 	// const cccc = useSelector((state: RootState) => state.)
 	const dispatch = useDispatch<AppDispatch>()
+	const router = useRouter()
+	const config = useSelector((state: RootState) => state.config)
 
 	const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
 
@@ -34,6 +78,14 @@ const ToolboxLayout = ({ children }: propsType): JSX.Element => {
 		setMounted(true)
 		initNyaNyaWasm()
 	}, [])
+
+	useEffect(() => {
+		if (config.ssoAccount) {
+			dispatch(methods.user.initSSOClient())
+			dispatch(methods.user.initUser()).unwrap()
+		}
+	}, [config.ssoAccount])
+
 	const initNyaNyaWasm = async () => {
 		NyaNyaWasm.setWasmPath('./nyanyajs-utils-wasm.wasm')
 		NyaNyaWasm.setCoreJsPath('./wasm_exec.js')
@@ -59,24 +111,126 @@ const ToolboxLayout = ({ children }: propsType): JSX.Element => {
 		// 	})
 		// }
 	}
+	let basePathname = router.pathname.replace('/[lang]', '')
 	return (
 		<>
 			<Head>
-				<meta httpEquiv='X-UA-Compatible' content='IE=edge'></meta>
 				<meta
-					name='viewport'
-					content='width=device-width, initial-scale=1.0'
-				></meta>
+					name='description'
+					content={t('pageDescription', {
+						ns: 'killerSudokuPage',
+					})}
+				/>
+				<meta
+					name='keywords'
+					content='Sudoku,Killer Sudoku,数独,杀手数独,數獨,殺手數獨,ナンプレ,キラーナンプレ'
+				/>
 			</Head>
 			<div className='tool-box-layout'>
 				<>
-					{mounted ? <saki-base-style></saki-base-style> : ''}
+					{mounted ? (
+						<>
+							<SakiInit onMounted={() => {}}></SakiInit>
+							<SakiInitLanguage
+								language={config.language}
+								lang={config.lang}
+								defalutLanguage={config.defaultLanguage}
+								ref={(e) => {
+									e?.initLanguage?.(config.languages, resources as any)
+								}}
+							></SakiInitLanguage>
+							{/* <SakiColor
+								// appearance={config.appearance}
+								defaultColor={'#f29cb2'}
+								defaultHoverColor={'#f185a0'}
+								defaultActiveColor={'#ce5d79'}
+								defaultBorderColor={'#f1f1f1'}
+							></SakiColor> */}
+							<SakiBaseStyle></SakiBaseStyle>
+							{config.ssoAccount ? <SakiSSOLoginComponent /> : ''}
+							<HeaderComponent visible={true} fixed={false}></HeaderComponent>
+						</>
+					) : (
+						''
+					)}
 
-					<HeaderComponent></HeaderComponent>
-					<div className={'tb-main '}>{children}</div>
+					<div className={'tb-main '}>
+						<div className='tb-main-wrap'>
+							{children}
+
+							{mounted ? (
+								<SakiTemplateFooter
+									onChangeLanguage={async (e) => {
+										// router.locale = e.detail
+										Object.keys(router.query).forEach((k) => {
+											// console.log(k, basePathname.indexOf(`[${k}]`))
+											const i = basePathname.indexOf(`[${k}]`)
+											if (i >= 0) {
+												basePathname = basePathname.replace(
+													`[${k}]`,
+													String(router.query[k])
+												)
+
+												delete router.query[k]
+											}
+										})
+										// console.log('basePathname', basePathname)
+										const pathname = Query(
+											(e.detail === 'system' ? '' : '/' + e.detail) +
+												basePathname,
+											{
+												...router.query,
+												lang: '',
+											}
+										)
+										console.log('pathname', router, pathname)
+										router.replace(pathname)
+									}}
+									onChangeAppearance={(e) => {
+										console.log(e)
+										// dispatch(configSlice.actions.setAppearance(e.detail.appearance))
+									}}
+									appearance={''}
+									app-title={t('appTitle', {
+										ns: 'common',
+									})}
+									github
+									github-link='https://github.com/ShiinaAiiko/nyanya-toolbox'
+									github-text='Github'
+									blog
+								></SakiTemplateFooter>
+							) : (
+								''
+							)}
+						</div>
+
+						<div style={{ display: 'none' }}>
+							{languages.map((v) => {
+								return (
+									<a key={v} href={'/' + v + basePathname}>
+										{t(v, {
+											ns: 'languages',
+										})}
+									</a>
+								)
+							})}
+						</div>
+					</div>
 				</>
 			</div>
 		</>
+	)
+}
+
+export function getLayout(page: any, pageProps: any) {
+	return (
+		<ToolboxLayout
+			pageProps={{
+				...pageProps,
+			}}
+		>
+			{page}
+		</ToolboxLayout>
 	)
 }
 

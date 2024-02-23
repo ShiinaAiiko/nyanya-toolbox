@@ -1,5 +1,14 @@
 .tool-box-layout {
-	
+	.tb-main {
+		width: 100%;
+		.tb-main-wrap {
+			width: calc(100% - 20px);
+			min-width: 200px;
+			max-width: 700px;
+			margin: 10px auto;
+			overflow: hidden;
+		}
+	}
 }
 
 .tool-box-layout-menu-list {

@@ -12,7 +12,7 @@ func (r *Routerv1) InitNet() {
 		BaseUrl: r.BaseUrl,
 	}
 	r.Group.GET(
-		role.SetRole("/ip/details", &middleware.RoleOptionsType{
+		role.SetRole(apiUrls["ipDetails"], &middleware.RoleOptionsType{
 			CheckApp:           false,
 			Authorize:          false,
 			RequestEncryption:  false,
@@ -21,7 +21,7 @@ func (r *Routerv1) InitNet() {
 		}),
 		ic.IpDetails)
 	r.Group.GET(
-		role.SetRole("/url/toIp", &middleware.RoleOptionsType{
+		role.SetRole(apiUrls["urlToIp"], &middleware.RoleOptionsType{
 			CheckApp:           false,
 			Authorize:          false,
 			RequestEncryption:  false,

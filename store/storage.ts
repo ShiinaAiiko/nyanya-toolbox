@@ -7,6 +7,7 @@ import {
 import md5 from 'blueimp-md5'
 import store, { ActionParams } from '.'
 import { WebStorage } from '@nyanyajs/utils'
+import { RoomInfo } from './fileTransfer'
 // import { User } from './user'
 // import { WebStorage } from '@nyanyajs/utils'
 
@@ -14,6 +15,10 @@ export let storage = {
 	global: new WebStorage({
 		storage: 'IndexedDB',
 		baseLabel: 'global',
+	}),
+	fileTransferRoom: new WebStorage<string, RoomInfo>({
+		storage: 'IndexedDB',
+		baseLabel: 'fileTransferRoom',
 	}),
 	// token: new WebStorage<string, string>({
 	// 	storage: 'IndexedDB',

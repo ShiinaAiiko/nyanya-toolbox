@@ -15,6 +15,11 @@
 		"jsx": "preserve",
 		"incremental": true
 	},
-	"include": ["next-env.d.ts","global.d.ts", "**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules", "**/*.js"]
+	"include": ["next-env.d.ts", "global.d.ts", "**/*.ts", "**/*.tsx"],
+	"exclude": [
+		"node_modules",
+		"**/*.js",
+		"components/saki-ui-react/**/*",
+		"components/saki-ui-react/components/react-component-lib/createOverlayComponent.tsx"
+	]
 }

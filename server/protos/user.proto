@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package user;
+
+message UserAgent {
+  message Browser {
+    string name = 1;
+    string major = 2;
+    string version = 3;
+  }
+  message Device {
+    string model = 1;
+    string type = 2;
+    string vendor = 3;
+  }
+  message OS {
+    string name = 1;
+    string version = 2;
+  }
+  Browser browser = 1;
+  Device device = 2;
+  OS os = 3;
+  string deviceName = 4;
+}

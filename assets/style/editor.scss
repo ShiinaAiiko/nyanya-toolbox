@@ -1,0 +1,14 @@
+.saki-richtext-content {
+	p {
+		// display: inline-flex;
+		// align-items: center;
+    word-break: break-all
+	}
+	.editor-emoji {
+		width: 28px;
+		height: 28px;
+		display: inline-block;
+		margin: 0 2px;
+    transform: translateY(6px);
+	}
+}

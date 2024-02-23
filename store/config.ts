@@ -5,15 +5,110 @@ import {
 	configureStore,
 } from '@reduxjs/toolkit'
 import { getI18n } from 'react-i18next'
-import store from '.'
+import store, { ActionParams, methods } from '.'
 
 import { Languages, languages, defaultLanguage } from '../plugins/i18n/i18n'
 import { storage } from './storage'
+import { NRequest } from '@nyanyajs/utils'
+import moment from 'moment'
+import 'moment/locale/zh-cn'
+import 'moment/locale/zh-tw'
+import axios from 'axios'
+import { appListUrl } from '../config'
+
+export type DeviceType = 'Mobile' | 'Pad' | 'PC'
+export type LanguageType = Languages | 'system'
+export let deviceType: DeviceType | undefined
+
+export const R = new NRequest()
+
+export const language: LanguageType = defaultLanguage as any
+export const configSlice = createSlice({
+	name: 'config',
+	initialState: {
+		language: language,
+		defaultLanguage: defaultLanguage,
+		lang: '',
+		languages: ['system', ...languages],
+		deviceType,
+		deviceWH: {
+			w: 0,
+			h: 0,
+		},
+		appList: [] as {
+			title: {
+				[lang: string]: string
+			}
+			url: string
+		}[],
+		ssoAccount: false,
+	},
+	reducers: {
+		setAppList: (
+			state,
+			params: {
+				payload: (typeof state)['appList']
+				type: string
+			}
+		) => {
+			state.appList = params.payload
+		},
+		setLanguage: (
+			state,
+			params: {
+				payload: LanguageType
+				type: string
+			}
+		) => {
+			state.language = params.payload
+		},
+		setSsoAccount: (
+			state,
+			params: {
+				payload: boolean
+				type: string
+			}
+		) => {
+			state.ssoAccount = params.payload
+		},
+		setLang: (
+			state,
+			params: {
+				payload: string
+				type: string
+			}
+		) => {
+			state.lang = params.payload
+			moment.locale(state.lang)
+		},
+		setDeviceType: (state, params: ActionParams<DeviceType>) => {
+			state.deviceType = params.payload
+		},
+		setDeviceWH: (state, params: ActionParams<void>) => {
+			state.deviceWH = {
+				w: window.innerWidth,
+				h: window.innerHeight,
+			}
+		},
+	},
+})
 
 export const configMethods = {
 	init: createAsyncThunk('config/init', async (_, thunkAPI) => {
-		const language = (await storage.global.get('language')) || 'system'
-		thunkAPI.dispatch(configMethods.setLanguage(language))
+		// const language = (await storage.global.get('language')) || 'system'
+		// thunkAPI.dispatch(configMethods.setLanguage(language))
+
+		window.addEventListener('resize', () => {
+			thunkAPI.dispatch(configMethods.getDeviceType())
+		})
+
+		thunkAPI.dispatch(configMethods.getDeviceType())
+		const res = await axios({
+			method: 'GET',
+			url: appListUrl,
+		})
+		res?.data?.appList &&
+			thunkAPI.dispatch(configSlice.actions.setAppList(res.data.appList))
 	}),
 	setLanguage: createAsyncThunk(
 		'config/setLanguage',
@@ -48,34 +143,18 @@ export const configMethods = {
 			await storage.global.set('language', language)
 		}
 	),
+	getDeviceType: createAsyncThunk('config/getDeviceType', (_, thunkAPI) => {
+		console.log('getDeviceType', document.body.offsetWidth)
+
+		thunkAPI.dispatch(configSlice.actions.setDeviceWH())
+		if (document.body.offsetWidth <= 768) {
+			thunkAPI.dispatch(configSlice.actions.setDeviceType('Mobile'))
+			return
+		}
+		if (document.body.offsetWidth <= 1024 && document.body.offsetWidth > 768) {
+			thunkAPI.dispatch(configSlice.actions.setDeviceType('Pad'))
+			return
+		}
+		thunkAPI.dispatch(configSlice.actions.setDeviceType('PC'))
+	}),
 }
-export type LanguageType = Languages | 'system'
-export const language: LanguageType = defaultLanguage as any
-export const configSlice = createSlice({
-	name: 'config',
-	initialState: {
-		language: language,
-		lang: '',
-		languages: ['system', ...languages],
-	},
-	reducers: {
-		setLanguage: (
-			state,
-			params: {
-				payload: LanguageType
-				type: string
-			}
-		) => {
-			state.language = params.payload
-		},
-		setLang: (
-			state,
-			params: {
-				payload: string
-				type: string
-			}
-		) => {
-			state.lang = params.payload
-		},
-	},
-})

@@ -2,10 +2,13 @@ package typings
 
 type Config struct {
 	Server  Server
+	SSO     Sso
 	BaseUrl string
 	Redis   Redis
 	// StaticPathDomain string
 	Mongodb Mongodb
+	Sfu     Sfu
+	Turn    Turn
 }
 
 type Server struct {
@@ -16,6 +19,11 @@ type Server struct {
 	// mode: release debug
 	Mode string
 }
+type Sso struct {
+	AppId  string
+	AppKey string
+	Host   string
+}
 type Redis struct {
 	Addr     string
 	Password string
@@ -25,5 +33,20 @@ type Mongodb struct {
 	Currentdb struct {
 		Name string
 		Uri  string
+	}
+}
+
+type Sfu struct {
+	Auth struct {
+		Secret   string
+		Duration int64
+	}
+}
+
+type Turn struct {
+	Address string
+	Auth    struct {
+		Secret   string
+		Duration int64
 	}
 }

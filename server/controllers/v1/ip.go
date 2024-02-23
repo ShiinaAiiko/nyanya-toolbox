@@ -4,20 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/response"
-	"github.com/cherrai/nyanyago-utils/nlog"
 	"github.com/cherrai/nyanyago-utils/validation"
-	"github.com/go-resty/resty/v2"
 
 	// "github.com/cherrai/nyanyago-utils/validation"
 	"github.com/gin-gonic/gin"
-)
-
-var (
-	log         = nlog.New()
-	restyClient = resty.New()
 )
 
 type IpController struct {
@@ -99,12 +93,18 @@ func (ic *IpController) IpDetails(c *gin.Context) {
 		if !ic.HasLocalIPAddr(reqIP) {
 			data.Ip = reqIP
 		} else {
-			res.Errors(errors.New("Local IP cannot get IP details."))
+			res.Errors(errors.New("local IP cannot get IP details"))
 			res.Code = 10001
 			res.Call(c)
 			return
 		}
 	}
+	domain := regexp.MustCompile(`((http://)|(https://))(.*?)/`).
+		FindStringSubmatch(data.Ip)
+	if len(domain) > 0 {
+		data.Ip = domain[len(domain)-1]
+	}
+
 	ipv4, ipv6, err := ic.GetIp(data.Ip)
 	if err != nil {
 		log.Error(err)
@@ -121,6 +121,10 @@ func (ic *IpController) IpDetails(c *gin.Context) {
 		"http://ip-api.com/json/" + ipv4,
 	)
 	if err != nil {
+		log.Error(err)
+		res.Errors(err)
+		res.Code = 10001
+		res.Call(c)
 		return
 	}
 	var respMap map[string]interface{}
@@ -128,6 +132,11 @@ func (ic *IpController) IpDetails(c *gin.Context) {
 	// log.Info(s.options.BaseUrl + s.apiUrl + "/chunkupload/create")
 	// log.Info(respMap, string(resp.Body()), options, err)
 	if err != nil {
+		// log.Info(string(resp.Body()))
+		log.Error(err)
+		res.Errors(err)
+		res.Code = 10001
+		res.Call(c)
 		return
 	}
 	// log.Info("data", respMap)

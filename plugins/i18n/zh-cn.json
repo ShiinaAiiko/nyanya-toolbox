@@ -3,7 +3,11 @@
 		"appTitle": "NyaNya 工具箱",
 		"logoTitle": "帐号",
 		"copy": "复制",
-		"aiikoBlog": "爱喵博客"
+		"aiikoBlog": "爱喵博客",
+
+		"photo": "照片",
+		"video": "视频",
+		"file": "文件"
 	},
 	"languages": {
 		"en-US": "英文",
@@ -25,6 +29,52 @@
 		"length": "长度",
 		"numbers": "数字",
 		"symbols": "符号"
+	},
+	"moveCarQRCPage": {
+		"pageTitle": "挪车二维码",
+		"subtitle": "免费获取、随时修改、永久使用，将二维码贴在车窗上，即可通过扫描该二维码可以联系到车主。",
+
+		"indexInputPh": "输入手机号以生成二维码",
+		"generateQRC": "创建挪车二维码",
+		"history": "历史",
+
+		"id": "ID",
+		"typePhone": "手机号",
+		"typeCarNumber": "车牌号",
+		"typeSlogan": "标语",
+		"colorTheme": "主题色",
+		"default": "默认",
+		"green": "绿色",
+		"blue": "蓝色",
+		"updateMoveCarQRC": "更新挪车二维码",
+		"createMoveCarQRC": "创建挪车二维码",
+
+		"callCarOwner": "拨打车主电话",
+		"callCarOwnerContent": "您确定要给车主打电话吗？",
+		"getFreeQRC": "免费获取二维码",
+
+		"openUrl": "查看详情页",
+		"showAvatar": "显示头像",
+		"downloadQRC": "下载二维码",
+
+		"deleteThisMCQRC": "删除此挪车二维码",
+		"deleteThisMCQRCContent": "确定要删除此挪车二维码吗？",
+
+		"createQRCAfterLogin": "您还未登录，登录后方可创建挪车二维码",
+
+		"usageDays": "此二维码已使用{{day}}天了",
+
+		"useAvatar": "使用头像",
+		"uploadImages": "上传图片"
+	},
+	"fileTransferPage": {
+		"pageTitle": "Web文件传输",
+		"subtitle": "",
+		"connectedDevicesDesc": "已连接了{{count}}个设备",
+		"host": "主机",
+		"prflx": "局域网",
+		"srflx": "P2P",
+		"replay": "网络"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "头像角标生成器",
@@ -68,6 +118,14 @@
 		"lat": "纬度",
 		"timezone": "时区"
 	},
+	"navigatePage": {
+		"pageTitle": "导航测速喵",
+		"subtitle": ""
+	},
+	"tripPage": {
+		"pageTitle": "行程路线轨迹",
+		"subtitle": ""
+	},
 	"prompt": {
 		"next": "下一步",
 		"back": "返回",
@@ -82,6 +140,35 @@
 		"ipEmptyTip": "IP或者域名不能为空",
 		"querySuccessfully": "查询成功！",
 		"queryFailed": "查询失败，请重新输入IP或域名",
-    "connectMapFailed":"无法连接地图，请检查网络。"
+		"connectMapFailed": "无法连接地图，请检查网络。",
+
+		"pin": "收藏",
+		"addSticker": "添加到自定义表情",
+		"select": "选择",
+		"reply": "回复",
+		"forward": "转发",
+		"edit": "编辑",
+
+		"disconnect": "断开连接",
+
+		"networkSpeed": "传输速率 {{speed}}",
+
+		"update": "更新",
+		"create": "创建",
+		"call": "立即拨打",
+
+		"login": "登录",
+		"logout": "登出",
+		"logoutContent": "您确定要退出此账户吗？",
+
+		"avatarAddedSuccessfully": "头像添加成功！",
+		"deleteSuccessfully": "删除成功！",
+		"createSuccessfully": "创建成功！",
+		"updateSuccessfully": "更新成功！",
+		"downloadSuccessfully": "下载成功！",
+		"logoutSuccessfully": "登出成功!",
+
+		"cannotBeEmpty": "不能为空",
+		"phoneRuleErr": "手机号错误，请重新输入"
 	}
 }

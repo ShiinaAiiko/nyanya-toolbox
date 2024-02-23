@@ -10,8 +10,10 @@ export const layoutSlice = createSlice({
 	name: 'layout',
 	initialState: {
 		header: false,
-    footer: true,
-    headerLogoText:"",
+		footer: true,
+		bottomNavigator: true,
+		openLoginModal: false,
+		headerLogoText: '',
 	},
 	reducers: {
 		setLayoutHeader: (
@@ -22,6 +24,15 @@ export const layoutSlice = createSlice({
 			}
 		) => {
 			state.header = params.payload
+		},
+		setOpenLoginModal: (
+			state,
+			params: {
+				payload: boolean
+				type: string
+			}
+		) => {
+			state.openLoginModal = params.payload
 		},
 		setLayoutHeaderLogoText: (
 			state,
@@ -40,6 +51,15 @@ export const layoutSlice = createSlice({
 			}
 		) => {
 			state.footer = params.payload
+		},
+		setBottomNavigator: (
+			state,
+			params: {
+				payload: boolean
+				type: string
+			}
+		) => {
+			state.bottomNavigator = params.payload
 		},
 	},
 })

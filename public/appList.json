@@ -39,6 +39,30 @@
 				"en-US": "Search IP or Domain Name Details"
 			},
 			"url": "http://tools.aiiko.club/ip"
+		},
+		{
+			"title": {
+				"zh-CN": "Web文件传输",
+				"zh-TW": "Web檔案傳輸",
+				"en-US": "Web File Transfer"
+			},
+			"url": "http://tools.aiiko.club/fileTransfer"
+		},
+		{
+			"title": {
+				"zh-CN": "行程路线轨迹",
+				"zh-TW": "行程路線軌跡",
+				"en-US": "Trip route track"
+			},
+			"url": "http://trip.aiiko.club"
+		},
+		{
+			"title": {
+				"zh-CN": "挪车二维码",
+				"zh-TW": "挪車二維碼",
+				"en-US": "Move Car QR Code"
+			},
+			"url": "http://tools.aiiko.club/moveCarQRC"
 		}
 	]
 }

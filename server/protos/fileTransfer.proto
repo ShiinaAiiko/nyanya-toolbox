@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package fileTransfer;
+import "user.proto";
+
+// socketio
+message DeviceItem {
+  string roomId = 1;
+  string deviceId = 2;
+  user.UserAgent userAgent = 3;
+  bool creator = 4;
+}
+message JoinFTRoom {
+  // roomId===shareCode
+  message Request { string roomId = 1; }
+  message Response {
+    DeviceItem currentDevice = 1;
+    repeated DeviceItem connectedDevices = 2;
+  }
+}
+
+message LeaveFTRoom {
+  message Request { string roomId = 1; }
+  message Response {
+    DeviceItem currentDevice = 1;
+    repeated DeviceItem connectedDevices = 2;
+  }
+}
+message IncreaseFTRoomTimeLimit {
+  // roomId===shareCode
+  message Request { string roomId = 1; }
+  message Response {}
+}
+
+message TurnServer {
+  repeated string urls = 1;
+  string username = 2;
+  string credential = 3;
+}
+
+// http
+message GetShareCode {
+  message Request {
+    // 暂时不需要，直接用P2P同步即可
+    string name = 1;
+    string deviceId = 2;
+  }
+  message Response {
+    string shareCode = 1;
+    string token = 2;
+    // string deviceId = 3;
+    string sfuUser = 4;
+    string sfuPassword = 5;
+    TurnServer turnServer = 6;
+  }
+}
+
+message ReconnectFTRoom {
+  message Request {
+    string shareCode = 1;
+    string deviceId = 2;
+  }
+  message Response {
+    string token = 2;
+    // string deviceId = 3;
+    string sfuUser = 4;
+    string sfuPassword = 5;
+    TurnServer turnServer = 6;
+  }
+}
+
+message ConnectFTRoom {
+  message Request {
+    string shareCode = 1;
+    string deviceId = 2;
+  }
+  message Response {
+    string token = 2;
+    // string deviceId = 3;
+    string sfuUser = 4;
+    string sfuPassword = 5;
+    TurnServer turnServer = 6;
+  }
+}
+message MessagesFileInfo {
+  string name = 1;
+  int64 size = 2;
+  string type = 3;
+  string fileSuffix = 4;
+  int64 lastModified = 5;
+  string hash = 6;
+  int64 chunkSize = 7;
+}
+
+message MessagesAudio {
+  int64 time = 1;
+  string url = 2;
+  MessagesFileInfo fileInfo = 3;
+}
+message MessagesVideo {
+  int64 time = 1;
+  string url = 2;
+  int64 width = 3;
+  int64 height = 4;
+  string type = 5;
+  MessagesFileInfo fileInfo = 6;
+}
+message MessagesImage {
+  string url = 1;
+  int64 width = 2;
+  int64 height = 3;
+  // 'image/gif' | 'image/jpeg'
+  string type = 4;
+  MessagesFileInfo fileInfo = 5;
+}
+message MessagesFile {
+  string url = 1;
+  // 'image/gif' | 'image/jpeg'
+  string type = 4;
+  MessagesFileInfo fileInfo = 5;
+}
+
+// message MessagesCall {
+//   // Status:
+//   // 1 connected successfully
+//   // 0 calling
+//   // -1 Missing call
+//   // -2 Other devices calling
+//   // -3 Invite to join the call
+//   int64 status = 1;
+//   string roomId = 2;
+//   repeated MessagesCallParticipants participants = 3;
+//   // Type: Audio Video ScreenShare
+//   string type = 4;
+//   int64 time = 5;
+// }
+
+// message MessagesAtUsers { string uid = 1; }
+// message MessagesReadUsers { string uid = 1; }
+// message MessagesForwardMessages { string id = 1; }
+
+message FileTransferMessageItem {
+  string id = 1;
+  // RoomId md5(appId+groupId/appId+authorId+friendId)
+  string roomId = 2;
+  // = deviceId
+  string authorId = 3;
+  string deviceId = 18;
+  // Image/Video/File/Audio
+  string type = 20;
+  string replyId = 4;
+  FileTransferMessageItem replyMessage = 16;
+  // repeated MessagesAtUsers atUsers = 5;
+  // repeated MessagesReadUsers readUsers = 6;
+  // 转发一堆聊天记录、（预留）
+  // repeated MessagesForwardMessages forwardMessages = 7;
+  string message = 8;
+  MessagesAudio audio = 9;
+  MessagesVideo video = 10;
+  MessagesImage image = 11;
+  MessagesFile file = 19;
+  // MessagesCall call = 12;
+  int64 createTime = 13;
+  // 预留限时消息
+  int64 deadlineTime = 14;
+  int64 recallTime = 15;
+  int64 editTime = 17;
+}

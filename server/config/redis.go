@@ -15,4 +15,20 @@ var RedisCacheKeys = map[string]*nredis.RedisCacheKeysType{
 		Key:        "GetShortUrl",
 		Expiration: 5 * 60 * time.Second,
 	},
+	"FTShareCode": {
+		Key:        "FTShareCode",
+		Expiration: 5 * 60 * time.Second,
+	},
+	"SocketToken": {
+		Key:        "SocketToken",
+		Expiration: 5 * 60 * time.Second,
+	},
+	"GetMoveCarQRC": {
+		Key:        "GetMoveCarQRC",
+		Expiration: 5 * 60 * time.Second,
+	},
+	"GetMoveCarQRCList": {
+		Key:        "GetMoveCarQRCList",
+		Expiration: 5 * 60 * time.Second,
+	},
 }

@@ -1,0 +1,52 @@
+FROM golang:1.18-alpine as BUILD_IMAGE
+
+WORKDIR /app
+
+ENV GO111MODULE=on
+ENV GOPROXY=https://goproxy.cn,direct
+# ENV GOPROXY=https://mirrors.aliyun.com/goproxy/
+ENV ENV=production
+ENV DOCKER_LOCALHOST=host.docker.internal
+ENV GOPRIVATE=github.com/MetahorizonLab,github.com/cherrai
+
+# install git, openssh
+RUN \
+  sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories &&\
+  # apk add git --repository http://mirrors.aliyun.com/alpine/v3.14/main/ && \
+  apk update && \
+  apk add git && \
+  apk add bash && \
+  apk add openssh 
+
+COPY  .ssh/ \
+  /root/.ssh/
+
+COPY  .gitconfig \
+  /root/
+
+COPY go.mod \
+  go.sum \
+  /app/
+
+RUN \
+  chmod -R 600 /root/.ssh/id_rsa && \ 
+  git config --global url."git@github.com:".insteadOf "https://github.com/" && \
+  # go mod tidy
+  go mod download
+
+COPY . . 
+
+RUN \
+  go build -o tools-sfu ./cmd/signal/json-rpc/main.go
+
+FROM alpine:3.10
+
+WORKDIR /
+
+COPY --from=BUILD_IMAGE \
+  /app/tools-sfu \
+  /
+
+EXPOSE 23204 23205 3479 3479/udp
+
+CMD ["./tools-sfu","-c","config.json"]

@@ -1,0 +1,58 @@
+.move-car-phone-qrc-detail-page {
+	display: flex;
+	justify-content: flex-start;
+	flex-direction: column;
+	align-items: center;
+
+	.mcp-main {
+		padding: 20px;
+		width: 100%;
+		min-width: 200px;
+		max-width: 700px;
+		.mcp-m-title {
+			margin: 10px 0;
+			font-size: 26px;
+			font-weight: 700;
+			text-align: center;
+		}
+		.mcp-m-subtitle {
+			font-size: 16px;
+			color: #222;
+			text-align: center;
+		}
+		.mcp-m-buttons {
+			margin: 20px 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: center;
+
+			saki-button {
+				width: 100%;
+				max-width: 240px;
+				// background-color: #037159;
+				.button-content {
+					width: 100%;
+					display: flex;
+					justify-content: space-between;
+					saki-icon {
+						width: 50px;
+					}
+					.button-text {
+						width: calc(100% - 50px);
+						text-align: center;
+						padding-right: 50px;
+					}
+				}
+			}
+		}
+		.mcp-m-none {
+			font-size: 16px;
+			text-align: center;
+      padding: 100px 0;
+			span {
+				color: #888;
+			}
+		}
+	}
+}

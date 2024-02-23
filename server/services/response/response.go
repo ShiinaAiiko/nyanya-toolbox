@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	conf "github.com/ShiinaAiiko/nyanya-toolbox/server/config"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/protos"
 	"github.com/cherrai/nyanyago-utils/cipher"
 	"github.com/cherrai/nyanyago-utils/nrand"
@@ -14,9 +15,9 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
-// var (
-// 	log = nlog.New()
-// )
+var (
+	log = conf.Log
+)
 
 type ResponseProtobufType struct {
 	protos.ResponseType
@@ -80,8 +81,10 @@ func (res *ResponseProtobufType) CallSocketIo(c *nsocketio.EventInstance) {
 	r.RequestId = res.RequestId
 	r.RequestTime = res.RequestTime
 	r.Platform = res.Platform
-	// fmt.Println("r.GetResponse()", r.GetResponse())
 	c.Set("protobuf", r.GetResponse())
+}
+func (res *ResponseProtobufType) EmitProto(c *nsocketio.EventInstance) {
+	c.Set("protobuf", res.ResponseProtoEncode())
 }
 func (res *ResponseProtobufType) ResponseProtoEncode() string {
 
@@ -181,6 +184,10 @@ func (res *ResponseType) GetResponse() *ResponseType {
 
 	switch res.Code {
 	case 200:
+
+	case 10017:
+		res.Msg = "Delete failed."
+		res.CnMsg = "删除失败"
 
 	case 10016:
 		res.Msg = "Create failed."

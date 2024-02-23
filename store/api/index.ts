@@ -12,6 +12,33 @@ export const apiSlice = createSlice({
 				baseUrl: '/api/v1',
 				urlToIp: '/url/toIp',
 				ipDetails: '/ip/details',
+				getFTShareCode: '/fileTransfer/shareCode/get',
+				connectFTRoom: '/fileTransfer/room/connect',
+				reconnectFTRoom: '/fileTransfer/room/reconnect',
+
+				// MoveCarQRC
+				createMoveCarQRC: '/moveCarQRC/create',
+				getMoveCarQRCList: '/moveCarQRC/list/get',
+				getMoveCarQRC: '/moveCarQRC/get',
+				updateMoveCarQRC: '/moveCarQRC/update',
+				deleteMoveCarQRC: '/moveCarQRC/delete',
+			},
+		},
+		nsocketio: {
+			namespace: {
+				Base: '/',
+				FileTransfer: '/fileTransfer',
+			},
+			routerEventName: {
+				JoinedFTRoom: 'JoinedFTRoom',
+				ExitedFTRoom: 'ExitedFTRoom',
+				Error: 'Error',
+			},
+			requestEventName: {
+				JoinFTRoom: 'JoinFTRoom',
+				LeaveFTRoom: 'LeaveFTRoom',
+				IncreaseFTRoomTimeLimit: 'IncreaseFTRoomTimeLimit',
+				Data: 'Data',
 			},
 		},
 	},

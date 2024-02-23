@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { Router } from 'next/router'
 import '../layouts/Toolbox.scss'
-import './randomPassword.scss'
-import './windowsPathToPosixPath.scss'
-import './avatarBadgeGenerator.scss'
-import './ip.scss'
-import '../components/Footer.scss'
+import './[lang]/randomPassword.scss'
+import './[lang]/windowsPathToPosixPath.scss'
+import './[lang]/avatarBadgeGenerator.scss'
+import './[lang]/moveCarQRC.scss'
+import './[lang]/moveCarQRC/detail.scss'
+import './[lang]/fileTransfer.scss'
+import './[lang]/ip.scss'
 import '../components/Header.scss'
-import '../components/MenuDropdown.scss'
+import '../components/SakiSSOLogin.scss'
 
 import { useRouter } from 'next/router'
 import { Provider } from 'react-redux'
@@ -27,16 +29,25 @@ nyanyalog.config({
 	},
 })
 // import '../assets/style/base.scss'
-
-export default function App({ Component, pageProps }: any) {
+function App({ Component, pageProps }: any) {
 	const getLayout = Component.getLayout || ((page: any) => page)
 
 	const router = useRouter()
 
+	const ProviderAny = Provider as any
+
 	return (
-		<Provider store={store}>
-			<Init />
-			{getLayout(<Component router={router} {...pageProps} />)}
-		</Provider>
+		<ProviderAny store={store}>
+			<>
+				<Init />
+
+				{getLayout() ? (
+					getLayout(<Component router={router} {...pageProps} />, pageProps)
+				) : (
+					<Component router={router} {...pageProps} />
+				)}
+			</>
+		</ProviderAny>
 	)
 }
+export default App

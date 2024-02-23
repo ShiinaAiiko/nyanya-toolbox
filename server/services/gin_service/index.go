@@ -17,7 +17,7 @@ var Router *gin.Engine
 func Init() {
 	gin.SetMode(conf.Config.Server.Mode)
 
-	Router = gin.New()
+	// Router = gin.New()
 	InitRouter()
 	run()
 }
@@ -39,6 +39,9 @@ func InitRouter() {
 	Router.Use(middleware.RequestTime())
 	// // 处理解密加密
 	// Router.Use(middleware.Encryption())
+	Router.Use(middleware.Authorize())
+	Router.GET("/socket.io/*any", gin.WrapH(conf.SocketIO.Server))
+	Router.POST("/socket.io/*any", gin.WrapH(conf.SocketIO.Server))
 
 	// midArr := [...]gin.HandlerFunc{GinMiddleware("*"), middleware.Authorize()}
 	// fmt.Println(midArr)
