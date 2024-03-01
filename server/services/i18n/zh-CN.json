@@ -1,0 +1,12 @@
+{
+	"common": {
+		"title": "NyaNya 工具箱"
+	},
+	"moveCarQRC": {
+		"title": "挪车二维码",
+		"emailTitle": "挪车提醒",
+		"emailContent1": "有人向您的爱车<<strong>{{carNum}}</strong>>发起了一个挪车提醒。",
+		"emailContent2": "请尽快前往停车所在地点进行挪车，以避免发生意外之事。",
+		"emailContent3": "若非本人爱车，请忽视掉此邮件。"
+	}
+}

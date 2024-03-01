@@ -29,12 +29,13 @@
 
 			saki-button {
 				width: 100%;
-				max-width: 240px;
-				// background-color: #037159;
+				max-width: 270px;
+				// background-color: #f3f2f2;
 				.button-content {
 					width: 100%;
 					display: flex;
 					justify-content: space-between;
+					align-items: center;
 					saki-icon {
 						width: 50px;
 					}
@@ -49,7 +50,7 @@
 		.mcp-m-none {
 			font-size: 16px;
 			text-align: center;
-      padding: 100px 0;
+			padding: 100px 0;
 			span {
 				color: #888;
 			}

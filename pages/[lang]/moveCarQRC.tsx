@@ -56,6 +56,7 @@ import httpApi from '../../plugins/http/api'
 import QRCode from 'qrcode'
 import { protoRoot } from '../../protos'
 import moment from 'moment'
+import html2canvas from 'html2canvas'
 
 const colours = {
 	Default: 'var(--saki-default-color)',
@@ -112,7 +113,9 @@ const EditQRCModal = ({
 	const [slogan, setSlogan] = useState('')
 	const [sloganErr, setSloganErr] = useState('')
 	const [email, setEmail] = useState('')
+	const [emailErr, setEmailErr] = useState('')
 	const [wechat, setWechat] = useState('')
+	const [wechatErr, setWechatErr] = useState('')
 	const [colorTheme, setColorTheme] = useState('var(--saki-default-color)')
 	const [colorThemeType, setColorThemeType] = useState<
 		'Default' | 'Green' | 'Blue'
@@ -207,18 +210,24 @@ const EditQRCModal = ({
 				}
 			></SakiModalHeader>
 			<div className='edit-qrc-modal'>
-				<SakiTitle margin='10px 0 6px 0' level={5} color='default'>
-					{t('id')}
-				</SakiTitle>
-				<div
-					style={{
-						margin: '0 0 10px 0',
-						color: '#666',
-					}}
-					className='eq-id'
-				>
-					{mcqrc?.id}
-				</div>
+				{mcqrc?.id ? (
+					<>
+						<SakiTitle margin='10px 0 6px 0' level={5} color='default'>
+							{t('id')}
+						</SakiTitle>
+						<div
+							style={{
+								margin: '0 0 10px 0',
+								color: '#666',
+							}}
+							className='eq-id'
+						>
+							{mcqrc?.id}
+						</div>
+					</>
+				) : (
+					''
+				)}
 				<SakiInput
 					onChangevalue={(e) => {
 						setPhone(e.detail)
@@ -254,6 +263,32 @@ const EditQRCModal = ({
 					margin='0 0 10px 0'
 					placeholder={t('typeSlogan')}
 					error={sloganErr}
+					type='Text'
+					placeholderAnimation='MoveUp'
+				></SakiInput>
+
+				<SakiInput
+					onChangevalue={(e) => {
+						setEmail(e.detail)
+					}}
+					value={email}
+					height='50px'
+					margin='0 0 10px 0'
+					placeholder={t('typeEmail')}
+					error={emailErr}
+					type='Text'
+					placeholderAnimation='MoveUp'
+				></SakiInput>
+
+				<SakiInput
+					onChangevalue={(e) => {
+						setWechat(e.detail)
+					}}
+					value={wechat}
+					height='50px'
+					margin='0 0 10px 0'
+					placeholder={t('typeWechat')}
+					error={wechatErr}
 					type='Text'
 					placeholderAnimation='MoveUp'
 				></SakiInput>
@@ -406,7 +441,7 @@ const MoveCarPhonePage = () => {
 
 	const [inputPhone, setInputPhone] = useState('')
 	const [phone, setPhone] = useState('none')
-	const [phoneErr, setPhoneErr] = useState('')
+	const [inputPhoneErr, setInputPhoneErr] = useState('')
 	const [url, setUrl] = useState('')
 
 	const [showQRCModal, setShowQRCModal] = useState(false)
@@ -414,6 +449,7 @@ const MoveCarPhonePage = () => {
 
 	const [showUploadAvatarDropdown, setShowUploadAvatarDropdown] =
 		useState(false)
+	const [showTextDropdown, setShowTextDropdown] = useState(false)
 	const [showQRCModal1, setShowQRCModal1] = useState(false)
 
 	const [loadStatus, setLoadStatus] = useState<'loading' | 'noMore' | 'loaded'>(
@@ -429,6 +465,19 @@ const MoveCarPhonePage = () => {
 	const [passwordInclude, setPasswordInclude] = useState<
 		('Number' | 'Character')[]
 	>(['Number'])
+
+	const [avatarCvsOptions, setAvatarCvsOptions] = useState({
+		w: 400,
+		h: 400,
+		textTemplate: '',
+		// font: {
+		// 	text: '',
+		// 	fontSize: 0,
+		// 	fontFamily: '',
+		// 	x: 0,
+		// 	y: 0,
+		// },
+	})
 
 	const router = useRouter()
 
@@ -447,7 +496,11 @@ const MoveCarPhonePage = () => {
 
 	useEffect(() => {
 		if (qrc && showQRCModal) {
-			initCvs()
+			setAvatarCvsOptions({
+				...avatarCvsOptions,
+				textTemplate: '',
+			})
+			initDefaultCvs()
 		}
 		if (!showQRCModal) {
 			setQRC('')
@@ -508,7 +561,16 @@ const MoveCarPhonePage = () => {
 		}
 	}
 
-	const initCvs = () => {
+	const showQRCModalFunc = async (id: string) => {
+		const url = location.origin + location.pathname + '/detail?id=' + id
+		setUrl(url)
+		console.log(url)
+		setQRC(((await generateQR(url)) as any) || '')
+		console.log(qrc)
+		setShowQRCModal(true)
+	}
+
+	const initDefaultCvs = () => {
 		let cvs = avatarCvs.current
 		if (!cvs) return
 
@@ -516,7 +578,7 @@ const MoveCarPhonePage = () => {
 		let w = cvs.offsetWidth
 		let h = cvs.offsetHeight
 		// cvs.width = 400
-		// cvs.height = 400
+		// cvs.height = 500
 
 		let img = document.createElement('img')
 		img.setAttribute('crossOrigin', 'anonymous')
@@ -530,11 +592,14 @@ const MoveCarPhonePage = () => {
 			// drawRoundedRect(ctx, 0, 0, w, h, 14)
 			console.log(w, h)
 			console.log(cvs)
-			ctx?.drawImage(img, -18, -18, 2 * w + 36, 2 * h + 36)
+			ctx?.drawImage(img, -18, -18, 2 * w + 36, 2 * (h - 0) + 36)
 
+			// ctx.font = '90px Georgia'
+			// ctx.fillText('扫码挪车', 20, 470)
 			// addAvatar()
 		}
 	}
+
 	const addAvatar = (url: string) => {
 		console.log('添加头像')
 		let cvs = avatarCvs.current
@@ -728,18 +793,18 @@ const MoveCarPhonePage = () => {
 							<SakiInput
 								onChangevalue={(e) => {
 									console.log(e)
-									setPhoneErr(
-										e.detail.length === 0
-											? t('phoneRuleErr', {
-													ns: 'prompt',
-											  })
-											: ''
-									)
+									// setInputPhoneErr(
+									// 	e.detail.length === 0
+									// 		? t('phoneRuleErr', {
+									// 				ns: 'prompt',
+									// 		  })
+									// 		: ''
+									// )
 									setInputPhone(e.detail)
 								}}
 								value={inputPhone}
 								placeholder={t('indexInputPh')}
-								error={phoneErr}
+								error={inputPhoneErr}
 								type='Number'
 								width='100%'
 								margin='40px 0 0'
@@ -751,21 +816,21 @@ const MoveCarPhonePage = () => {
 							></SakiInput>
 
 							<div className='mcp-m-buttons'>
-								{/* <saki-button
-											ref={bindEvent({
-												tap: async () => {
-													setShowManageMyQRCModal(true)
-												},
-											})}
-											margin='0 0 0 10px'
-											padding='8px 18px'
-											font-size='14px'
-											type='Primary'
-										>
-											{t('manageMyQRC', {
-												ns: 'common',
-											})}
-										</saki-button> */}
+								<saki-button
+									ref={bindEvent({
+										tap: async () => {
+											// console.log(user)
+											window.open('https://link.aiiko.club/AXaJyi')
+										},
+									})}
+									margin='0 0 0 10px'
+									padding='8px 18px'
+									font-size='14px'
+									color='var(--saki-default-color)'
+									border='1px solid var(--saki-default-color)'
+								>
+									{t('tutorial')}
+								</saki-button>
 								<saki-button
 									ref={bindEvent({
 										tap: async () => {
@@ -821,13 +886,14 @@ const MoveCarPhonePage = () => {
 																	}}
 																	className='mcp-item-s-dot'
 																></div>
-																<span>{v.slogan + ', '}</span>
+																<span>{v.slogan + '，'}</span>
 															</div>
 															<span>
-																{'创建于 ' +
-																	moment(Number(v.createTime) * 1000).format(
-																		'YYYY-MM-DD HH:mm:ss'
-																	)}
+																{t('createdOn', {
+																	time: moment(
+																		Number(v.createTime) * 1000
+																	).format('LL'),
+																})}
 															</span>
 														</div>
 													</div>
@@ -836,18 +902,7 @@ const MoveCarPhonePage = () => {
 															<saki-button
 																ref={bindEvent({
 																	async tap() {
-																		const url =
-																			location.origin +
-																			location.pathname +
-																			'/detail?id=' +
-																			v.id
-																		setUrl(url)
-																		console.log(url)
-																		setQRC(
-																			((await generateQR(url)) as any) || ''
-																		)
-																		console.log(qrc)
-																		setShowQRCModal(true)
+																		showQRCModalFunc(v.id || '')
 																	},
 																})}
 																bg-color='transparent'
@@ -979,6 +1034,8 @@ const MoveCarPhonePage = () => {
 											)
 											setShowEditQRCModal(false)
 
+											showQRCModalFunc(res.data.moveCarQRC?.id || '')
+
 											setInputPhone('')
 
 											return
@@ -1051,20 +1108,29 @@ const MoveCarPhonePage = () => {
 								></SakiModalHeader>
 								<div className='move-car-phone-qrc-modal'>
 									<div className='mcp-qrc'>
-										<canvas
-											style={
-												// 	showQRCModal1
-												{
-													width: '200px',
-													height: '200px',
+										<div id='qrc'>
+											<canvas
+												style={
+													// 	showQRCModal1
+													{
+														width: avatarCvsOptions.w / 2 + 'px',
+														height: avatarCvsOptions.h / 2 + 'px',
+													}
+													// 		: {}
 												}
-												// 		: {}
-											}
-											width={400}
-											height={400}
-											ref={avatarCvs}
-											className='cvs'
-										></canvas>
+												width={avatarCvsOptions.w}
+												height={avatarCvsOptions.h}
+												ref={avatarCvs}
+												className='cvs'
+											></canvas>
+											{avatarCvsOptions?.textTemplate === 'Template1' ? (
+												<div className={'qrc-text Template1 ' + config.lang}>
+													{t('template1')}
+												</div>
+											) : (
+												''
+											)}
+										</div>
 										{/* <SakiImages
 											width='200px'
 											height='200px'
@@ -1087,12 +1153,89 @@ const MoveCarPhonePage = () => {
 													window.open(url)
 												},
 											})}
-											margin='0 0 0 10px'
+											margin='0 0 10px 10px'
 											padding='8px 18px'
 											font-size='14px'
 										>
 											{t('openUrl')}
 										</saki-button>
+
+										<saki-dropdown
+											visible={showTextDropdown}
+											floating-direction='Left'
+											z-index='1001'
+											ref={bindEvent({
+												close: (e) => {
+													setShowTextDropdown(false)
+												},
+											})}
+										>
+											<saki-button
+												ref={bindEvent({
+													tap: async () => {
+														setShowTextDropdown(true)
+													},
+												})}
+												margin='0 0 10px 10px'
+												padding='8px 18px'
+												font-size='14px'
+												color='var(--saki-default-color)'
+												border='1px solid var(--saki-default-color)'
+											>
+												{t('showText', {})}
+											</saki-button>
+											<div slot='main'>
+												<saki-menu
+													ref={bindEvent({
+														selectvalue: async (e) => {
+															console.log(e.detail.value)
+															switch (e.detail.value) {
+																case 'Template1':
+																	setAvatarCvsOptions({
+																		...avatarCvsOptions,
+																		textTemplate: 'Template1',
+																	})
+																	break
+																case 'UploadImages':
+																	break
+
+																default:
+																	break
+															}
+															setShowTextDropdown(false)
+														},
+													})}
+												>
+													<saki-menu-item
+														padding='10px 18px'
+														value={'Template1'}
+													>
+														<SakiRow
+															justifyContent='flex-start'
+															alignItems='center'
+														>
+															<SakiCol>
+																<span>{t('template1', {})}</span>
+															</SakiCol>
+														</SakiRow>
+													</saki-menu-item>
+
+													{/* <saki-menu-item
+														padding='10px 18px'
+														value={'Template1'}
+													>
+														<SakiRow
+															justifyContent='flex-start'
+															alignItems='center'
+														>
+															<SakiCol>
+																<span>{t('自定义文字', {})}</span>
+															</SakiCol>
+														</SakiRow>
+													</saki-menu-item> */}
+												</saki-menu>
+											</div>
+										</saki-dropdown>
 										<saki-dropdown
 											visible={showUploadAvatarDropdown}
 											floating-direction='Left'
@@ -1109,7 +1252,7 @@ const MoveCarPhonePage = () => {
 														setShowUploadAvatarDropdown(true)
 													},
 												})}
-												margin='0 0 0 10px'
+												margin='0 0 10px 10px'
 												padding='8px 18px'
 												font-size='14px'
 												color='var(--saki-default-color)'
@@ -1186,13 +1329,33 @@ const MoveCarPhonePage = () => {
 										<saki-button
 											ref={bindEvent({
 												tap: async () => {
-													const imgSrc = avatarCvs.current?.toDataURL(
-														'image/jpeg',
-														1
-													)
+													// const imgSrc = avatarCvs.current?.toDataURL(
+													// 	'image/jpeg',
+													// 	1
+													// )
+													// if (!imgSrc) return
+													const qrcEl = document.body.querySelector('#qrc')
+													const contentCvs = await html2canvas(qrcEl as any, {
+														backgroundColor: 'white',
+														useCORS: true,
+														scale: 2,
+														width: qrcEl?.clientWidth as any,
+														height: qrcEl?.clientHeight as any,
+														windowWidth: qrcEl?.clientHeight as any,
+														windowHeight: qrcEl?.clientHeight as any,
+													})
+													const imgSrc = contentCvs.toDataURL('image/jpeg', 1)
 													if (!imgSrc) return
-
 													download(imgSrc, 'qrc.jpg')
+
+													// console.log(
+													// 	'contentCvs',
+													// 	document.body.querySelector('#qrc'),
+													// 	contentCvs
+													// )
+													// document.body
+													// 	.querySelector('.move-car-phone-qrc-modal')
+													// 	?.appendChild(contentCvs)
 
 													showSnackbar(
 														t('downloadSuccessfully', {
@@ -1201,7 +1364,7 @@ const MoveCarPhonePage = () => {
 													)
 												},
 											})}
-											margin='0 0 0 10px'
+											margin='0 0 10px 10px'
 											padding='8px 18px'
 											font-size='14px'
 											type='Primary'

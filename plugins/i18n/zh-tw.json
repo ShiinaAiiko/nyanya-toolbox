@@ -32,18 +32,20 @@
 	},
 	"moveCarQRCPage": {
 		"pageTitle": "挪車二維碼",
-		"subtitle": "免費取得、隨時修改、永久使用，將二維碼貼在車窗上，即可透過掃描該二維碼可以聯繫到車主。",
+		"subtitle": "免費取得、隨時修改、永久使用，將二維碼貼在車窗上，即可透過掃描該二維碼聯繫到車主。",
 
 		"indexInputPh": "輸入手機號碼以產生二維碼",
 		"generateQRC": "建立挪車二維碼",
 		"history": "歷史",
 
 		"id": "ID",
-		"typePhone": "手機號碼",
-		"typeCarNumber": "車牌號碼",
-		"typeSlogan": "標語",
+		"typePhone": "* 手機號碼",
+		"typeCarNumber": "* 車牌號碼",
+		"typeSlogan": "* 標語",
+		"typeEmail": "信箱",
+		"typeWechat": "微信 ID",
 		"colorTheme": "主題色",
-		"default": "預設",
+		"default": "粉色",
 		"green": "綠色",
 		"blue": "藍色",
 		"updateMoveCarQRC": "更新挪車二維碼",
@@ -51,6 +53,10 @@
 
 		"callCarOwner": "撥打車主電話",
 		"callCarOwnerContent": "您確定要打電話給車主嗎？",
+		"sendEmail": "發送電子郵件通知",
+		"sendEmailContent": "您確定要寄電子郵件通知給車主嗎？",
+		"addWechatId": "新增車主微信",
+		"addWechatIdContent": "您確定要新增車主的微信嗎？",
 		"getFreeQRC": "免費取得二維碼",
 
 		"openUrl": "查看詳情頁面",
@@ -65,7 +71,14 @@
 		"usageDays": "此二維碼已使用{{day}}天了",
 
 		"useAvatar": "使用头像",
-		"uploadImages": "上传图片"
+		"uploadImages": "上传图片",
+
+		"createdOn": "創建於{{time}}",
+
+		"showText": "顯示文字",
+    "template1":"掃碼挪車",
+
+		"tutorial": "使用教程"
 	},
 	"fileTransferPage": {
 		"pageTitle": "Web檔案傳輸",
@@ -167,8 +180,16 @@
 		"updateSuccessfully": "更新成功！",
 		"downloadSuccessfully": "下載成功！",
 		"logoutSuccessfully": "登出成功!",
+		"sendSuccessfully": "發送成功!",
+		"copyWechat": "已複製微信號!",
+		"copyWechatSuccessfully": "已複製微信號! 在微信App裡搜尋車主微訊號，即可加入好友",
 
 		"cannotBeEmpty": "不能為空",
-		"phoneRuleErr": "手機號碼錯誤，請重新輸入"
+		"phoneRuleErr": "手機號碼錯誤，請重新輸入",
+
+		"profile": "個人資料",
+
+		"send": "發送",
+		"copy": "複製"
 	}
 }

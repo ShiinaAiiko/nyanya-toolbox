@@ -9,6 +9,7 @@ message RequestType {
   string token = 2;
   string deviceId = 3;
   user.UserAgent userAgent = 4;
+  string language = 5;
 }
 
 message ResponseType {

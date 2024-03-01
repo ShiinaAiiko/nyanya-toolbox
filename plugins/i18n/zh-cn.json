@@ -32,18 +32,20 @@
 	},
 	"moveCarQRCPage": {
 		"pageTitle": "挪车二维码",
-		"subtitle": "免费获取、随时修改、永久使用，将二维码贴在车窗上，即可通过扫描该二维码可以联系到车主。",
+		"subtitle": "免费获取、随时修改、永久使用，将二维码贴在车窗上，即可通过扫描该二维码联系到车主。",
 
 		"indexInputPh": "输入手机号以生成二维码",
 		"generateQRC": "创建挪车二维码",
 		"history": "历史",
 
 		"id": "ID",
-		"typePhone": "手机号",
-		"typeCarNumber": "车牌号",
-		"typeSlogan": "标语",
+		"typePhone": "* 手机号",
+		"typeCarNumber": "* 车牌号",
+		"typeSlogan": "* 标语",
+		"typeEmail": "邮箱",
+		"typeWechat": "微信号",
 		"colorTheme": "主题色",
-		"default": "默认",
+		"default": "粉色",
 		"green": "绿色",
 		"blue": "蓝色",
 		"updateMoveCarQRC": "更新挪车二维码",
@@ -51,6 +53,10 @@
 
 		"callCarOwner": "拨打车主电话",
 		"callCarOwnerContent": "您确定要给车主打电话吗？",
+		"sendEmail": "发邮件通知",
+		"sendEmailContent": "您确定要给车主发送邮件通知吗？",
+		"addWechatId": "添加车主微信",
+		"addWechatIdContent": "您确定要添加车主的微信吗？",
 		"getFreeQRC": "免费获取二维码",
 
 		"openUrl": "查看详情页",
@@ -65,7 +71,14 @@
 		"usageDays": "此二维码已使用{{day}}天了",
 
 		"useAvatar": "使用头像",
-		"uploadImages": "上传图片"
+		"uploadImages": "上传图片",
+
+		"createdOn": "创建于{{time}}",
+
+		"showText": "显示文字",
+		"template1": "扫码挪车",
+
+		"tutorial": "使用教程"
 	},
 	"fileTransferPage": {
 		"pageTitle": "Web文件传输",
@@ -167,8 +180,16 @@
 		"updateSuccessfully": "更新成功！",
 		"downloadSuccessfully": "下载成功！",
 		"logoutSuccessfully": "登出成功!",
+		"sendSuccessfully": "发送成功!",
+		"copyWechat": "已复制微信号!",
+		"copyWechatSuccessfully": "已复制微信号! 在微信App里搜索车主微信号，即可添加好友",
 
 		"cannotBeEmpty": "不能为空",
-		"phoneRuleErr": "手机号错误，请重新输入"
+		"phoneRuleErr": "手机号错误，请重新输入",
+
+		"profile": "个人资料",
+
+		"send": "发送",
+		"copy": "复制"
 	}
 }

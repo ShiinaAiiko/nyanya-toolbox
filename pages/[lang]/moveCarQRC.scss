@@ -132,17 +132,38 @@
 	.mcp-qrc {
 		display: flex;
 		justify-content: center;
+		flex-direction: column;
+		align-items: center;
 		margin: 20px 0;
 		// height: 200px;
-		canvas {
-			// height: 200px;
-			// width: 200px !important;
-			// border: 1px solid red;
+		#qrc {
+			display: flex;
+			justify-content: center;
+			flex-direction: column;
+			align-items: center;
+
+			canvas {
+				// height: 200px;
+				// width: 200px !important;
+				// border: 1px solid red;
+			}
+			.qrc-text {
+				&.Template1 {
+					font-size: 45px;
+					margin-top: -10px;
+					&.en-US {
+						font-size: 11px;
+						margin-top: 0px;
+            margin-bottom: 10px;
+					}
+				}
+			}
 		}
 	}
 	.mcp-buttons {
 		display: flex;
 		justify-content: flex-end;
+		flex-wrap: wrap;
 	}
 }
 

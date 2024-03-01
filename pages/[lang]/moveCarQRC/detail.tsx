@@ -102,7 +102,7 @@ const MoveCarPhoneDetailPage = () => {
 	const [inputPhone, setInputPhone] = useState('')
 	const [id, setId] = useState('')
 	const [detail, setDetail] = useState<protoRoot.moveCarQRC.IMoveCarQRCItem>()
-	const [showQRCModal, setShowQRCModal] = useState(false)
+	const [sendingEmail, setSendingEmail] = useState(false)
 	const [showManageMyQRCModal, setShowManageMyQRCModal] = useState(false)
 	const [showUploadAvatarDropdown, setShowUploadAvatarDropdown] =
 		useState(false)
@@ -247,6 +247,116 @@ const MoveCarPhoneDetailPage = () => {
 												</div>
 											</div>
 										</SakiButton>
+										{detail?.email ? (
+											<SakiButton
+												onTap={() => {
+													alert({
+														title: t('sendEmail'),
+														content: t('sendEmailContent'),
+														cancelText: t('cancel', {
+															ns: 'prompt',
+														}),
+														confirmText: t('send', {
+															ns: 'prompt',
+														}),
+														async onConfirm() {
+															if (sendingEmail) return
+															console.log('发送')
+															setSendingEmail(true)
+
+															const res = await httpApi.MoveCarQRC.SendEmail(
+																detail?.id || ''
+															)
+															console.log(res)
+															if (res?.code === 200) {
+																showSnackbar(
+																	t('sendSuccessfully', {
+																		ns: 'prompt',
+																	})
+																)
+																setSendingEmail(false)
+															}
+														},
+													}).open()
+												}}
+												margin='0 0 12px 0'
+												padding='10px 0px'
+												font-size='16px'
+												// type='Primary'
+												color='#ea4335'
+												border={'1px solid #ea4335'}
+												bgColor={'#fff'}
+												bgHoverColor={'#f3f2f2'}
+												bgActiveColor={'#eee'}
+												loading={sendingEmail}
+											>
+												<div className='button-content'>
+													<SakiIcon
+														color='#ea4335'
+														margin='0 5px 0 0'
+														type='Email'
+													></SakiIcon>
+													<div className='button-text'>
+														<span>{t('sendEmail')}</span>
+													</div>
+												</div>
+											</SakiButton>
+										) : (
+											''
+										)}
+										{detail?.wechat ? (
+											<SakiButton
+												onTap={() => {
+													alert({
+														title: t('addWechatId'),
+														content: t('addWechatIdContent'),
+														cancelText: t('cancel', {
+															ns: 'prompt',
+														}),
+														confirmText: t('confirm', {
+															ns: 'prompt',
+														}),
+														async onConfirm() {
+															copyText(detail?.wechat || '')
+
+															alert({
+																title: t('copyWechat', {
+																	ns: 'prompt',
+																}),
+																content: t('copyWechatSuccessfully', {
+																	ns: 'prompt',
+																}),
+																cancelText: t('cancel', {
+																	ns: 'prompt',
+																}),
+															}).open()
+														},
+													}).open()
+												}}
+												margin='0 0 12px 0'
+												padding='10px 0px'
+												font-size='16px'
+												// type='Primary'
+												color='#07c160'
+												border={'1px solid #07c160'}
+												bgColor={'#fff'}
+												bgHoverColor={'#f3f2f2'}
+												bgActiveColor={'#eee'}
+											>
+												<div className='button-content'>
+													<SakiIcon
+														color='#07c160'
+														margin='0 5px 0 0'
+														type='WeChatFill'
+													></SakiIcon>
+													<div className='button-text'>
+														<span>{t('addWechatId')}</span>
+													</div>
+												</div>
+											</SakiButton>
+										) : (
+											''
+										)}
 										<SakiButton
 											onTap={() => {
 												// console.log(router, config.language)

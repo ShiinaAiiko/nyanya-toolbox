@@ -3,7 +3,11 @@ package controllersV1
 import (
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/models"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/protos"
+	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/i18n"
+	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/methods"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/response"
+	ni18n "github.com/cherrai/nyanyago-utils/i18n"
+	"github.com/cherrai/nyanyago-utils/nstrings"
 	"github.com/cherrai/nyanyago-utils/validation"
 	sso "github.com/cherrai/saki-sso-go"
 	"github.com/jinzhu/copier"
@@ -362,6 +366,72 @@ func (ftc *MoveCarQRCController) DeleteMoveCarQRC(c *gin.Context) {
 	}
 
 	responseData := protos.DeleteMoveCarQRC_Response{}
+
+	res.Data = protos.Encode(&responseData)
+
+	res.Call(c)
+}
+
+func (ftc *MoveCarQRCController) SendEmail(c *gin.Context) {
+	// 1、请求体
+	var res response.ResponseProtobufType
+	res.Code = 200
+
+	data := new(protos.SendEmail_Request)
+
+	var err error
+	if err = protos.DecodeBase64(c.GetString("data"), data); err != nil {
+		res.Error = err.Error()
+		res.Code = 10002
+		res.Call(c)
+		return
+	}
+	// log.Info(data)
+	// 3、验证参数
+
+	if err = validation.ValidateStruct(
+		data,
+		validation.Parameter(&data.Id, validation.Type("string"), validation.Required()),
+	); err != nil {
+		res.Errors(err)
+		res.Code = 10002
+		res.Call(c)
+		return
+	}
+
+	// log.Info("data", data)
+
+	language := c.GetString("language")
+
+	moveCarQRC, err := moveCarQRCDbx.GetMoveCarQRC(data.Id, "")
+	if moveCarQRC == nil || err != nil {
+		res.Errors(err)
+		res.Code = 10006
+		res.Call(c)
+		return
+	}
+	// log.Info(nstrings.StringOr(language, "zh-CN"))
+	// log.Info(i18n.I18n.T("emailTitle", ni18n.TOptions{
+	// 	NS:       "moveCarQRC",
+	// 	Language: language,
+	// }))
+	err = methods.SendEmail(
+		moveCarQRC.Email, i18n.I18n.T("emailTitle", ni18n.TOptions{
+			NS:       "moveCarQRC",
+			Language: language,
+		})+"<"+moveCarQRC.CarNumber+">",
+		methods.GetMoveCarEmailContent(moveCarQRC.CarNumber, nstrings.StringOr(language, "zh-CN")))
+	if err != nil {
+		res.Errors(err)
+		res.Code = 10001
+		res.Call(c)
+		return
+	}
+
+	// log.Info(methods.GetMoveCarEmailContent(moveCarQRC.CarNumber, nstrings.StringOr(language, "zh-CN")))
+	// log.Error(err)
+
+	responseData := protos.SendEmail_Response{}
 
 	res.Data = protos.Encode(&responseData)
 

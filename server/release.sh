@@ -47,7 +47,6 @@ start() {
   stop
   docker run \
     -v $DIR/$configFilePath:/config.json \
-    -v $DIR/client:/client \
     --name=$name \
     $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
     -p $port:$port \

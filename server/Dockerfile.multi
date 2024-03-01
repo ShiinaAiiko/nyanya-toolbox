@@ -49,10 +49,12 @@ WORKDIR /
 COPY --from=BUILD_IMAGE \
   /app/nyanya-toolbox \
   /
+COPY --from=BUILD_IMAGE \
+  /app/services/i18n/ \
+  /services/i18n/
 # COPY --from=BUILD_IMAGE \
 #   /app/client/ \
 #   /client
-
 
 EXPOSE 23201
 

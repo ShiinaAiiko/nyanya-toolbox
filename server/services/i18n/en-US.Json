@@ -1,0 +1,12 @@
+{
+	"common": {
+		"title": "NyaNya Toolbox"
+	},
+	"moveCarQRC": {
+		"title": "Move car QR code",
+		"emailTitle": "Move car reminder",
+		"emailContent1": "Someone has sent a car-moving reminder to your car <<strong>{{carNum}}</strong>>.",
+		"emailContent2": "Please go to the parking location as soon as possible to move the car to avoid accidents.",
+		"emailContent3": "If it is not your car, please ignore this email."
+	}
+}

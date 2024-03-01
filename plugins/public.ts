@@ -10,9 +10,9 @@ let ResponseType = protoRoot.base.ResponseType
 let ResponseEncryptDataType = protoRoot.base.ResponseEncryptDataType
 
 R.interceptors.request.use(async (config) => {
-	const { api, user } = store.getState()
+  const state = store.getState()
+	const { api, user } = state
 	const { token, deviceId, userAgent } = user
-	const {} = api
 	// console.log(String(config.url).indexOf(api.baseUrl) >= 0 && token)
 	// console.log(String(config.url).indexOf(api.apiUrl) >= 0, token)
 	if (String(config.url).indexOf(api.apiUrl) >= 0 && token) {
@@ -20,6 +20,7 @@ R.interceptors.request.use(async (config) => {
 		config.data.deviceId = deviceId
 	}
 	config.data.userAgent = userAgent
+	config.data.language = state.config.lang
 	// console.log('configf', deepCopy(config), Boolean(String(config.url).indexOf(api.apiUrl) >= 0 && token))
 	// nyanyalog.info("axiosrequest",JSON.parse(JSON.stringify(config.data)))
 
@@ -80,6 +81,7 @@ R.interceptors.request.use(async (config) => {
 				token: config.data.token,
 				deviceId: config.data.deviceId,
 				userAgent: config.data.userAgent,
+				language: config.data.language,
 				data: config.data.data,
 			})
 		).finish()

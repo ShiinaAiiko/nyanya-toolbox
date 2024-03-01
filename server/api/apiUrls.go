@@ -15,6 +15,7 @@ var ApiUrls = map[string](map[string]string){
 		"getMoveCarQRC":     "/moveCarQRC/get",
 		"updateMoveCarQRC":  "/moveCarQRC/update",
 		"deleteMoveCarQRC":  "/moveCarQRC/delete",
+		"sendEmail":         "/moveCarQRC/sendEmail",
 
 		// Net
 		"ipDetails": "/ip/details",

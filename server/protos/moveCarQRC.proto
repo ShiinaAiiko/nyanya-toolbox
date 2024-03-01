@@ -29,13 +29,18 @@ message MoveCarQRCEditItem {
   string slogan = 3;
   string email = 4;
   string wechat = 5;
-  
+
   string colorTheme = 6;
 }
 
 message CreateMoveCarQRC {
   message Request { MoveCarQRCEditItem moveCarQRC = 1; }
   message Response { MoveCarQRCItem moveCarQRC = 1; }
+}
+
+message SendEmail {
+  message Request { string id = 1; }
+  message Response {}
 }
 
 message GetMoveCarQRCList {
@@ -54,9 +59,7 @@ message GetMoveCarQRCList {
 }
 
 message GetMoveCarQRC {
-  message Request {
-   string id = 1;
-  }
+  message Request { string id = 1; }
   message Response { MoveCarQRCItem moveCarQRC = 1; }
 }
 

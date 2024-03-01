@@ -51,6 +51,7 @@ func Params() gin.HandlerFunc {
 			c.Set("data", dataProto.Data)
 			c.Set("token", dataProto.Token)
 			c.Set("deviceId", dataProto.DeviceId)
+			c.Set("language", dataProto.Language)
 
 			ua := new(sso.UserAgent)
 			copier.Copy(ua, dataProto.UserAgent)

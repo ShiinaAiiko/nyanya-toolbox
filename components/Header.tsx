@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { bindEvent } from '@saki-ui/core'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 import axios from 'axios'
-import { appListUrl } from '../config'
+import { appListUrl, sakisso } from '../config'
 import {
 	SakiAsideModal,
 	SakiAvatar,
@@ -28,6 +28,7 @@ import {
 	SakiTemplateHeader,
 	SakiTemplateMenuDropdown,
 	SakiAnimationLoading,
+	SakiSso,
 } from './saki-ui-react/components'
 import {
 	LocalUser,
@@ -177,6 +178,7 @@ const HeaderComponent = ({
 
 	const [openUserDropDownMenu, setOpenUserDropDownMenu] = useState(false)
 	const [openLoginUserModal, setOpenLoginUserModal] = useState(false)
+	const [openUserProfileModal, setOpenUserProfileModal] = useState(false)
 
 	const [localUsers, setLocalUsers] = useState([] as LocalUser[])
 	return (
@@ -230,12 +232,14 @@ const HeaderComponent = ({
 							onClick={() => {
 								// onSettings?.('Account')
 								setOpenUserDropDownMenu(!openUserDropDownMenu)
+								// setOpenUserDropDownMenu(!openUserDropDownMenu)
 							}}
 							className='tb-h-r-user'
 						>
 							<saki-avatar
 								ref={bindEvent({
 									tap: () => {
+										// setOpenUserDropDownMenu(!openUserDropDownMenu)
 										// onSettings?.()
 										// store.dispatch(userSlice.actions.logout({}))
 									},
@@ -243,12 +247,32 @@ const HeaderComponent = ({
 								className='qv-h-r-u-avatar'
 								width='34px'
 								height='34px'
-                border-radius='50%'
-                margin="0 0 0 6px"
+								border-radius='50%'
+								margin='0 0 0 6px'
+								default-icon={'UserLine'}
+								// anonymous-icon
 								nickname={user.userInfo?.nickname || ''}
 								src={user.userInfo?.avatar || ''}
 								alt=''
 							/>
+							{/* {user.isLogin ? (
+							) : (
+								<saki-button
+									ref={bindEvent({
+										tap: async () => {
+											setOpenUserDropDownMenu(!openUserDropDownMenu)
+										},
+									})}
+									margin='0 0 0 6px'
+									padding='8px 18px'
+									font-size='14px'
+									type='Primary'
+								>
+									{t('login', {
+										ns: 'prompt',
+									})}
+								</saki-button>
+							)} */}
 						</div>
 						<div slot='main'>
 							<saki-menu
@@ -263,6 +287,7 @@ const HeaderComponent = ({
 												dispatch(methods.user.logout())
 												break
 											case 'Account':
+												setOpenUserProfileModal(true)
 												break
 
 											default:
@@ -376,7 +401,7 @@ const HeaderComponent = ({
 								width='34px'
 								height='34px'
 								border-radius='50%'
-                margin="0 0 0 6px"
+								margin='0 0 0 6px'
 								nickname={localUser.localUser?.nickname || ''}
 								src={localUser.localUser?.avatar || ''}
 								alt=''
@@ -592,6 +617,69 @@ const HeaderComponent = ({
 						)}
 					</div>
 				</SakiAsideModal>
+        
+				<saki-modal
+					max-width={config.deviceType === 'Mobile' ? '100%' : '800px'}
+					min-width={config.deviceType === 'Mobile' ? 'auto' : '700px'}
+					max-height={config.deviceType === 'Mobile' ? '100%' : '600px'}
+					min-height={config.deviceType === 'Mobile' ? 'auto' : '400px'}
+					width='100%'
+					height='100%'
+					border-radius={config.deviceType === 'Mobile' ? '0px' : ''}
+					border={config.deviceType === 'Mobile' ? 'none' : ''}
+					mask
+					background-color='#fff'
+					onClose={() => {
+						setOpenUserProfileModal(false)
+					}}
+					visible={openUserProfileModal}
+				>
+					<div
+						style={{
+							width: '100%',
+							height: '100%',
+							display: 'flex',
+							flexDirection: 'column',
+							justifyContent: 'space-between',
+						}}
+					>
+						<saki-modal-header
+							ref={bindEvent({
+								close: (e) => {
+									setOpenUserProfileModal(false)
+								},
+							})}
+							closeIcon
+							title={t('profile', {
+								ns: 'prompt',
+							})}
+						/>
+						{openUserProfileModal ? (
+							<SakiSso
+								onUpdateUser={async (e) => {
+									await dispatch(
+										methods.user.checkToken({
+											token: user.token,
+											deviceId: user.deviceId,
+										})
+									)
+								}}
+								disable-header
+								style={{
+									flex: '1',
+								}}
+								class='disabled-dark'
+								app-id={sakisso.appId}
+								language={config.language}
+								appearance={''}
+								// url={"https://aiiko.club"}
+								url={sakisso.clientUrl + '/profile'}
+							/>
+						) : (
+							''
+						)}
+					</div>
+				</saki-modal>
 			</div>
 		</SakiTemplateHeader>
 	)

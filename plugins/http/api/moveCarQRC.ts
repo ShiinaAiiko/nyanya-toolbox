@@ -106,5 +106,21 @@ export const MoveCarQRC = () => {
 				protoRoot.moveCarQRC.GetMoveCarQRC.Response
 			)
 		},
+		async SendEmail(id: string) {
+			const { api } = store.getState()
+
+			return await RequestProtobuf<protoRoot.moveCarQRC.SendEmail.IResponse>(
+				{
+					method: 'POST',
+					url: getUrl(api.apiUrls.v1.baseUrl, api.apiUrls.v1.sendEmail),
+
+					data: NRequest.protobuf.ParamsEncode<protoRoot.moveCarQRC.SendEmail.IRequest>(
+						{ id },
+						protoRoot.moveCarQRC.SendEmail.Request
+					),
+				},
+				protoRoot.moveCarQRC.SendEmail.Response
+			)
+		},
 	}
 }

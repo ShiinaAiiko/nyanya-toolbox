@@ -22,6 +22,7 @@ export const apiSlice = createSlice({
 				getMoveCarQRC: '/moveCarQRC/get',
 				updateMoveCarQRC: '/moveCarQRC/update',
 				deleteMoveCarQRC: '/moveCarQRC/delete',
+				sendEmail: '/moveCarQRC/sendEmail',
 			},
 		},
 		nsocketio: {

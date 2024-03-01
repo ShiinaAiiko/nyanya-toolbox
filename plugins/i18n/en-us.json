@@ -41,11 +41,13 @@
 		"history": "History",
 
 		"id": "ID",
-		"typePhone": "Phone number",
-		"typeCarNumber": "License plate number",
-		"typeSlogan": "Slogan",
+		"typePhone": "* Phone number",
+		"typeCarNumber": "* License plate number",
+		"typeSlogan": "* Slogan",
+		"typeEmail": "Email",
+		"typeWechat": "WeChat ID",
 		"colorTheme": "Theme color",
-		"default": "Default",
+		"default": "Pink",
 		"green": "Green",
 		"blue": "Blue",
 		"updateMoveCarQRC": "Update Move Car QR Code",
@@ -53,10 +55,14 @@
 
 		"callCarOwner": "Call the car owner",
 		"callCarOwnerContent": "Are you sure you want to call the car owner?",
-		"getFreeQRC": "Get free QR code",
+		"sendEmail": "Send email notification",
+		"sendEmailContent": "Are you sure you want to send an email notification to the car owner?",
+		"addWechatId": "Add car owner Wechat",
+		"addWechatIdContent": "Are you sure you want to add the car owner's WeChat account?",
+		"getFreeQRC": "Get QR code for free",
 
 		"openUrl": "View details page",
-		"showAvatar": "Show avatar",
+		"showAvatar": "Show Avatar",
 		"downloadQRC": "Download QR Code",
 
 		"deleteThisMCQRC": "Delete this Move Car QR code",
@@ -66,8 +72,15 @@
 
 		"usageDays": "This QR code has been used for {{day}} days",
 
-		"useAvatar": "Use avatar",
-		"uploadImages": "Upload image"
+		"useAvatar": "Use Avatar",
+		"uploadImages": "Upload Image",
+
+		"createdOn": "Created on {{time}}",
+
+		"showText": "Show Text",
+		"template1": "Scan the QR code to move the car",
+
+		"tutorial": "Tutorial"
 	},
 	"fileTransferPage": {
 		"pageTitle": "Web File Transfer",
@@ -169,8 +182,16 @@
 		"updateSuccessfully": "updated successfully!",
 		"downloadSuccessfully": "Downloaded successfully!",
 		"logoutSuccessfully": "Logout successfully!",
+		"sendSuccessfully": "Send successfully!",
+		"copyWechat": "Wechat ID has been copied!",
+		"copyWechatSuccessfully": "The Wechat ID has been copied! Search the car owner's WeChat ID in the WeChat App to add friends",
 
 		"cannotBeEmpty": "Can not be empty",
-		"phoneRuleErr": "The phone number is wrong, please re-type it."
+		"phoneRuleErr": "The phone number is wrong, please re-type it.",
+
+		"profile": "Profile",
+
+		"send": "Send",
+		"copy": "Copy"
 	}
 }

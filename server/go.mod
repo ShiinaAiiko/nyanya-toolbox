@@ -13,10 +13,11 @@ require (
 )
 
 require (
-	github.com/cherrai/nyanyago-utils v1.0.8
+	github.com/cherrai/nyanyago-utils v1.0.9
 	github.com/cherrai/saki-sso-go v1.0.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jinzhu/copier v0.3.5
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pion/turn/v2 v2.1.4
 	go.mongodb.org/mongo-driver v1.11.0

@@ -4,6 +4,7 @@ type Config struct {
 	Server  Server
 	SSO     Sso
 	BaseUrl string
+	Email   Email
 	Redis   Redis
 	// StaticPathDomain string
 	Mongodb Mongodb
@@ -23,6 +24,12 @@ type Sso struct {
 	AppId  string
 	AppKey string
 	Host   string
+}
+type Email struct {
+	User string
+	Pass string
+	Host string
+	Port int
 }
 type Redis struct {
 	Addr     string

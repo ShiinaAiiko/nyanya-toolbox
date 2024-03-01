@@ -1,0 +1,12 @@
+{
+	"common": {
+		"title": "NyaNya 工具箱"
+	},
+	"moveCarQRC": {
+		"title": "挪車二維碼",
+		"emailTitle": "挪車提醒",
+		"emailContent1": "有人向您的愛車<<strong>{{carNum}}</strong>>發起了一個挪車提醒。",
+		"emailContent2": "請盡快前往停車所在地點進行挪車，以避免發生意外之事。",
+		"emailContent3": "若非本人愛車，請忽視掉此郵件。"
+	}
+}

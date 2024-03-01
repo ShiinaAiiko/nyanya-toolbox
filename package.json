@@ -26,6 +26,7 @@
 		"chart.js": "^4.4.0",
 		"cross-env": "^7.0.3",
 		"findme-js": "^1.1.0",
+		"html2canvas": "^1.4.1",
 		"i18next": "23.7.12",
 		"moment": "^2.29.4",
 		"next": "14.0.4",

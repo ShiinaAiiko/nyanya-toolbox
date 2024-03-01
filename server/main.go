@@ -8,6 +8,7 @@ import (
 	mongodb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/mongo"
 	redisdb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/redis"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/gin_service"
+	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/i18n"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/socketio_service"
 
 	"github.com/cherrai/nyanyago-utils/nlog"
@@ -66,6 +67,8 @@ func main() {
 			Rdb:    conf.Redisdb,
 		})
 		mongodb.ConnectMongoDB(conf.Config.Mongodb.Currentdb.Uri, conf.Config.Mongodb.Currentdb.Name)
+
+		i18n.InitI18n()
 
 		// log.Info("conf.Config.Mongodb.Currentdb", conf.Config.Mongodb.Currentdb)
 		socketio_service.Init()
