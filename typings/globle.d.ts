@@ -53,6 +53,7 @@ declare global {
 			'saki-chat-edit': any
 			'saki-chat-bubble-reply': any
 			'saki-images': any
+			'saki-date-picker': any
 		}
 	}
 	namespace Window {

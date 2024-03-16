@@ -70,4 +70,14 @@ func (r *Routerv1) InitMoveCarQRC() {
 			ResponseDataType:   "protobuf",
 		}),
 		c.SendEmail)
+
+	r.Group.POST(
+		role.SetRole(apiUrls["updateMoveCarQRCStatistics"], &middleware.RoleOptionsType{
+			CheckApp:           false,
+			Authorize:          false,
+			RequestEncryption:  false,
+			ResponseEncryption: false,
+			ResponseDataType:   "protobuf",
+		}),
+		c.UpdateMoveCarQRCStatistics)
 }

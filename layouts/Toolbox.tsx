@@ -37,6 +37,18 @@ import { Query } from '../plugins/methods'
 import { storage } from '../store/storage'
 // import parserFunc from 'ua-parser-js'
 
+const keywords: string = Object.keys(resources)
+	.map((k) => {
+		const res: any = resources
+		return Object.keys(res[k] as any)
+			.map((sk) => {
+				return res[k][sk]['pageTitle']
+			})
+			.filter((v) => v)
+			.join(',')
+	})
+	.join(',')
+
 const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 	const { t, i18n } = useTranslation()
 
@@ -56,7 +68,6 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 		// )
 		pageProps && i18n.language !== lang && changeLanguage(lang)
 	}
-	console.log('lang', lang)
 
 	useEffect(() => {
 		const l = lang || 'system'
@@ -86,6 +97,11 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 		}
 	}, [config.ssoAccount])
 
+	useEffect(() => {
+		console.log('router', location.href)
+		localStorage.setItem('lastVisitedUrl', location.href)
+	}, [router])
+
 	const initNyaNyaWasm = async () => {
 		NyaNyaWasm.setWasmPath('./nyanyajs-utils-wasm.wasm')
 		NyaNyaWasm.setCoreJsPath('./wasm_exec.js')
@@ -112,19 +128,11 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 		// }
 	}
 	let basePathname = router.pathname.replace('/[lang]', '')
+
 	return (
 		<>
 			<Head>
-				<meta
-					name='description'
-					content={t('pageDescription', {
-						ns: 'killerSudokuPage',
-					})}
-				/>
-				<meta
-					name='keywords'
-					content='Sudoku,Killer Sudoku,数独,杀手数独,數獨,殺手數獨,ナンプレ,キラーナンプレ'
-				/>
+				<meta name='keywords' content={keywords} />
 			</Head>
 			<div className='tool-box-layout'>
 				<>
@@ -184,7 +192,7 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 											}
 										)
 										console.log('pathname', router, pathname)
-										router.replace(pathname)
+										router.replace(pathname || '/')
 									}}
 									onChangeAppearance={(e) => {
 										console.log(e)

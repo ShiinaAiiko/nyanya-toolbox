@@ -175,6 +175,7 @@ const HeaderComponent = ({
 	const user = useSelector((state: RootState) => state.user)
 	const localUser = useSelector((state: RootState) => state.localUser)
 	const fileTransfer = useSelector((state: RootState) => state.fileTransfer)
+	const countdownDays = useSelector((state: RootState) => state.countdownDays)
 
 	const [openUserDropDownMenu, setOpenUserDropDownMenu] = useState(false)
 	const [openLoginUserModal, setOpenLoginUserModal] = useState(false)
@@ -212,7 +213,64 @@ const HeaderComponent = ({
 				) : (
 					''
 				)}
+
+				{router.asPath.indexOf('countdownDays') >= 0 &&
+				countdownDays.syncing ? (
+					<SakiRow alignItems='center'>
+						<SakiAnimationLoading />
+						<span
+							style={{
+								margin: '0 6px 0 6px',
+							}}
+						>
+							{t('syncing', {
+								ns: 'countdownDaysPage',
+							})}
+						</span>
+					</SakiRow>
+				) : (
+					''
+				)}
+
+				{router.asPath.indexOf('moveCarQRC/detail') >= 0 ? (
+					<SakiButton
+						onTap={() => {
+							dispatch(layoutSlice.actions.setOpenStatisticsModal(true))
+						}}
+						type='Normal'
+						border='none'
+					>
+						<saki-icon color='#666' type='Statistics'></saki-icon>
+					</SakiButton>
+				) : (
+					''
+				)}
+
 				<meow-apps-dropdown
+					ref={(e: any) => {
+						// e?.addApps(
+						// 	{
+						// 		categoryId: ['Toolbox'],
+						// 		appName: {
+						// 			'zh-CN': '挪车二维码111',
+						// 			'zh-TW': '挪車二維碼',
+						// 			'en-US': 'Move Car QR Code',
+						// 		},
+						// 		url: 'https://tools.aiiko.club/moveCarQRC',
+						// 		description:
+						// 			'免费获取、随时修改、永久使用，将二维码贴在车窗上，即可通过扫描该二维码联系到车主。',
+						// 		showInDropdown: true,
+						// 		logo: user.userInfo.avatar,
+						// 		tags: ['Next', 'Golang', 'SakiUI'],
+						// 		titleTag: ['Next', 'Golang'],
+						// 		author: 'Shiina Aiiko',
+						// 		authorUrl: 'https://aiiko.club/1',
+						// 		introduction:
+						// 			'<p>免费获取、随时修改、永久使用，将二维码贴在车窗上，即可通过扫描该二维码联系到车主。<p>',
+						// 	},
+						// 	-1
+						// )
+					}}
 					bg-color='rgba(0,0,0,0)'
 					language={config.lang}
 				></meow-apps-dropdown>
@@ -617,7 +675,7 @@ const HeaderComponent = ({
 						)}
 					</div>
 				</SakiAsideModal>
-        
+
 				<saki-modal
 					max-width={config.deviceType === 'Mobile' ? '100%' : '800px'}
 					min-width={config.deviceType === 'Mobile' ? 'auto' : '700px'}

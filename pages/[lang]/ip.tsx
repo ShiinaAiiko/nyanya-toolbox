@@ -268,6 +268,7 @@ const IpPage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 				<link
 					rel='stylesheet'
 					href='https://unpkg.com/leaflet@1.9.3/dist/leaflet.css'

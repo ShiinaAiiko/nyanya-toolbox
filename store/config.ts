@@ -9,7 +9,7 @@ import store, { ActionParams, methods } from '.'
 
 import { Languages, languages, defaultLanguage } from '../plugins/i18n/i18n'
 import { storage } from './storage'
-import { NRequest } from '@nyanyajs/utils'
+import { NRequest, SAaSS } from '@nyanyajs/utils'
 import moment from 'moment'
 import 'moment/locale/zh-cn'
 import 'moment/locale/zh-tw'
@@ -21,6 +21,9 @@ export type LanguageType = Languages | 'system'
 export let deviceType: DeviceType | undefined
 
 export const R = new NRequest()
+export const saass = new SAaSS({
+	baseUrl: '',
+})
 
 export const language: LanguageType = defaultLanguage as any
 export const configSlice = createSlice({
@@ -40,6 +43,7 @@ export const configSlice = createSlice({
 				[lang: string]: string
 			}
 			url: string
+			logoText: string
 		}[],
 		ssoAccount: false,
 	},

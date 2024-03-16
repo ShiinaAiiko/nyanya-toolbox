@@ -17,6 +17,7 @@ import { nsocketioSlice, nsocketioMethods } from './nsocketio'
 import { fileTransferSlice, fileTransferMethods } from './fileTransfer'
 import { webRTCSlice, webRTCMethods } from './webRTC'
 import { emojiSlice, emojiMethods } from './emoji'
+import { countdownDaysSlice, countdownDaysMethods } from './countdownDays'
 
 export interface ActionParams<T = any> {
 	type: string
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
 	webRTC: webRTCSlice.reducer,
 	emoji: emojiSlice.reducer,
 	localUser: localUserSlice.reducer,
+	countdownDays: countdownDaysSlice.reducer,
 })
 
 const store = configureStore({
@@ -53,6 +55,7 @@ export {
 	webRTCSlice,
 	emojiSlice,
 	localUserSlice,
+	countdownDaysSlice,
 }
 export const methods = {
 	api: apiMethods,
@@ -64,6 +67,7 @@ export const methods = {
 	webRTC: webRTCMethods,
 	emoji: emojiMethods,
 	localUser: localUserMethods,
+	countdownDays: countdownDaysMethods,
 }
 
 // console.log(store.getState())

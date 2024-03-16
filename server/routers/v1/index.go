@@ -22,4 +22,5 @@ func (r *Routerv1) Init() {
 	r.InitNet()
 	r.InitFileTransfer()
 	r.InitMoveCarQRC()
+	r.InitCountdownDays()
 }

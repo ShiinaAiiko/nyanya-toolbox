@@ -312,6 +312,7 @@ const AvatarBadgeGeneratorPage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 			</Head>
 			<div className='avatar-generator-page'>
 				<div className='agp-main'>

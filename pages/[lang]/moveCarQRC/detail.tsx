@@ -54,6 +54,7 @@ import httpApi from '../../../plugins/http/api'
 import QRCode from 'qrcode'
 import { protoRoot } from '../../../protos'
 import moment from 'moment'
+import StatisticsComponent from '../../../components/Statistics'
 
 export async function getStaticPaths() {
 	return {
@@ -92,26 +93,12 @@ const MoveCarPhoneDetailPage = () => {
 	const { t, i18n } = useTranslation('moveCarQRCPage')
 
 	const config = useSelector((state: RootState) => state.config)
-	const user = useSelector((state: RootState) => state.user)
 
-	const avatarCvs = useRef<HTMLCanvasElement>(null)
 	const [mounted, setMounted] = useState(false)
 
-	// const [avatarCvs, setAvatarCvs] = useState<HTMLCanvasElement | null>(null)
-
-	const [inputPhone, setInputPhone] = useState('')
 	const [id, setId] = useState('')
 	const [detail, setDetail] = useState<protoRoot.moveCarQRC.IMoveCarQRCItem>()
 	const [sendingEmail, setSendingEmail] = useState(false)
-	const [showManageMyQRCModal, setShowManageMyQRCModal] = useState(false)
-	const [showUploadAvatarDropdown, setShowUploadAvatarDropdown] =
-		useState(false)
-	const [showQRCModal1, setShowQRCModal1] = useState(false)
-
-	const [qrc, setQRC] = useState('')
-	const [passwordInclude, setPasswordInclude] = useState<
-		('Number' | 'Character')[]
-	>(['Number'])
 
 	const router = useRouter()
 
@@ -150,7 +137,16 @@ const MoveCarPhoneDetailPage = () => {
 		console.log('getMoveCarQRC', res)
 		// console.log(moment(Number(res.data.moveCarQRC?.createTime || 0) * 1000))
 		if (res.code === 200 && res.data.moveCarQRC) {
+			if (!res.data.moveCarQRC.statistics) {
+				res.data.moveCarQRC.statistics = {
+					scanCount: 0,
+				}
+			}
+			res.data.moveCarQRC.statistics.scanCount =
+				Number(res.data.moveCarQRC.statistics.scanCount) + 1
 			setDetail(res.data.moveCarQRC)
+
+			await httpApi.MoveCarQRC.UpdateMoveCarQRCStatistics(id, 'ScanCount')
 
 			if (res.data.moveCarQRC.colorTheme) {
 				switch (res.data.moveCarQRC.colorTheme) {
@@ -223,6 +219,20 @@ const MoveCarPhoneDetailPage = () => {
 														link.href = 'tel:' + detail.phone
 
 														link.click()
+
+														setDetail({
+															...detail,
+															statistics: {
+																...detail.statistics,
+																callCount:
+																	Number(detail?.statistics?.callCount) + 1,
+															},
+														})
+
+														await httpApi.MoveCarQRC.UpdateMoveCarQRCStatistics(
+															id,
+															'CallCount'
+														)
 													},
 												}).open()
 											}}
@@ -275,6 +285,21 @@ const MoveCarPhoneDetailPage = () => {
 																	})
 																)
 																setSendingEmail(false)
+																setDetail({
+																	...detail,
+																	statistics: {
+																		...detail.statistics,
+																		sendEmailCount:
+																			Number(
+																				detail?.statistics?.sendEmailCount
+																			) + 1,
+																	},
+																})
+
+																await httpApi.MoveCarQRC.UpdateMoveCarQRCStatistics(
+																	id,
+																	'SendEmailCount'
+																)
 															}
 														},
 													}).open()
@@ -330,6 +355,20 @@ const MoveCarPhoneDetailPage = () => {
 																	ns: 'prompt',
 																}),
 															}).open()
+															setDetail({
+																...detail,
+																statistics: {
+																	...detail.statistics,
+																	addWeChatCount:
+																		Number(detail?.statistics?.addWeChatCount) +
+																		1,
+																},
+															})
+
+															await httpApi.MoveCarQRC.UpdateMoveCarQRCStatistics(
+																id,
+																'AddWeChatCount'
+															)
 														},
 													}).open()
 												}}
@@ -387,21 +426,21 @@ const MoveCarPhoneDetailPage = () => {
 												</div>
 											</div>
 										</SakiButton>
-										<span
-											style={{
-												margin: '20px 0 10px 0',
-												color: '#999',
-											}}
-										>
-											{/* This QR code has served the car owner for 3 days */}
-											{t('usageDays', {
-												day: moment().diff(
-													moment(Number(detail?.createTime || 0) * 1000),
-													'day'
-												),
-											})}
-										</span>
 									</div>
+									<span
+										onClick={() => {
+											dispatch(layoutSlice.actions.setOpenStatisticsModal(true))
+										}}
+										className='mcp-m-usage'
+									>
+										{t('usageDays', {
+											day: moment().diff(
+												moment(Number(detail?.createTime || 0) * 1000),
+												'day'
+											),
+											scanCount: Number(detail?.statistics?.scanCount) || 0,
+										})}
+									</span>
 								</>
 							) : (
 								<div className='mcp-m-none'>
@@ -412,6 +451,10 @@ const MoveCarPhoneDetailPage = () => {
 									</span>
 								</div>
 							)}
+
+							<StatisticsComponent
+								statisticsData={detail?.statistics || undefined}
+							></StatisticsComponent>
 						</>
 					)}
 				</div>

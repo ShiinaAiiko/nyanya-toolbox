@@ -1,0 +1,87 @@
+.date-calculator-page {
+	display: flex;
+	justify-content: flex-start;
+	flex-direction: column;
+	align-items: center;
+
+	.dc-main {
+		padding: 20px;
+		width: 100%;
+		min-width: 200px;
+		max-width: 700px;
+		.dc-m-title {
+			margin: 10px 0;
+			font-size: 26px;
+			font-weight: 700;
+			text-align: center;
+		}
+		.dc-m-subtitle {
+			font-size: 16px;
+			color: #222;
+			text-align: center;
+		}
+		.dc-m-tabs {
+			margin: 20px 0;
+			.dc-m-count-days,
+			.dc-m-add-days,
+			.dc-m-subtract-days {
+				width: 100%;
+				.dc-m-i-item {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-end;
+					& > saki-input {
+						flex: 1;
+						padding: 0 10px 0 0;
+					}
+
+					.dc-m-i-item {
+          display: flex;
+          flex-direction: column;
+					}
+				}
+				.dc-m-buttons {
+					display: flex;
+					justify-content: flex-end;
+					align-items: center;
+				}
+				.dc-m-results {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					border: 1px solid #eee;
+					border-radius: 20px;
+					margin: 20px 0;
+					.dc-m-r-item {
+						width: 100%;
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						padding: 10px 0;
+						border-bottom: 1px solid #eee;
+						&:nth-last-child(1) {
+							border-bottom: none;
+						}
+						.dc-m-r-i-title {
+							font-size: 16px;
+							color: #999;
+						}
+						.dc-m-r-i-value {
+							font-size: 36px;
+							font-weight: 800;
+							font-family: ui-sans-serif, system-ui, sans-serif,
+								Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
+								Noto Color Emoji;
+						}
+					}
+				}
+			}
+			.dc-m-count-days {
+			}
+			.dc-m-add-days {
+			}
+			.dc-m-subtract-days {
+			}
+		}
+	}
+}

@@ -1,6 +1,7 @@
 {
 	"common": {
 		"appTitle": "NyaNya Toolbox",
+		"appSubtitle": "NyaNya toolbox, more tools will be added gradually.",
 		"logoTitle": "Toolbox",
 		"copy": "Copy",
 		"aiikoBlog": "Aiiko Blog",
@@ -27,7 +28,7 @@
 	},
 	"randomPasswordPage": {
 		"pageTitle": "Random Password",
-		"subtitle": "",
+		"subtitle": "Create a random, secure password.",
 		"length": "Length",
 		"numbers": "Numbers",
 		"symbols": "Symbols"
@@ -70,7 +71,7 @@
 
 		"createQRCAfterLogin": "You are not logged in yet. You can create a QR code for moving the car after logging in.",
 
-		"usageDays": "This QR code has been used for {{day}} days",
+		"usageDays": "This QR code has been used for {{day}} days and has been scanned {{scanCount}} times~",
 
 		"useAvatar": "Use Avatar",
 		"uploadImages": "Upload Image",
@@ -80,11 +81,17 @@
 		"showText": "Show Text",
 		"template1": "Scan the QR code to move the car",
 
-		"tutorial": "Tutorial"
+		"tutorial": "Tutorial",
+
+		"statistics": "Statistics",
+		"scanCount": "Scan QR Code",
+		"callCount": "Call",
+		"sendEmailCount": "Send Email",
+		"addWeChatCount": "Add WeChat friends"
 	},
 	"fileTransferPage": {
 		"pageTitle": "Web File Transfer",
-		"subtitle": "",
+		"subtitle": "Files can be transferred between various devices freely and conveniently.",
 		"connectedDevicesDesc": "{{count}} devices connected",
 		"host": "Host",
 		"prflx": "LAN",
@@ -115,7 +122,7 @@
 	},
 	"ipPage": {
 		"pageTitle": "Search IP or Domain Name Details",
-		"subtitle": "",
+		"subtitle": "You can query IPv4, IPv6 and geographical location of IP or domain name for free.",
 		"inputPlaceholder": "Type a Ip or Domain Name",
 		"myIPDetails": "My Ip Details",
 		"IPDetails": "Ip Details",
@@ -140,6 +147,69 @@
 	"tripPage": {
 		"pageTitle": "Trip route track",
 		"subtitle": ""
+	},
+	"countdownDaysPage": {
+		"pageTitle": "Countdown Days",
+		"subtitle": "Remember Important Days",
+		"neverRepeat": "Never repeat",
+		"every": "Every {{num}}",
+		"repeatDay": "Every {{num}} days",
+		"repeatWeek": "Every {{num}} weeks",
+		"repeatMonth": "Every {{num}} months",
+		"repeatYear": "Every {{num}} years",
+		"day": "Days",
+		"week": "Weeks",
+		"month": "Months",
+		"year": "Years",
+		"allCategory": "All",
+		"addCategory": "Add Category",
+		"nameAlready": "{{name}} Already",
+		"nameArrivesIn": "{{name}} Arrives in",
+		"nextDate": "End Date",
+		"startDate": "Start Date",
+		"id": "Id",
+		"eventName": "Event Name",
+		"eventDate": "Event date",
+		"eventCategory": "Event Category",
+		"repeat": "repeat",
+		"selectEventCategory": "Select event category",
+		"updateEvent": "Update Event",
+		"createEvent": "Create Event",
+
+		"updateCategory": "Update Category",
+		"categoryName": "Category Name",
+
+		"syncing": "Syncing",
+
+		"SaaSFileRename": "SaaSS File rename",
+		"SaaSFileRenameContent": "Do you want to delete the original file on SaaSS and rename it for upload?",
+		"viewOriginalFile": "View SaaSS original document",
+
+		"enableOnlineBackup": "Enable online backup",
+		"enableOnlineBackupContent": "If you want to use SaaSS for backup, you need to log in first.",
+		"onlineBackupEnabled": "Online backup is enabled",
+		"onlineBackupEnabledSnackbar": "Online backup enabled using SaaSS"
+	},
+	"dateCalculatorPage": {
+		"pageTitle": "Date Calculator",
+		"subtitle": "Use this date calculator to calculate the number of days between two dates.",
+		"countDays": "Count Days",
+		"addDays": "Add Days",
+		"calculateDuration": "Calculate date difference",
+		"startDate": "Start Date",
+		"endDate": "End Date",
+		"today": "Today",
+		"years": "Years",
+		"months": "Months",
+		"weeks": "Weeks",
+		"days": "Days",
+		"calculateNewDate": "Calculate New Date",
+		"newDate": "New Date",
+		"daysBetweenTwoDates": "Days Between Two Dates",
+		"weeksBetweenTwoDates": "Weeks Between Two Dates",
+		"monthsBetweenTwoDates": "Months Between Two Dates",
+		"yearsBetweenTwoDates": "Years Between Two Dates",
+		"unexplainableDate": "Unexplainable Date"
 	},
 	"prompt": {
 		"next": "Next",
@@ -192,6 +262,20 @@
 		"profile": "Profile",
 
 		"send": "Send",
-		"copy": "Copy"
+		"copy": "Copy",
+
+		"clear": "Clear",
+		"noDateSelectedYet": "No date has been selected yet",
+		"noCategorySelectedYet": "No category has been selected yet",
+
+		"uploadedSuccessfully": "Uploaded successfully!",
+		"failedToConnectToApp": "Failed to connect to {{appName}}!",
+		"backup": "Backup",
+		"backupContent": "Are you sure you want to back up {{appName}}'s data?",
+		"restore": "Restore",
+		"replace": "Replace",
+		"replaceContent": "Are you sure you want to replace the original content?",
+
+		"rename": "Rename"
 	}
 }

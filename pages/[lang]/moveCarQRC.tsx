@@ -16,6 +16,7 @@ import {
 } from '../../store'
 import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import StatisticsComponent from '../../components/Statistics'
 import {
 	bindEvent,
 	snackbar,
@@ -450,7 +451,6 @@ const MoveCarPhonePage = () => {
 	const [showUploadAvatarDropdown, setShowUploadAvatarDropdown] =
 		useState(false)
 	const [showTextDropdown, setShowTextDropdown] = useState(false)
-	const [showQRCModal1, setShowQRCModal1] = useState(false)
 
 	const [loadStatus, setLoadStatus] = useState<'loading' | 'noMore' | 'loaded'>(
 		'loaded'
@@ -462,9 +462,9 @@ const MoveCarPhonePage = () => {
 	>([])
 
 	const [qrc, setQRC] = useState('')
-	const [passwordInclude, setPasswordInclude] = useState<
-		('Number' | 'Character')[]
-	>(['Number'])
+
+	const [selectMCQ, setSelectMCQ] =
+		useState<protoRoot.moveCarQRC.IMoveCarQRCItem>()
 
 	const [avatarCvsOptions, setAvatarCvsOptions] = useState({
 		w: 400,
@@ -504,7 +504,6 @@ const MoveCarPhonePage = () => {
 		}
 		if (!showQRCModal) {
 			setQRC('')
-			setShowQRCModal1(false)
 		}
 	}, [qrc, showQRCModal])
 
@@ -565,7 +564,7 @@ const MoveCarPhonePage = () => {
 		const url = location.origin + location.pathname + '/detail?id=' + id
 		setUrl(url)
 		console.log(url)
-		setQRC(((await generateQR(url)) as any) || '')
+		setQRC(((await generateQR(url + '&scan=1')) as any) || '')
 		console.log(qrc)
 		setShowQRCModal(true)
 	}
@@ -697,7 +696,6 @@ const MoveCarPhonePage = () => {
 
 			console.log(ctx)
 			ctx.restore()
-			setShowQRCModal1(true)
 		}
 	}
 
@@ -782,6 +780,7 @@ const MoveCarPhonePage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 			</Head>
 			<div className='move-car-phone-qrc-page'>
 				<div className='mcp-main'>
@@ -942,6 +941,23 @@ const MoveCarPhonePage = () => {
 															>
 																<SakiIcon color='#999' type='Pen'></SakiIcon>
 															</saki-button>
+															<SakiButton
+																onTap={() => {
+																	setSelectMCQ(v)
+																	dispatch(
+																		layoutSlice.actions.setOpenStatisticsModal(
+																			true
+																		)
+																	)
+																}}
+																bg-color='transparent'
+																type='CircleIconGrayHover'
+															>
+																<SakiIcon
+																	color='#999'
+																	type='Statistics'
+																></SakiIcon>
+															</SakiButton>
 															<saki-button
 																ref={bindEvent({
 																	async tap() {
@@ -1374,6 +1390,10 @@ const MoveCarPhonePage = () => {
 									</div>
 								</div>
 							</SakiModal>
+
+							<StatisticsComponent
+								statisticsData={selectMCQ?.statistics || undefined}
+							></StatisticsComponent>
 						</>
 					)}
 

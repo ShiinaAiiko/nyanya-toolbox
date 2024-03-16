@@ -12,6 +12,7 @@ export const layoutSlice = createSlice({
 		header: false,
 		footer: true,
 		bottomNavigator: true,
+		openStatisticsModal: false,
 		openLoginModal: false,
 		headerLogoText: '',
 	},
@@ -33,6 +34,15 @@ export const layoutSlice = createSlice({
 			}
 		) => {
 			state.openLoginModal = params.payload
+		},
+		setOpenStatisticsModal: (
+			state,
+			params: {
+				payload: boolean
+				type: string
+			}
+		) => {
+			state.openStatisticsModal = params.payload
 		},
 		setLayoutHeaderLogoText: (
 			state,

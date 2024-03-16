@@ -109,6 +109,9 @@
 				.mcp-item-right {
 					display: flex;
 					justify-content: flex-end;
+					@media (max-width: 768px) {
+						flex-wrap: wrap;
+					}
 				}
 			}
 		}
@@ -154,7 +157,7 @@
 					&.en-US {
 						font-size: 11px;
 						margin-top: 0px;
-            margin-bottom: 10px;
+						margin-bottom: 10px;
 					}
 				}
 			}

@@ -264,6 +264,7 @@ const WindowsPathPage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 			</Head>
 			<div className='windows-file-path-page'>
 				<div className='wfp-main'>

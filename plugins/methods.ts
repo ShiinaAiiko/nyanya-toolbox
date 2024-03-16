@@ -107,6 +107,15 @@ export const download = async (src: string, filename: string) => {
 	a.click()
 }
 
+export const downloadFile = async (file: File, filename: string) => {
+	var a = document.createElement('a')
+	a.href = window.URL.createObjectURL(file)
+	a.download = filename
+	a.target = '_blank'
+	a.click()
+	URL.revokeObjectURL(a.href)
+}
+
 export const developing = () => {
 	snackbar({
 		message: '该功能暂未开放',
@@ -164,13 +173,13 @@ export const hidePhone = (phone: string) => {
 			})
 			.join('')
 	}
-  return phone
-    .split('')
-    .map((v, i) => {
-      if (i < 2 || i > 5) {
-        return v
-      }
-      return '*'
-    })
-    .join('')
+	return phone
+		.split('')
+		.map((v, i) => {
+			if (i < 2 || i > 5) {
+				return v
+			}
+			return '*'
+		})
+		.join('')
 }

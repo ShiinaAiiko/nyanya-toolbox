@@ -52,6 +52,30 @@ export const MoveCarQRC = () => {
 				protoRoot.moveCarQRC.UpdateMoveCarQRC.Response
 			)
 		},
+		async UpdateMoveCarQRCStatistics(
+			id: string,
+			type: 'ScanCount' | 'CallCount' | 'SendEmailCount' | 'AddWeChatCount'
+		) {
+			const { api } = store.getState()
+
+			return await RequestProtobuf<protoRoot.moveCarQRC.UpdateMoveCarQRCStatistics.IResponse>(
+				{
+					method: 'POST',
+					url: getUrl(
+						api.apiUrls.v1.baseUrl,
+						api.apiUrls.v1.updateMoveCarQRCStatistics
+					),
+					data: NRequest.protobuf.ParamsEncode<protoRoot.moveCarQRC.UpdateMoveCarQRCStatistics.IRequest>(
+						{
+							id,
+							type,
+						},
+						protoRoot.moveCarQRC.UpdateMoveCarQRCStatistics.Request
+					),
+				},
+				protoRoot.moveCarQRC.UpdateMoveCarQRCStatistics.Response
+			)
+		},
 		async DeleteMoveCarQRC(id: string) {
 			const { api } = store.getState()
 

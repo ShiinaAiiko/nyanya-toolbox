@@ -37,3 +37,5 @@ ssh.sh
 .yarnrc
 build.tgz
 /components/saki-ui-react
+
+generateSiteMap.js

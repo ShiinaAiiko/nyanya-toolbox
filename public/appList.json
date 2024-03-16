@@ -6,6 +6,7 @@
 				"zh-TW": "將 Windows 路徑轉換為 Posix 路徑",
 				"en-US": "Convert Windows Path to Posix Path"
 			},
+      "logoText": "W",
 			"url": "http://tools.aiiko.club/windowsPathToPosixPath"
 		},
 		{
@@ -14,6 +15,7 @@
 				"zh-TW": "隨機密碼",
 				"en-US": "Random Password"
 			},
+      "logoText": "RP",
 			"url": "http://tools.aiiko.club/randomPassword"
 		},
 		{
@@ -22,6 +24,7 @@
 				"zh-TW": "喵鏈接",
 				"en-US": "Meow Links"
 			},
+      "logoText": "Links",
 			"url": "https://link.aiiko.club"
 		},
 		{
@@ -30,6 +33,7 @@
 				"zh-TW": "頭像角標生成器",
 				"en-US": "Avatar Badge Generator"
 			},
+      "logoText": "ABG",
 			"url": "http://tools.aiiko.club/avatarBadgeGenerator"
 		},
 		{
@@ -38,6 +42,7 @@
 				"zh-TW": "查詢IP或域名詳情",
 				"en-US": "Search IP or Domain Name Details"
 			},
+      "logoText": "IP",
 			"url": "http://tools.aiiko.club/ip"
 		},
 		{
@@ -46,6 +51,7 @@
 				"zh-TW": "Web檔案傳輸",
 				"en-US": "Web File Transfer"
 			},
+      "logoText": "WFT",
 			"url": "http://tools.aiiko.club/fileTransfer"
 		},
 		{
@@ -54,7 +60,8 @@
 				"zh-TW": "行程路線軌跡",
 				"en-US": "Trip route track"
 			},
-			"url": "http://trip.aiiko.club"
+      "logoText": "Trip",
+			"url": "https://trip.aiiko.club"
 		},
 		{
 			"title": {
@@ -62,7 +69,26 @@
 				"zh-TW": "挪車二維碼",
 				"en-US": "Move Car QR Code"
 			},
+      "logoText": "挪车",
 			"url": "http://tools.aiiko.club/moveCarQRC"
+		},
+		{
+			"title": {
+				"zh-CN": "日期计算器",
+				"zh-TW": "日期計算器",
+				"en-US": "Date Calculator"
+			},
+      "logoText": "DateCalculator",
+			"url": "http://tools.aiiko.club/dateCalculator"
+		},
+		{
+			"title": {
+				"zh-CN": "倒数日",
+				"zh-TW": "倒數日",
+				"en-US": "Countdown Days"
+			},
+      "logoText": "Countdown Days",
+			"url": "http://tools.aiiko.club/countdownDays"
 		}
 	]
 }

@@ -6,6 +6,7 @@ type Config struct {
 	BaseUrl string
 	Email   Email
 	Redis   Redis
+	Saass   SAaSS
 	// StaticPathDomain string
 	Mongodb Mongodb
 	Sfu     Sfu
@@ -24,6 +25,12 @@ type Sso struct {
 	AppId  string
 	AppKey string
 	Host   string
+}
+type SAaSS struct {
+	AppId      string
+	AppKey     string
+	BaseUrl    string
+	ApiVersion string
 }
 type Email struct {
 	User string

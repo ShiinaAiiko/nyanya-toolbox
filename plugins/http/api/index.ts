@@ -4,6 +4,7 @@ import { FileTransfer } from './fileTransfer'
 import { MoveCarQRC } from './moveCarQRC'
 import { R } from '../../../store/config'
 import { requestConfig } from '@nyanyajs/utils/dist/nrequest'
+import { CountdownDays } from './countdownDays'
 
 export const getUrl = (baseUrl: string, apiName: string) => {
 	const { apiUrl } = store.getState().api
@@ -27,5 +28,6 @@ export const RequestProtobuf = async <T = any>(
 export const v1 = {
 	FileTransfer: FileTransfer(),
 	MoveCarQRC: MoveCarQRC(),
+	CountdownDays: CountdownDays(),
 }
 export default v1

@@ -10,12 +10,17 @@ var ApiUrls = map[string](map[string]string){
 		"reconnectFileTransferRoom": "/fileTransfer/room/reconnect",
 
 		// MoveCarQRC
-		"createMoveCarQRC":  "/moveCarQRC/create",
-		"getMoveCarQRCList": "/moveCarQRC/list/get",
-		"getMoveCarQRC":     "/moveCarQRC/get",
-		"updateMoveCarQRC":  "/moveCarQRC/update",
-		"deleteMoveCarQRC":  "/moveCarQRC/delete",
-		"sendEmail":         "/moveCarQRC/sendEmail",
+		"createMoveCarQRC":           "/moveCarQRC/create",
+		"getMoveCarQRCList":          "/moveCarQRC/list/get",
+		"getMoveCarQRC":              "/moveCarQRC/get",
+		"updateMoveCarQRC":           "/moveCarQRC/update",
+		"deleteMoveCarQRC":           "/moveCarQRC/delete",
+		"sendEmail":                  "/moveCarQRC/sendEmail",
+		"updateMoveCarQRCStatistics": "/moveCarQRC/statistics/update",
+
+		// CountdownDays
+		"getUploadTokenOfCountdownDays": "/countdownDays/uploadToken/get",
+		"getCountdownDaysFileUrls":      "/countdownDays/fileUrls/get",
 
 		// Net
 		"ipDetails": "/ip/details",

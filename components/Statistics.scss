@@ -1,0 +1,19 @@
+.statistics-component {
+	.s-main {
+		background-color: #fff;
+		padding: 10px 40px 0;
+		.s-m-p-i-content {
+			display: flex;
+			justify-content: space-between;
+			margin: 20px 0;
+			.s-m-p-i-left {
+				font-size: 14px;
+				color: #999;
+			}
+			.s-m-p-i-right {
+				font-size: 14px;
+				color: #999;
+			}
+		}
+	}
+}

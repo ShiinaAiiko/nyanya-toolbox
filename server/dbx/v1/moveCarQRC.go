@@ -37,7 +37,7 @@ func (t *MoveCarQRCDbx) GetMoveCarQRC(id string, authorId string) (*models.MoveC
 	key := conf.Redisdb.GetKey("GetMoveCarQRC")
 	err := conf.Redisdb.GetStruct(key.GetKey(id), moveCarQRC)
 
-	if authorId != "" && moveCarQRC != nil && moveCarQRC.AuthorId == authorId {
+	if authorId != "" && moveCarQRC.Id != "" && moveCarQRC.AuthorId == authorId {
 		return moveCarQRC, nil
 	}
 	if err != nil {
@@ -130,6 +130,79 @@ func (t *MoveCarQRCDbx) UpdateMoveCarQRC(
 
 	// 删除对应redis
 	t.DeleteRedisData(authorId, id)
+	return nil
+}
+
+func (t *MoveCarQRCDbx) UpdateMoveCarQRCStatistics(id string, typeStr string) error {
+	moveCarQRC := new(models.MoveCarQRC)
+
+	update := bson.M{}
+
+	switch typeStr {
+	case "ScanCount":
+		update["statistics.scanCount"] = 1
+	case "CallCount":
+		update["statistics.callCount"] = 1
+	case "SendEmailCount":
+		update["statistics.sendEmailCount"] = 1
+	case "AddWeChatCount":
+		update["statistics.addWeChatCount"] = 1
+	}
+	// log.Info(authorId, id, update)
+
+	updateResult, err := moveCarQRC.GetCollection().UpdateOne(context.TODO(),
+		bson.M{
+			"$and": []bson.M{
+				{
+					"_id": id,
+				},
+				{
+					"status": 1,
+				},
+			},
+		}, bson.M{
+			"$inc": update,
+		}, options.Update().SetUpsert(false))
+
+	if err != nil {
+		return err
+	}
+	if updateResult.ModifiedCount == 0 {
+		return errors.New("update fail")
+	}
+
+	key := conf.Redisdb.GetKey("GetMoveCarQRC")
+	err = conf.Redisdb.GetStruct(key.GetKey(id), moveCarQRC)
+
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	if moveCarQRC.Id != "" {
+		if moveCarQRC.Statistics == nil {
+			moveCarQRC.Statistics = &models.MoveCarQRCStatistics{
+				ScanCount:      0,
+				CallCount:      0,
+				SendEmailCount: 0,
+				AddWeChatCount: 0,
+			}
+		}
+		switch typeStr {
+		case "ScanCount":
+			moveCarQRC.Statistics.ScanCount += 1
+		case "CallCount":
+			moveCarQRC.Statistics.CallCount += 1
+		case "SendEmailCount":
+			moveCarQRC.Statistics.SendEmailCount += 1
+		case "AddWeChatCount":
+			moveCarQRC.Statistics.AddWeChatCount += 1
+		}
+	}
+	err = conf.Redisdb.SetStruct(key.GetKey(id), moveCarQRC, key.GetExpiration())
+	if err != nil {
+		log.Error(err)
+	}
+
 	return nil
 }
 
@@ -229,6 +302,7 @@ func (t *MoveCarQRCDbx) GetMoveCarQRCList(
 					"email":          1,
 					"wechat":         1,
 					"colorTheme":     1,
+					"statistics":     1,
 					"createTime":     1,
 					"lastUpdateTime": 1,
 				},

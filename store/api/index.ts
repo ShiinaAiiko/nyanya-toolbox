@@ -23,6 +23,11 @@ export const apiSlice = createSlice({
 				updateMoveCarQRC: '/moveCarQRC/update',
 				deleteMoveCarQRC: '/moveCarQRC/delete',
 				sendEmail: '/moveCarQRC/sendEmail',
+				updateMoveCarQRCStatistics: '/moveCarQRC/statistics/update',
+
+				// CountdownDays
+				getUploadTokenOfCountdownDays: '/countdownDays/uploadToken/get',
+				getCountdownDaysFileUrls: '/countdownDays/fileUrls/get',
 			},
 		},
 		nsocketio: {

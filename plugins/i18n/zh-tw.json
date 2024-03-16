@@ -1,6 +1,7 @@
 {
 	"common": {
 		"appTitle": "NyaNya 工具箱",
+		"appSubtitle": "一個包含多個實用小工具的工具箱，更多的工具不定期增加",
 		"logoTitle": "帳號",
 		"copy": "複製",
 		"aiikoBlog": "愛喵博客",
@@ -25,7 +26,7 @@
 	},
 	"randomPasswordPage": {
 		"pageTitle": "随机密码",
-		"subtitle": "",
+		"subtitle": "創建一個隨機、安全的密碼。",
 		"length": "长度",
 		"numbers": "數字",
 		"symbols": "符号"
@@ -68,7 +69,7 @@
 
 		"createQRCAfterLogin": "您尚未登錄，登入後方可建立挪車二維碼",
 
-		"usageDays": "此二維碼已使用{{day}}天了",
+		"usageDays": "此二維碼已使用{{day}}天了，已被掃碼{{scanCount}}次~",
 
 		"useAvatar": "使用头像",
 		"uploadImages": "上传图片",
@@ -76,13 +77,19 @@
 		"createdOn": "創建於{{time}}",
 
 		"showText": "顯示文字",
-    "template1":"掃碼挪車",
+		"template1": "掃碼挪車",
 
-		"tutorial": "使用教程"
+		"tutorial": "使用教程",
+
+		"statistics": "統計",
+		"scanCount": "掃碼次數",
+		"callCount": "通話次數",
+		"sendEmailCount": "發送郵件次數",
+		"addWeChatCount": "新增微信次數"
 	},
 	"fileTransferPage": {
 		"pageTitle": "Web檔案傳輸",
-		"subtitle": "",
+		"subtitle": "可自由方便的在各種設備之間進行檔案傳輸。",
 		"connectedDevicesDesc": "已連接了{{count}}個設備",
 		"host": "主機",
 		"prflx": "區域網路",
@@ -113,7 +120,7 @@
 	},
 	"ipPage": {
 		"pageTitle": "查詢IP或域名詳情",
-		"subtitle": "",
+		"subtitle": "可免費査詢IP或功能變數名稱的IPv4、IPv6及地理位置。",
 		"inputPlaceholder": "輸入 IP 或域名",
 		"myIPDetails": "我的 IP 詳情",
 		"IPDetails": "IP 詳情",
@@ -138,6 +145,69 @@
 	"tripPage": {
 		"pageTitle": "行程路線軌跡",
 		"subtitle": ""
+	},
+	"countdownDaysPage": {
+		"pageTitle": "倒數日",
+		"subtitle": "記住那些重要的日子。",
+		"neverRepeat": "不重複",
+		"every": "每 {{num}}",
+		"repeatDay": "每 {{num}} 天",
+		"repeatWeek": "每 {{num}} 週",
+		"repeatMonth": "每 {{num}} 月",
+		"repeatYear": "每 {{num}} 年",
+		"day": "天",
+		"week": "週",
+		"month": "月",
+		"year": "年",
+		"allCategory": "全部",
+		"addCategory": "新增分類",
+		"nameAlready": "{{name}}已經",
+		"nameArrivesIn": "{{name}}還有",
+		"nextDate": "結束日期",
+		"startDate": "開始日期",
+		"id": "Id",
+		"eventName": "事件名稱",
+		"eventDate": "事件日期",
+		"eventCategory": "事件類別",
+		"repeat": "循環",
+		"selectEventCategory": "選擇事件類別",
+		"updateEvent": "更新事件",
+		"createEvent": "建立事件",
+
+		"updateCategory": "更新分類",
+		"categoryName": "分類名",
+
+		"syncing": "同步中",
+
+		"SaaSFileRename": "SAaSS檔案重新命名",
+		"SaaSFileRenameContent": "是否刪除SAaSS上的原始檔案並重新命名上傳？",
+		"viewOriginalFile": "查看SAaS原始文件",
+
+		"enableOnlineBackup": "啟用線上備份",
+		"enableOnlineBackupContent": "如需使用SAaSS進行備份，請需要先登入。",
+		"onlineBackupEnabled": "線上備份已啟用",
+		"onlineBackupEnabledSnackbar": "已使用 SaaSS 啟用線上備份"
+	},
+	"dateCalculatorPage": {
+		"pageTitle": "日期計算器",
+		"subtitle": "使用此日期計算器來計算兩個日期之間的天數",
+		"countDays": "計算天數",
+		"addDays": "加上天數",
+		"calculateDuration": "計算日期差",
+		"startDate": "開始日期",
+		"endDate": "結束日期",
+		"today": "今日",
+		"years": "年數",
+		"months": "月數",
+		"weeks": "週數",
+		"days": "天數",
+		"calculateNewDate": "計算新日期",
+		"newDate": "新日期",
+		"daysBetweenTwoDates": "兩個日期之間的天數",
+		"weeksBetweenTwoDates": "兩個日期之間的周數",
+		"monthsBetweenTwoDates": "兩個日期之間的月份",
+		"yearsBetweenTwoDates": "兩個日期之間的年數",
+		"unexplainableDate": "這是跨越喵星的時間~"
 	},
 	"prompt": {
 		"next": "繼續",
@@ -190,6 +260,20 @@
 		"profile": "個人資料",
 
 		"send": "發送",
-		"copy": "複製"
+		"copy": "複製",
+
+		"clear": "清除",
+		"noDateSelectedYet": "尚未選擇日期",
+		"noCategorySelectedYet": "尚未選擇分類",
+
+		"uploadedSuccessfully": "上傳成功!",
+		"failedToConnectToApp": "無法連線到{{appName}}!",
+		"backup": "備份",
+		"backupContent": "您確定要備份{{appName}}的資料嗎？",
+		"restore": "恢復",
+		"replace": "替換",
+		"replaceContent": "您確定要取代原來的內容嗎？",
+
+		"rename": "重新命名"
 	}
 }

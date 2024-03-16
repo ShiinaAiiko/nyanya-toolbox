@@ -22,7 +22,7 @@ const Init = () => {
 		init()
 	}, [])
 
-	console.log('413213213')
+	// console.log('413213213')
 
 	return (
 		<>

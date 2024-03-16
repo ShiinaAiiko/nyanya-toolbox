@@ -3,6 +3,13 @@ syntax = "proto3";
 option go_package = "./;protos";
 package moveCarQRC;
 
+message MoveCarQRCItemStatistics {
+  int64 scanCount = 1;
+  int64 callCount = 2;
+  int64 sendEmailCount = 3;
+  int64 addWeChatCount = 4;
+}
+
 message MoveCarQRCItem {
   string id = 1;
   string authorId = 2;
@@ -13,6 +20,8 @@ message MoveCarQRCItem {
   string wechat = 7;
 
   string colorTheme = 11;
+
+  MoveCarQRCItemStatistics statistics = 12;
 
   int64 status = 8;
   int64 createTime = 9;
@@ -69,6 +78,15 @@ message UpdateMoveCarQRC {
     MoveCarQRCEditItem moveCarQRC = 2;
   }
   message Response { MoveCarQRCItem moveCarQRC = 1; }
+}
+
+message UpdateMoveCarQRCStatistics {
+  message Request {
+    string id = 1;
+    // ScanCount / CallCount / SendEmailCount / AddWeChatCount
+    string type = 2;
+  }
+  message Response {}
 }
 
 message DeleteMoveCarQRC {

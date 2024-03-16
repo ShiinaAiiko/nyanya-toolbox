@@ -102,6 +102,7 @@ const RandomPasswordPage = () => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 			</Head>
 			<div className='random-password-page'>
 				<div className='rp-main'>

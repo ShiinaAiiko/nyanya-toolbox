@@ -556,6 +556,7 @@ const FileTransferPage = (props: any) => {
 							ns: 'common',
 						})}
 				</title>
+				<meta name='description' content={t('subtitle')} />
 			</Head>
 			<div className='file-transfer-page'>
 				{!fileTransfer.shareCode ? (

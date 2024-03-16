@@ -206,6 +206,10 @@ func (ftc *MoveCarQRCController) GetMoveCarQRC(c *gin.Context) {
 		res.Call(c)
 		return
 	}
+
+	log.Info("result", result)
+	log.Info("result", result.Statistics)
+
 	moveCarQRCProtoData := new(protos.MoveCarQRCItem)
 	copier.Copy(moveCarQRCProtoData, result)
 
@@ -306,6 +310,53 @@ func (ftc *MoveCarQRCController) UpdateMoveCarQRC(c *gin.Context) {
 	responseData := protos.UpdateMoveCarQRC_Response{
 		MoveCarQRC: moveCarQRCProtoData,
 	}
+
+	res.Data = protos.Encode(&responseData)
+
+	res.Call(c)
+}
+
+func (ftc *MoveCarQRCController) UpdateMoveCarQRCStatistics(c *gin.Context) {
+	// 1、请求体
+	var res response.ResponseProtobufType
+	res.Code = 200
+
+	data := new(protos.UpdateMoveCarQRCStatistics_Request)
+
+	var err error
+	if err = protos.DecodeBase64(c.GetString("data"), data); err != nil {
+		res.Error = err.Error()
+		res.Code = 10002
+		res.Call(c)
+		return
+	}
+	// log.Info(data)
+	// 3、验证参数
+
+	if err = validation.ValidateStruct(
+		data,
+		validation.Parameter(&data.Id, validation.Type("string"), validation.Required()),
+		validation.Parameter(&data.Type, validation.Enum([]string{
+			"ScanCount",
+			"CallCount",
+			"SendEmailCount",
+			"AddWeChatCount",
+		}), validation.Required()),
+	); err != nil {
+		res.Errors(err)
+		res.Code = 10002
+		res.Call(c)
+		return
+	}
+
+	if err := moveCarQRCDbx.UpdateMoveCarQRCStatistics(data.Id, data.Type); err != nil {
+		res.Errors(err)
+		res.Code = 10011
+		res.Call(c)
+		return
+	}
+
+	responseData := protos.UpdateMoveCarQRCStatistics_Response{}
 
 	res.Data = protos.Encode(&responseData)
 
