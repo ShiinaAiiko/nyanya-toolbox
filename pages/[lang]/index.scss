@@ -34,16 +34,10 @@
 				// display: flex;
 				// justify-content: flex-start;
 				// flex-direction: column;
-				width: calc(25% - 8px);
+				width: calc(50% - 8px);
 				margin: 6px 0px;
 				position: relative;
 				cursor: pointer;
-				@media (max-width: 1300px) {
-					width: calc(33.3333% - 8px);
-				}
-				@media (max-width: 1000px) {
-					width: calc(50% - 8px);
-				}
 				@media (max-width: 600px) {
 					width: calc(100% - 8px);
 				}

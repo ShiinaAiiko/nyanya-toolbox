@@ -13,7 +13,9 @@ nyanyalog.timer()
 
 const Init = () => {
 	const dispatch = useDispatch<AppDispatch>()
+	const config = useSelector((state: RootState) => state.config)
 
+	const router = useRouter()
 	useEffect(() => {
 		initPublic()
 		const init = async () => {
@@ -23,11 +25,22 @@ const Init = () => {
 	}, [])
 
 	// console.log('413213213')
+	// console.log('router1', router, router.query.lang)
 
 	return (
 		<>
 			<Head>
 				<link rel='icon' href='/favicon.ico' />
+				<link
+					rel='manifest'
+					href={`${
+						router.query.lang && router.query.lang !== 'en-US'
+							? '/' + router.query.lang
+							: ''
+					}/manifest.json`}
+        />
+        
+				<link rel='stylesheet' type='text/css' href='/color.css'></link>
 
 				<meta httpEquiv='X-UA-Compatible' content='IE=edge'></meta>
 				<meta

@@ -40,6 +40,14 @@ export const emojiToImg = (message: string) => {
 		return el
 	})
 }
+export const isInPwa = () => {
+	// return true
+	return (
+		window.matchMedia('(display-mode: standalone)').matches ||
+		(window.navigator as any)?.standalone ||
+		document.referrer.includes('android-app://')
+	)
+}
 
 export const copyText = (text: string) => {
 	if (window.isSecureContext && navigator.clipboard) {

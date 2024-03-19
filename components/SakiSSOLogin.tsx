@@ -39,7 +39,8 @@ const LoginComponent = () => {
 	// 			v: true,
 	// 		})
 	// 	)
-	// }, 1000)
+  // }, 1000)
+  
 	return (
 		<saki-modal
 			max-width={config.deviceType === 'Mobile' ? 'auto' : '500px'}

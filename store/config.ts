@@ -46,8 +46,62 @@ export const configSlice = createSlice({
 			logoText: string
 		}[],
 		ssoAccount: false,
+		pwaApp: false,
+		appearance: 'system',
 	},
 	reducers: {
+		setAppearance: (
+			state,
+			params: {
+				payload: (typeof state)['appearance']
+				type: string
+			}
+		) => {
+			state.appearance = params.payload
+			storage.global.setSync('appearance', state.appearance)
+
+			const el = document.body
+			// const el = document.body.querySelector('#__next')
+
+			if (!el) return
+
+			// document.querySelector(":root")
+			el.classList.remove(
+				'system-mode',
+				'dark-mode',
+				'black-mode',
+				'light-mode'
+			)
+			el.classList.add(state.appearance + '-mode')
+
+			const themeColorEl = document.head.querySelector(
+				"meta[name='theme-color']"
+			)
+			console.log('themeColorEl', themeColorEl)
+			if (themeColorEl) {
+				if (state.appearance === 'dark') {
+					themeColorEl.setAttribute('content', '#1e1e1e')
+					return
+				}
+				if (state.appearance === 'black') {
+					themeColorEl.setAttribute('content', '#000')
+					return
+				}
+				if (state.appearance === 'light') {
+					themeColorEl.setAttribute('content', '#fff')
+					return
+				}
+			}
+		},
+		setPwaApp: (
+			state,
+			params: {
+				payload: (typeof state)['pwaApp']
+				type: string
+			}
+		) => {
+			state.pwaApp = params.payload
+		},
 		setAppList: (
 			state,
 			params: {
@@ -101,6 +155,12 @@ export const configMethods = {
 	init: createAsyncThunk('config/init', async (_, thunkAPI) => {
 		// const language = (await storage.global.get('language')) || 'system'
 		// thunkAPI.dispatch(configMethods.setLanguage(language))
+		thunkAPI.dispatch(
+			configSlice.actions.setAppearance(
+				'light'
+				// (await storage.global.get('appearance')) || 'system'
+			)
+		)
 
 		window.addEventListener('resize', () => {
 			thunkAPI.dispatch(configMethods.getDeviceType())
@@ -143,7 +203,6 @@ export const configMethods = {
 			}
 
 			store.dispatch(configSlice.actions.setLang(getI18n().language))
-
 			await storage.global.set('language', language)
 		}
 	),

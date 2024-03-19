@@ -1,0 +1,37 @@
+{
+	"short_name": "NyaNya 工具箱",
+	"name": "NyaNya 工具箱",
+	"icons": [
+		{
+			"src": "/icons/icon.ico",
+			"sizes": "64x64 32x32 24x24 16x16",
+			"type": "image/x-icon",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/icons/256x256.png",
+			"type": "image/png",
+			"sizes": "192x192",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/icons/256x256.png",
+			"type": "image/png",
+			"sizes": "256x256",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/icons/512x512.png",
+			"type": "image/png",
+			"sizes": "512x512",
+			"purpose": "any maskable"
+		}
+	],
+	"orientation": "portrait-primary",
+	"start_url": "/zh-TW",
+	"scope": "/",
+	"display": "standalone",
+	"theme_color": "#ffffff",
+	"background_color": "#ffffff",
+	"description": "一個包含多個實用小工具的工具箱，更多的工具不定期增加"
+}

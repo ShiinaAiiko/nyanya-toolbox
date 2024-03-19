@@ -33,7 +33,7 @@ import {
 	SakiInitLanguage,
 	SakiTemplateFooter,
 } from '../components/saki-ui-react/components'
-import { Query } from '../plugins/methods'
+import { Query, isInPwa } from '../plugins/methods'
 import { storage } from '../store/storage'
 // import parserFunc from 'ua-parser-js'
 
@@ -87,7 +87,7 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 
 	useEffect(() => {
 		setMounted(true)
-		initNyaNyaWasm()
+		// initNyaNyaWasm()
 	}, [])
 
 	useEffect(() => {
@@ -98,8 +98,14 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 	}, [config.ssoAccount])
 
 	useEffect(() => {
-		console.log('router', location.href)
+		// console.log('router', location.href)
 		localStorage.setItem('lastVisitedUrl', location.href)
+
+		// console.log('pwa', router?.query?.isInPwa, router?.query?.pwa, isInPwa())
+
+		if (isInPwa()) {
+			dispatch(configSlice.actions.setPwaApp(true))
+		}
 	}, [router])
 
 	const initNyaNyaWasm = async () => {
@@ -138,24 +144,6 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 				<>
 					{mounted ? (
 						<>
-							<SakiInit onMounted={() => {}}></SakiInit>
-							<SakiInitLanguage
-								language={config.language}
-								lang={config.lang}
-								defalutLanguage={config.defaultLanguage}
-								ref={(e) => {
-									e?.initLanguage?.(config.languages, resources as any)
-								}}
-							></SakiInitLanguage>
-							{/* <SakiColor
-								// appearance={config.appearance}
-								defaultColor={'#f29cb2'}
-								defaultHoverColor={'#f185a0'}
-								defaultActiveColor={'#ce5d79'}
-								defaultBorderColor={'#f1f1f1'}
-							></SakiColor> */}
-							<SakiBaseStyle></SakiBaseStyle>
-							{config.ssoAccount ? <SakiSSOLoginComponent /> : ''}
 							<HeaderComponent visible={true} fixed={false}></HeaderComponent>
 						</>
 					) : (
@@ -169,6 +157,8 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 							{mounted ? (
 								<SakiTemplateFooter
 									onChangeLanguage={async (e) => {
+										localStorage.setItem('language', e.detail)
+
 										// router.locale = e.detail
 										Object.keys(router.query).forEach((k) => {
 											// console.log(k, basePathname.indexOf(`[${k}]`))
@@ -192,13 +182,17 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 											}
 										)
 										console.log('pathname', router, pathname)
+
 										router.replace(pathname || '/')
 									}}
 									onChangeAppearance={(e) => {
-										console.log(e)
-										// dispatch(configSlice.actions.setAppearance(e.detail.appearance))
+										// console.log(e)
+										dispatch(configSlice.actions.setAppearance(e.detail.value))
 									}}
-									appearance={''}
+									// appearance={config.appearance}
+									// appearanceName={t(config.appearance, {
+									// 	ns: 'appearance',
+									// })}
 									app-title={t('appTitle', {
 										ns: 'common',
 									})}
@@ -224,6 +218,64 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 							})}
 						</div>
 					</div>
+					{mounted ? (
+						<>
+							<SakiInit
+								onMounted={() => {
+									;(window as any)?.sakiui?.initAppearances?.([
+										{
+											value: 'system',
+											name: t('system', {
+												ns: 'appearance',
+											}),
+											color: '',
+										},
+										{
+											value: 'light',
+											name: t('light', {
+												ns: 'appearance',
+											}),
+											color: '',
+										},
+										{
+											value: 'dark',
+											name: t('dark', {
+												ns: 'appearance',
+											}),
+											color: '',
+										},
+										{
+											value: 'black',
+											name: t('black', {
+												ns: 'appearance',
+											}),
+											color: '',
+										},
+									])
+								}}
+							></SakiInit>
+							<SakiInitLanguage
+								language={config.language}
+								lang={config.lang}
+								defalutLanguage={config.defaultLanguage}
+								ref={(e) => {
+									// console.log('initLanguagee', e, config)
+									e?.initLanguage?.(config.languages, resources as any)
+								}}
+							></SakiInitLanguage>
+							<SakiColor
+								// appearance={config.appearance}
+								defaultColor={'#f29cb2'}
+								defaultHoverColor={'#f185a0'}
+								defaultActiveColor={'#ce5d79'}
+								defaultBorderColor={'#f1f1f1'}
+							></SakiColor>
+							<SakiBaseStyle></SakiBaseStyle>
+							{config.ssoAccount ? <SakiSSOLoginComponent /> : ''}
+						</>
+					) : (
+						''
+					)}
 				</>
 			</div>
 		</>

@@ -9,41 +9,53 @@
 		width: 100%;
 		min-width: 200px;
 		max-width: 700px;
-		.cd-m-time {
-			font-variant-numeric: tabular-nums;
-			font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
-				Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+		.cd-m-header {
+			height: 142px;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			user-select: none;
+			.cd-m-time {
+				font-variant-numeric: tabular-nums;
+				font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
+					Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 
-			.cd-m-t-time {
-				font-size: 88px;
-				font-weight: 300;
-				text-align: center;
-				color: #333;
-			}
-			.cd-m-t-date {
-				text-align: center;
-				font-size: 18px;
-				color: #333;
-			}
-			@media (max-width: 768px) {
 				.cd-m-t-time {
-					font-size: 58px;
+					font-size: 88px;
+					font-weight: 300;
+					text-align: center;
+					color: #333;
+					color: var(--text-primary);
 				}
-        .cd-m-t-date {
-          font-size: 16px;
-        }
+				.cd-m-t-date {
+					text-align: center;
+					font-size: 18px;
+					color: #333;
+					color: var(--text-primary);
+				}
+				@media (max-width: 768px) {
+					.cd-m-t-time {
+						font-size: 58px;
+					}
+					.cd-m-t-date {
+						font-size: 16px;
+					}
+				}
 			}
-		}
-		.cd-m-title {
-			margin: 10px 0 0px;
-			font-size: 26px;
-			font-weight: 700;
-			text-align: center;
-		}
-		.cd-m-subtitle {
-			font-size: 16px;
-			color: #222;
-			text-align: center;
+			.cd-m-title {
+				margin: 10px 0 0px;
+				font-size: 26px;
+				font-weight: 700;
+				text-align: center;
+        color: var(--text-primary);
+			}
+			.cd-m-subtitle {
+				font-size: 16px;
+				color: #222;
+				text-align: center;
+        color: var(--text-primary);
+			}
 		}
 		.cd-m-list {
 			border: 1px solid #eee;
@@ -122,7 +134,7 @@
 
 						&.neverRepeat {
 							.cd-l-i-c-day {
-								background-color: #3393ce;
+								background-color: var(--background-blue);
 							}
 						}
 						.cd-l-i-left {
@@ -312,7 +324,7 @@
 .countdown-days-event-detail {
 	width: var(--width);
 	height: calc(var(--width) * 0.9);
-	background-color: #fff;
+	background-color: var(--background-color);
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
@@ -328,7 +340,7 @@
 	}
 	&.neverRepeat {
 		.cde-top {
-			background-color: #3393ce;
+			background-color: var(--background-blue);
 		}
 	}
 	.cde-top {
@@ -353,6 +365,8 @@
 		font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
 			Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 
+		color: var(--text-primary);
+		background-color: var(--background-primary);
 		&.normal {
 			font-size: calc(var(--width) * 0.4);
 		}
@@ -374,8 +388,8 @@
 		width: 100%;
 		flex: 1;
 		font-size: calc(var(--width) * 0.056);
-		background-color: #f4f4f4;
-		color: #666;
+		background-color: var(--background-secondary);
+		color: var(--text-secondary);
 		padding: 0 10px;
 	}
 }

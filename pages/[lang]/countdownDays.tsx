@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import ToolboxLayout, { getLayout } from '../../layouts/Toolbox'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import path from 'path'
@@ -72,17 +72,21 @@ const FormatNextDate = ({
 }
 
 let timer: NodeJS.Timeout
-let lastUpdateTime = new Date().getTime()
 
-const TimeComponent = ({}: {}) => {
+const CountdownDaysTime = memo(({}: {}) => {
 	const { t, i18n } = useTranslation('countdownDaysPage')
 	// const nextDay = getCountdownDay(val)
 
-	const [updateTime, setUpdateTime] = useState(lastUpdateTime)
+	const [updateTime, setUpdateTime] = useState(new Date().getTime())
 	const [mounted, setMounted] = useState(false)
+
+	const [showPageTitle, setShowPageTitle] = useState(false)
 
 	useEffect(() => {
 		setMounted(true)
+		setTimeout(() => {
+			setShowPageTitle(true)
+		}, 2000)
 	}, [])
 
 	useEffect(() => {
@@ -98,17 +102,31 @@ const TimeComponent = ({}: {}) => {
 					}, 1000)
 				}, 1000 - (new Date().getTime() % 1000))
 		}
-	}, [mounted])
+	}, [showPageTitle])
 
 	const m = moment(updateTime)
 
 	return (
-		<div className='cd-m-time'>
-			<div className='cd-m-t-time'>{m.format('HH:mm:ss')}</div>
-			<div className='cd-m-t-date'>{m.format('YYYY-MM-DD dddd')}</div>
+		<div
+			className='cd-m-header'
+			onClick={() => {
+				setShowPageTitle(!showPageTitle)
+			}}
+		>
+			{mounted && showPageTitle ? (
+				<div className='cd-m-time'>
+					<div className='cd-m-t-time'>{m.format('HH:mm:ss')}</div>
+					<div className='cd-m-t-date'>{m.format('YYYY-MM-DD dddd')}</div>
+				</div>
+			) : (
+				<>
+					<div className='cd-m-title'>{t('pageTitle')}</div>
+					<div className='cd-m-subtitle'>{t('subtitle')}</div>
+				</>
+			)}
 		</div>
 	)
-}
+})
 
 const CountdownDaysEventDetailComponent = ({
 	val,
@@ -258,258 +276,256 @@ const CountdownDaysEventDetailModalComponent = ({
 		</SakiModal>
 	)
 }
+const CreateEventModalComponent = memo(
+	({
+		visible,
+		val,
+		onClose,
+		onComfirm,
+	}: {
+		visible: boolean
+		val?: protoRoot.countdownDays.ICountdownDaysEvent
+		onClose: () => void
+		onComfirm: () => void
+	}) => {
+		const { t, i18n } = useTranslation('countdownDaysPage')
+		const config = useSelector((state: RootState) => state.config)
+		const countdownDays = useSelector((state: RootState) => state.countdownDays)
 
-const CreateEventModalComponent = ({
-	visible,
-	val,
-	onClose,
-	onComfirm,
-}: {
-	visible: boolean
-	val?: protoRoot.countdownDays.ICountdownDaysEvent
-	onClose: () => void
-	onComfirm: (mcqrc: {
-		id?: string
-		phone: string
-		carNumber: string
-		slogan: string
-		email: string
-		wechat: string
-		colorTheme?: string
-	}) => void
-}) => {
-	const { t, i18n } = useTranslation('countdownDaysPage')
-	const config = useSelector((state: RootState) => state.config)
-	const countdownDays = useSelector((state: RootState) => state.countdownDays)
+		const [name, setName] = useState('')
+		const [nameErr, setNameErr] = useState('')
+		const [date, setDate] = useState('')
+		const [categoryId, setCategoryId] = useState('')
+		const [repeatType, setRepeatType] = useState<{
+			type: 'Never' | 'Day' | 'Week' | 'Month' | 'Year'
+			num: number
+		}>({
+			type: 'Never',
+			num: 0,
+		})
+		const [top, setTop] = useState(false)
 
-	const [name, setName] = useState('')
-	const [nameErr, setNameErr] = useState('')
-	const [date, setDate] = useState('')
-	const [categoryId, setCategoryId] = useState('')
-	const [repeatType, setRepeatType] = useState<{
-		type: 'Never' | 'Day' | 'Week' | 'Month' | 'Year'
-		num: number
-	}>({
-		type: 'Never',
-		num: 0,
-	})
-	const [top, setTop] = useState(false)
+		const [disableComfirmButton, setDisableComfirmButton] = useState(true)
 
-	const [disableComfirmButton, setDisableComfirmButton] = useState(true)
+		const [openCategoryDropdown, setOpenCategoryDropdown] = useState(false)
+		const [openRepeatDropdown, setOpenRepeatDropdown] = useState(false)
+		const [openDateDatePicker, setOpenDateDatePicker] = useState(false)
 
-	const [openCategoryDropdown, setOpenCategoryDropdown] = useState(false)
-	const [openRepeatDropdown, setOpenRepeatDropdown] = useState(false)
-	const [openDateDatePicker, setOpenDateDatePicker] = useState(false)
+		const dispatch = useDispatch<AppDispatch>()
 
-	const dispatch = useDispatch<AppDispatch>()
+		useEffect(() => {
+			verfiyNextButton()
+		}, [name])
 
-	useEffect(() => {
-		verfiyNextButton()
-	}, [name])
-
-	useEffect(() => {
-		setName(val?.name || '')
-		setDate(val?.date || '')
-		setCategoryId(val?.categoryId || '')
-		setRepeatType(
-			(val?.repeatType as any) || {
-				type: 'Never',
-				num: 0,
-			}
-		)
-		setTop(val?.top || false)
-		// console.log('mcqrc?.colorTheme', mcqrc?.colorTheme)
-	}, [val])
-	// console.log('colorThemeType', colorTheme, colorThemeType)
-
-	const verfiyNextButton = () => {
-		// console.log('verfiyNextButton')
-
-		setDisableComfirmButton(!name)
-
-		// setNameErr(
-		// 	!name
-		// 		? t('cannotBeEmpty', {
-		// 				ns: 'prompt',
-		// 		  })
-		// 		: ''
-		// )
-	}
-
-	return (
-		<SakiModal
-			onClose={() => {
-				// setShowManageMyQRCModal(false)
-				onClose()
-			}}
-			visible={visible}
-			width='100%'
-			height={config.deviceType === 'Mobile' ? '100%' : 'auto'}
-			max-width={config.deviceType === 'Mobile' ? '100%' : '520px'}
-			max-height={config.deviceType === 'Mobile' ? '100%' : '600px'}
-			mask
-			border-radius={config.deviceType === 'Mobile' ? '0px' : ''}
-			border={config.deviceType === 'Mobile' ? 'none' : ''}
-			mask-closable='false'
-			background-color='#fff'
-			zIndex={1100}
-		>
-			<SakiModalHeader
-				closeIcon
-				title={!val?.id ? t('createEvent', {}) : t('updateEvent', {})}
-				ref={
-					bindEvent({
-						close() {
-							onClose()
-						},
-					}) as any
+		useEffect(() => {
+			setName(val?.name || '')
+			setDate(val?.date || '')
+			setCategoryId(val?.categoryId || '')
+			setRepeatType(
+				(val?.repeatType as any) || {
+					type: 'Never',
+					num: 0,
 				}
-			></SakiModalHeader>
-			<div className='edit-countdown-days-event-modal'>
-				{val?.id ? (
-					<>
-						<SakiTitle margin='10px 0 6px 0' level={5} color='default'>
-							{t('id')}
-						</SakiTitle>
-						<div
-							style={{
-								margin: '0 0 10px 0',
-								color: '#666',
-							}}
-							className='ecd-id'
-						>
-							{val?.id}
-						</div>
-					</>
-				) : (
-					''
-				)}
-				<SakiInput
-					onChangevalue={(e) => {
-						setNameErr(
-							!e.detail
-								? t('cannotBeEmpty', {
-										ns: 'prompt',
-								  })
-								: ''
-						)
-						setName(e.detail)
-					}}
-					value={name}
-					height='50px'
-					margin='0 0 10px 0'
-					placeholder={t('eventName')}
-					error={nameErr}
-					type='Text'
-					placeholderAnimation='MoveUp'
-				></SakiInput>
+			)
+			setTop(val?.top || false)
+			// console.log('mcqrc?.colorTheme', mcqrc?.colorTheme)
+		}, [val])
+		// console.log('colorThemeType', colorTheme, colorThemeType)
 
-				<SakiInput
-					onChangevalue={(e) => {
-						console.log(e)
-						const dateArr = e.detail.split('-')
-						const y = Number(dateArr[0])
-						const m = Number(dateArr[1])
-						const d = Number(dateArr[2])
-						const date = new Date(y + '-' + m + '-' + d)
-						const t = date.getTime()
+		const verfiyNextButton = () => {
+			// console.log('verfiyNextButton')
 
-						if (!!t && y > 1000 && m >= 0 && m <= 11 && d >= 0 && d <= 31) {
-							setDate(moment(e.detail).format('YYYY-MM-DD'))
-						}
-					}}
-					onPressenter={() => {}}
-					onFocusfunc={() => {
-						console.log('focus')
-						setOpenDateDatePicker(true)
-					}}
-					width='100%'
-					padding='28px 0px 14px'
-					value={date ? moment(date).format('YYYY-MM-DD dddd') : ''}
-					border-radius='10px'
-					font-size='16px'
-					margin='20px 0 0'
-					placeholder={t('eventDate')}
-					border='1px solid var(--defaul-color)'
-					placeholderAnimation='MoveUp'
-				></SakiInput>
-				<saki-date-picker
-					ref={bindEvent({
-						close: () => {
-							setOpenDateDatePicker(false)
-						},
-						selectdate: (e) => {
+			setDisableComfirmButton(!name)
+
+			// setNameErr(
+			// 	!name
+			// 		? t('cannotBeEmpty', {
+			// 				ns: 'prompt',
+			// 		  })
+			// 		: ''
+			// )
+		}
+
+		console.log('CreateEventModalComponent')
+
+		return (
+			<SakiModal
+				onClose={() => {
+					// setShowManageMyQRCModal(false)
+					onClose()
+				}}
+				visible={visible}
+				width='100%'
+				height={config.deviceType === 'Mobile' ? '100%' : 'auto'}
+				max-width={config.deviceType === 'Mobile' ? '100%' : '520px'}
+				max-height={config.deviceType === 'Mobile' ? '100%' : '600px'}
+				mask
+				border-radius={config.deviceType === 'Mobile' ? '0px' : ''}
+				border={config.deviceType === 'Mobile' ? 'none' : ''}
+				mask-closable='false'
+				background-color='#fff'
+				zIndex={1100}
+			>
+				<SakiModalHeader
+					closeIcon
+					title={!val?.id ? t('createEvent', {}) : t('updateEvent', {})}
+					ref={
+						bindEvent({
+							close() {
+								onClose()
+							},
+						}) as any
+					}
+				></SakiModalHeader>
+				<div className='edit-countdown-days-event-modal'>
+					{val?.id ? (
+						<>
+							<SakiTitle margin='10px 0 6px 0' level={5} color='default'>
+								{t('id')}
+							</SakiTitle>
+							<div
+								style={{
+									margin: '0 0 10px 0',
+									color: '#666',
+								}}
+								className='ecd-id'
+							>
+								{val?.id}
+							</div>
+						</>
+					) : (
+						''
+					)}
+					<SakiInput
+						onChangevalue={(e) => {
+							setNameErr(
+								!e.detail
+									? t('cannotBeEmpty', {
+											ns: 'prompt',
+									  })
+									: ''
+							)
+							setName(e.detail)
+						}}
+						value={name}
+						height='50px'
+						margin='0 0 10px 0'
+						placeholder={t('eventName')}
+						error={nameErr}
+						type='Text'
+						placeholderAnimation='MoveUp'
+					></SakiInput>
+
+					<SakiInput
+						onChangevalue={(e) => {
 							console.log(e)
-							setDate(moment(e.detail.date).format('YYYY-MM-DD'))
-							setOpenDateDatePicker(false)
-						},
-					})}
-					date={date}
-					visible={openDateDatePicker}
-					time-picker
-					mask
-					z-index={1300}
-				></saki-date-picker>
+							const dateArr = e.detail.split('-')
+							const y = Number(dateArr[0])
+							const m = Number(dateArr[1])
+							const d = Number(dateArr[2])
+							const date = new Date(y + '-' + m + '-' + d)
+							const t = date.getTime()
 
-				<div className='ecd-item'>
-					<SakiTitle margin='0 0 6px 0' level={5} color='default'>
-						{t('eventCategory')}
-					</SakiTitle>
-					<saki-dropdown
-						visible={openCategoryDropdown}
-						floating-direction='Left'
-						z-index='1105'
+							if (!!t && y > 1000 && m >= 0 && m <= 11 && d >= 0 && d <= 31) {
+								setDate(moment(e.detail).format('YYYY-MM-DD'))
+							}
+						}}
+						onPressenter={() => {}}
+						onFocusfunc={() => {
+							console.log('focus')
+							setOpenDateDatePicker(true)
+						}}
+						width='100%'
+						padding='28px 0px 14px'
+						value={date ? moment(date).format('YYYY-MM-DD dddd') : ''}
+						border-radius='10px'
+						font-size='16px'
+						margin='20px 0 0'
+						placeholder={t('eventDate')}
+						border='1px solid var(--defaul-color)'
+						placeholderAnimation='MoveUp'
+					></SakiInput>
+					<saki-date-picker
 						ref={bindEvent({
-							close: (e) => {
-								setOpenCategoryDropdown(false)
+							close: () => {
+								setOpenDateDatePicker(false)
+							},
+							selectdate: (e) => {
+								console.log(e)
+								setDate(moment(e.detail.date).format('YYYY-MM-DD'))
+								setOpenDateDatePicker(false)
 							},
 						})}
-					>
-						<saki-button
+						date={date}
+						visible={openDateDatePicker}
+						time-picker
+						mask
+						z-index={1300}
+					></saki-date-picker>
+
+					<div className='ecd-item'>
+						<SakiTitle margin='0 0 6px 0' level={5} color='default'>
+							{t('eventCategory')}
+						</SakiTitle>
+						<saki-dropdown
+							visible={openCategoryDropdown}
+							floating-direction='Left'
+							z-index='1105'
 							ref={bindEvent({
-								tap: async () => {
-									setOpenCategoryDropdown(true)
+								close: (e) => {
+									setOpenCategoryDropdown(false)
 								},
 							})}
-							margin='0 0 0 0px'
-							padding={'6px 10px'}
-							font-size='14px'
-							border='none'
 						>
-							<span>
-								{countdownDays.categories?.filter(
-									(v) => v.id === categoryId
-								)?.[0]?.name || t('selectEventCategory')}
-							</span>
-							<SakiIcon
-								margin='0 0 0 6px'
-								width='12px'
-								color='#999'
-								type='Bottom'
-							></SakiIcon>
-						</saki-button>
-						<div slot='main'>
-							<saki-menu
+							<saki-button
 								ref={bindEvent({
-									selectvalue: async (e) => {
-										setCategoryId(e.detail.value)
-										setOpenCategoryDropdown(false)
+									tap: async () => {
+										setOpenCategoryDropdown(true)
 									},
 								})}
+								margin='0 0 0 0px'
+								padding={'6px 10px'}
+								font-size='14px'
+								border='none'
 							>
-								{countdownDays.categories.map((v) => {
-									return (
-										<saki-menu-item key={v.id} padding='10px 18px' value={v.id}>
-											<span>{v.name}</span>
-										</saki-menu-item>
-									)
-								})}
-							</saki-menu>
-						</div>
-					</saki-dropdown>
-				</div>
+								<span>
+									{countdownDays.categories?.filter(
+										(v) => v.id === categoryId
+									)?.[0]?.name || t('selectEventCategory')}
+								</span>
+								<SakiIcon
+									margin='0 0 0 6px'
+									width='12px'
+									color='#999'
+									type='Bottom'
+								></SakiIcon>
+							</saki-button>
+							<div slot='main'>
+								<saki-menu
+									ref={bindEvent({
+										selectvalue: async (e) => {
+											setCategoryId(e.detail.value)
+											setOpenCategoryDropdown(false)
+										},
+									})}
+								>
+									{countdownDays.categories.map((v) => {
+										return (
+											<saki-menu-item
+												key={v.id}
+												padding='10px 18px'
+												value={v.id}
+											>
+												<span>{v.name}</span>
+											</saki-menu-item>
+										)
+									})}
+								</saki-menu>
+							</div>
+						</saki-dropdown>
+					</div>
 
-				{/* <div className='ecd-item'>
+					{/* <div className='ecd-item'>
 					<SakiTitle margin='0 0 6px 0' level={5} color='default'>
 						{t('pinTop')}
 					</SakiTitle>
@@ -527,163 +543,176 @@ const CreateEventModalComponent = ({
 						value={top}
 					></SakiSwitch>
 				</div> */}
-				<div className='ecd-item'>
-					<SakiTitle margin='0 0 6px 0' level={5} color='default'>
-						{t('repeat')}
-					</SakiTitle>
-					<div className='ecd-i-right'>
-						<saki-dropdown
-							visible={openRepeatDropdown}
-							floating-direction='Left'
-							z-index='1105'
-							ref={bindEvent({
-								close: (e) => {
-									setOpenRepeatDropdown(false)
-								},
-							})}
-						>
-							<saki-button
+					<div className='ecd-item'>
+						<SakiTitle margin='0 0 6px 0' level={5} color='default'>
+							{t('repeat')}
+						</SakiTitle>
+						<div className='ecd-i-right'>
+							<saki-dropdown
+								visible={openRepeatDropdown}
+								floating-direction='Left'
+								z-index='1105'
 								ref={bindEvent({
-									tap: async () => {
-										setOpenRepeatDropdown(true)
+									close: (e) => {
+										setOpenRepeatDropdown(false)
 									},
 								})}
-								margin='0 0 0 0px'
-								padding={'6px 10px'}
-								font-size='14px'
-								border='none'
 							>
-								<span>
-									{repeatType?.num === 0
-										? t('neverRepeat')
-										: t('repeat' + repeatType?.type, {
-												num: repeatType?.num,
-										  })}
-								</span>
-								<SakiIcon
-									margin='0 0 0 6px'
-									width='12px'
-									color='#999'
-									type='Bottom'
-								></SakiIcon>
-							</saki-button>
-							<div className='repeat-dropdown' slot='main'>
-								<div className='rd-left scrollBarHover'>
-									<saki-menu
-										ref={bindEvent({
-											selectvalue: async (e) => {
-												if (!Number(e.detail.value)) {
+								<saki-button
+									ref={bindEvent({
+										tap: async () => {
+											setOpenRepeatDropdown(true)
+										},
+									})}
+									margin='0 0 0 0px'
+									padding={'6px 10px'}
+									font-size='14px'
+									border='none'
+								>
+									<span>
+										{repeatType?.num === 0
+											? t('neverRepeat')
+											: t('repeat' + repeatType?.type, {
+													num: repeatType?.num,
+											  })}
+									</span>
+									<SakiIcon
+										margin='0 0 0 6px'
+										width='12px'
+										color='#999'
+										type='Bottom'
+									></SakiIcon>
+								</saki-button>
+								<div className='repeat-dropdown' slot='main'>
+									<div className='rd-left scrollBarHover'>
+										<saki-menu
+											ref={bindEvent({
+												selectvalue: async (e) => {
+													if (!Number(e.detail.value)) {
+														setRepeatType({
+															type: 'Never',
+															num: 0,
+														})
+														return
+													}
 													setRepeatType({
-														type: 'Never',
-														num: 0,
+														num: Number(e.detail.value),
+														type:
+															repeatType?.type === 'Never'
+																? 'Day'
+																: repeatType?.type,
 													})
-													return
-												}
-												setRepeatType({
-													num: Number(e.detail.value),
-													type:
-														repeatType?.type === 'Never'
-															? 'Day'
-															: repeatType?.type,
-												})
-											},
-										})}
-									>
-										{new Array(100).fill(1).map((v, i) => {
-											return (
-												<saki-menu-item
-													key={i}
-													active={repeatType?.num === i}
-													padding='10px 28px'
-													value={i}
-												>
-													<span>
-														{i === 0
-															? t('neverRepeat')
-															: t('every', {
-																	num: i,
-															  })}
-													</span>
-												</saki-menu-item>
-											)
-										})}
-									</saki-menu>
-								</div>
-								<div className='rd-right scrollBarHover'>
-									<saki-menu
-										ref={bindEvent({
-											selectvalue: async (e) => {
-												if (e.detail.value === 'Never') {
+												},
+											})}
+										>
+											{new Array(100).fill(1).map((v, i) => {
+												return (
+													<saki-menu-item
+														key={i}
+														active={repeatType?.num === i}
+														padding='10px 28px'
+														value={i}
+													>
+														<span>
+															{i === 0
+																? t('neverRepeat')
+																: t('every', {
+																		num: i,
+																  })}
+														</span>
+													</saki-menu-item>
+												)
+											})}
+										</saki-menu>
+									</div>
+									<div className='rd-right scrollBarHover'>
+										<saki-menu
+											ref={bindEvent({
+												selectvalue: async (e) => {
+													if (e.detail.value === 'Never') {
+														setRepeatType({
+															type: 'Never',
+															num: 0,
+														})
+														return
+													}
 													setRepeatType({
-														type: 'Never',
-														num: 0,
+														type: e.detail.value,
+														num: !repeatType?.num ? 1 : repeatType?.num,
 													})
-													return
-												}
-												setRepeatType({
-													type: e.detail.value,
-													num: !repeatType?.num ? 1 : repeatType?.num,
-												})
-											},
-										})}
-									>
-										{['Never', 'Day', 'Week', 'Month', 'Year'].map((v, i) => {
-											return (
-												<saki-menu-item
-													key={i}
-													active={repeatType?.type === v}
-													padding='10px 28px'
-													value={v}
-												>
-													<span>
-														{v === 'Never'
-															? t('neverRepeat')
-															: t(v.toLowerCase())}
-													</span>
-												</saki-menu-item>
-											)
-										})}
-									</saki-menu>
+												},
+											})}
+										>
+											{['Never', 'Day', 'Week', 'Month', 'Year'].map((v, i) => {
+												return (
+													<saki-menu-item
+														key={i}
+														active={repeatType?.type === v}
+														padding='10px 28px'
+														value={v}
+													>
+														<span>
+															{v === 'Never'
+																? t('neverRepeat')
+																: t(v.toLowerCase())}
+														</span>
+													</saki-menu-item>
+												)
+											})}
+										</saki-menu>
+									</div>
 								</div>
-							</div>
-						</saki-dropdown>
+							</saki-dropdown>
+						</div>
 					</div>
-				</div>
-				<div className='ecd-buttons'>
-					<saki-button
-						ref={bindEvent({
-							tap: async () => {
-								onClose()
-							},
-						})}
-						margin='0 0 0 10px'
-						padding='8px 18px'
-						font-size='14px'
-					>
-						{t('cancel', {
-							ns: 'prompt',
-						})}
-					</saki-button>
+					<div className='ecd-buttons'>
+						<saki-button
+							ref={bindEvent({
+								tap: async () => {
+									onClose()
+								},
+							})}
+							margin='0 0 0 10px'
+							padding='8px 18px'
+							font-size='14px'
+						>
+							{t('cancel', {
+								ns: 'prompt',
+							})}
+						</saki-button>
 
-					<saki-button
-						ref={bindEvent({
-							tap: async () => {
-								verfiyNextButton()
+						<saki-button
+							ref={bindEvent({
+								tap: async () => {
+									verfiyNextButton()
 
-								if (!date) {
-									showSnackbar(t('noDateSelectedYet'))
-									return
-								}
+									if (!date) {
+										showSnackbar(t('noDateSelectedYet'))
+										return
+									}
 
-								if (!categoryId) {
-									showSnackbar(t('noCategorySelectedYet'))
-									return
-								}
+									if (!categoryId) {
+										showSnackbar(t('noCategorySelectedYet'))
+										return
+									}
 
-								if (val?.id) {
+									if (val?.id) {
+										dispatch(
+											methods.countdownDays.updateCountdownDaysEvent({
+												id: val.id,
+												name,
+												date,
+												categoryId,
+												repeatType,
+												top,
+											})
+										)
+										onClose()
+										return
+									}
+
 									dispatch(
-										methods.countdownDays.updateCountdownDaysEvent({
-											id: val.id,
+										methods.countdownDays.addCountdownDaysEvent({
 											name,
 											date,
 											categoryId,
@@ -692,40 +721,28 @@ const CreateEventModalComponent = ({
 										})
 									)
 									onClose()
-									return
-								}
-
-								dispatch(
-									methods.countdownDays.addCountdownDaysEvent({
-										name,
-										date,
-										categoryId,
-										repeatType,
-										top,
-									})
-								)
-								onClose()
-							},
-						})}
-						margin='0 0 0 10px'
-						padding='8px 18px'
-						font-size='14px'
-						type='Primary'
-						disabled={disableComfirmButton}
-					>
-						{!val?.id
-							? t('create', {
-									ns: 'prompt',
-							  })
-							: t('update', {
-									ns: 'prompt',
-							  })}
-					</saki-button>
+								},
+							})}
+							margin='0 0 0 10px'
+							padding='8px 18px'
+							font-size='14px'
+							type='Primary'
+							disabled={disableComfirmButton}
+						>
+							{!val?.id
+								? t('create', {
+										ns: 'prompt',
+								  })
+								: t('update', {
+										ns: 'prompt',
+								  })}
+						</saki-button>
+					</div>
 				</div>
-			</div>
-		</SakiModal>
-	)
-}
+			</SakiModal>
+		)
+	}
+)
 
 const CountdownDaysPage = () => {
 	const { t, i18n } = useTranslation('countdownDaysPage')
@@ -742,7 +759,6 @@ const CountdownDaysPage = () => {
 		useState<number>(-1)
 
 	const [updateTime, setUpdateTime] = useState(0)
-
 	const [eventItemActiveIndex, setEventItemActiveIndex] = useState<number>(-1)
 
 	const [showCategoryId, setShowCategoryId] = useState('All')
@@ -757,6 +773,20 @@ const CountdownDaysPage = () => {
 	const [openCreateDayEventModal, setOpenCreateDayEventModal] = useState(false)
 	const [editEventItem, setEditEventItem] =
 		useState<protoRoot.countdownDays.ICountdownDaysEvent>()
+
+	const createEventModalMemo = useMemo((): Parameters<
+		typeof CreateEventModalComponent
+	>[0] => {
+		return {
+			visible: openCreateDayEventModal,
+			val: editEventItem,
+			onClose() {
+				setOpenCreateDayEventModal(false)
+				setEditEventItem(undefined)
+			},
+			onComfirm() {},
+		}
+	}, [openCreateDayEventModal, editEventItem])
 
 	const dispatch = useDispatch<AppDispatch>()
 
@@ -776,6 +806,11 @@ const CountdownDaysPage = () => {
 	}, [i18n.language])
 
 	useEffect(() => {
+		console.log(
+			user.isLogin,
+			countdownDays.lastUpdateTime !== 0,
+			!countdownDays.downloadDataStatus.saass
+		)
 		user.isLogin &&
 			countdownDays.lastUpdateTime !== 0 &&
 			!countdownDays.downloadDataStatus.saass &&
@@ -796,9 +831,7 @@ const CountdownDaysPage = () => {
 			</Head>
 			<div className='countdown-days-page'>
 				<div className='cd-main'>
-					<TimeComponent />
-					{/* <div className='cd-m-title'>{t('pageTitle')}</div>
-					<div className='cd-m-subtitle'>{t('subtitle')}</div> */}
+					<CountdownDaysTime />
 
 					{mounted && (
 						<>
@@ -1372,16 +1405,12 @@ const CountdownDaysPage = () => {
 							</div>
 
 							<CreateEventModalComponent
-								visible={openCreateDayEventModal}
-								onClose={() => {
-									setOpenCreateDayEventModal(false)
-									setEditEventItem(undefined)
-								}}
-								val={editEventItem}
-								onComfirm={(val) => {
-									console.log(val)
-								}}
+								visible={createEventModalMemo.visible}
+								onClose={createEventModalMemo.onClose}
+								val={createEventModalMemo.val}
+								onComfirm={createEventModalMemo.onComfirm}
 							/>
+
 							<CountdownDaysEventDetailModalComponent
 								visible={openCountdownDaysEventDetailModal}
 								val={

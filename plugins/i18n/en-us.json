@@ -12,6 +12,12 @@
 
 		"404": "The page does not exist"
 	},
+	"appearance": {
+		"light": "Light",
+		"dark": "Dark",
+		"black": "Black",
+		"system": "Use device appearance"
+	},
 	"languages": {
 		"en-US": "English",
 		"zh-CN": "Chinese(Simplified)",

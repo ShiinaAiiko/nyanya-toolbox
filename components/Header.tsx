@@ -29,6 +29,7 @@ import {
 	SakiTemplateMenuDropdown,
 	SakiAnimationLoading,
 	SakiSso,
+	SakiIcon,
 } from './saki-ui-react/components'
 import {
 	LocalUser,
@@ -39,6 +40,7 @@ import { userMethods } from '../store/user'
 import { localUserMethods } from '../store/localUser'
 import moment from 'moment'
 import { byteConvert } from '@nyanyajs/utils'
+import { copyText, showSnackbar } from '../plugins/methods'
 
 const SpeedComponent = React.memo(() => {
 	const { t, i18n } = useTranslation('common')
@@ -203,6 +205,7 @@ const HeaderComponent = ({
 							})
 						)
 					}}
+					openNewPage={!config.pwaApp}
 					app-text={layout.headerLogoText}
 				></SakiTemplateMenuDropdown>
 			</div>
@@ -213,7 +216,6 @@ const HeaderComponent = ({
 				) : (
 					''
 				)}
-
 				{router.asPath.indexOf('countdownDays') >= 0 &&
 				countdownDays.syncing ? (
 					<SakiRow alignItems='center'>
@@ -231,7 +233,6 @@ const HeaderComponent = ({
 				) : (
 					''
 				)}
-
 				{router.asPath.indexOf('moveCarQRC/detail') >= 0 ? (
 					<SakiButton
 						onTap={() => {
@@ -245,7 +246,36 @@ const HeaderComponent = ({
 				) : (
 					''
 				)}
-
+				<SakiButton
+					onTap={() => {
+						console.log(router)
+						const ns =
+							'/[lang]/countdownDays'
+								.replace('/[lang]', '')
+								.split('/')
+								.filter((v) => v)?.[0] + 'Page'
+						copyText(`${t('pageTitle', { ns })}
+${location.href}`)
+						showSnackbar(
+							t('copySuccessfully', {
+								ns: 'prompt',
+							})
+						)
+					}}
+					type='CircleIconGrayHover'
+				>
+					<saki-icon
+						margin='0 6px 0 0'
+						width='16px'
+						height='16px'
+						color='#666'
+						padding='0 0 0 5px'
+						type='ShareFill'
+					></saki-icon>
+				</SakiButton>
+				{/* <SakiButton type='CircleIconGrayHover'>
+					<saki-icon color='#666' type='ShareFill'></saki-icon>
+				</SakiButton> */}
 				<meow-apps-dropdown
 					ref={(e: any) => {
 						// e?.addApps(
@@ -274,7 +304,6 @@ const HeaderComponent = ({
 					bg-color='rgba(0,0,0,0)'
 					language={config.lang}
 				></meow-apps-dropdown>
-
 				{config.ssoAccount ? (
 					<saki-dropdown
 						visible={openUserDropDownMenu}
@@ -573,7 +602,6 @@ const HeaderComponent = ({
 				) : (
 					''
 				)}
-
 				<SakiAsideModal
 					onClose={() => {
 						setOpenLoginUserModal(false)
@@ -675,7 +703,6 @@ const HeaderComponent = ({
 						)}
 					</div>
 				</SakiAsideModal>
-
 				<saki-modal
 					max-width={config.deviceType === 'Mobile' ? '100%' : '800px'}
 					min-width={config.deviceType === 'Mobile' ? 'auto' : '700px'}

@@ -1,41 +1,16 @@
 import Head from 'next/head'
-import ToolboxLayout, { getLayout } from '../../layouts/Toolbox'
-import Link from 'next/link'
+import { getLayout } from '../../layouts/Toolbox'
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { useRouter } from 'next/router'
-import path from 'path'
-import {
-	RootState,
-	AppDispatch,
-	layoutSlice,
-	useAppDispatch,
-	methods,
-	apiSlice,
-	configSlice,
-} from '../../store'
+import { RootState, layoutSlice } from '../../store'
 import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
-import { deepCopy, QueueLoop } from '@nyanyajs/utils'
-import {
-	getRegExp,
-	copyText,
-	getRandomPassword,
-	showSnackbar,
-} from '../../plugins/methods'
+
 import {
 	changeLanguage,
 	languages,
 	defaultLanguage,
 } from '../../plugins/i18n/i18n'
-import {
-	SakiButton,
-	SakiInput,
-	SakiTabs,
-	SakiTabsItem,
-} from '../../components/saki-ui-react/components'
-import moment from 'moment'
 const json = require('../../public/appList.json')
 const appList: {
 	title: {
@@ -57,7 +32,21 @@ const IndexPage = () => {
 
 	useEffect(() => {
 		setMounted(true)
-	}, [])
+
+		const init = async () => {
+			console.log('langg')
+			const lang = localStorage.getItem('language') || ''
+			// if (lang === 'system') {
+			// 	return
+			// }
+			config.pwaApp &&
+				lang &&
+				router.replace(
+					'https://tools.aiiko.club/' + (lang !== 'system' ? lang : '')
+				)
+		}
+		init()
+	}, [config.pwaApp])
 
 	useEffect(() => {
 		dispatch(
@@ -115,8 +104,15 @@ const IndexPage = () => {
 							}
 
 							return (
-								<div
+								<a
 									key={i}
+									href={v.url.replace(
+										'tools.aiiko.club/',
+										'tools.aiiko.club/' +
+											// 'http://192.168.204.129:23200/' +
+											(router.query.lang ? router.query.lang + '/' : '')
+									)}
+									target={config.pwaApp ? '' : '_blank'}
 									onClick={(e) => {
 										e.stopPropagation()
 									}}
@@ -136,13 +132,7 @@ const IndexPage = () => {
 										</div>
 										<div className={'ip-c-l-i-right'}>
 											<div className={'ip-c-l-i-appName'} title={title}>
-												<a
-													href={v.url}
-													target='_blank'
-													className={'appName text-elipsis'}
-												>
-													{title}
-												</a>
+												<div className={'appName text-elipsis'}>{title}</div>
 											</div>
 											<div
 												className={
@@ -155,7 +145,7 @@ const IndexPage = () => {
 										</div>
 									</div>
 									<div className={'ip-c-l-i-border'}></div>
-								</div>
+								</a>
 							)
 						})}
 					</div>
