@@ -1,0 +1,12 @@
+{
+	//编译器选项
+	"compilerOptions": {
+		//指定要使用的模块化规范
+		"module": "ES2015",
+		//指定编译后js的版本
+		"target": "ES2015",
+		"moduleResolution": "node",
+		// 指定是否使用严格模式
+		"strict": true
+	}
+}

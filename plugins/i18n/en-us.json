@@ -10,7 +10,12 @@
 		"video": "Video",
 		"file": "File",
 
-		"404": "The page does not exist"
+		"404": "The page does not exist",
+
+		"developing": "Developing",
+
+		"emoji": "Emoji",
+		"customStickers": "Custom Stickers "
 	},
 	"appearance": {
 		"light": "Light",
@@ -102,7 +107,39 @@
 		"host": "Host",
 		"prflx": "LAN",
 		"srflx": "P2P",
-		"replay": "Network"
+		"replay": "Network",
+		"start": "Start",
+		"history": "History",
+		"waitingForOtherDevicesToConnect": "Waiting for other devices to connect...",
+		"connectedToOtherDevices": "Connected to other devices",
+		"usingTcpConnection": "Using TCP connection",
+		"updateInfo": "Update information",
+		"reconnect": "Reconnect",
+		"connected": "Connected",
+		"connecting": "Connecting",
+		"notConnected": "Not connected",
+
+		"writeMessage": "Input message",
+		"sendFile": "Send file",
+		"connectingToServer": "Connecting to server...",
+		"waitForDeviceToConnect": "Waiting for device to connect...",
+
+		"transferData": "Transfer data",
+		"uploadedData": "Uploaded {{byte}}",
+		"downloadedData": "Downloaded {{byte}}",
+		"transferRate": "Transfer rate",
+		"uploadData": "Upload {{byte}}",
+		"downloadData": "Download {{byte}}",
+
+		"newRoom": "New Room",
+		"updateRoomInfo": "Update room information",
+		"inputName": "Room Name",
+
+		"connectOtherDevice": "Connect other devices",
+		"connectOtherDeviceContentPlaceholder": "Enter the sharing code to connect to other devices",
+
+		"copyShareCode": "Copy share code",
+		"copyShareCodePlaceholder": "Copy the share code to connect to other devices"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "Avatar badge Generator",
@@ -150,9 +187,14 @@
 		"pageTitle": "Navigation speed test",
 		"subtitle": ""
 	},
+	"stopwatchPage": {
+		"pageTitle": "Stopwatch",
+		"subtitle": "A free online stopwatch that works on any device",
+		"history": "History"
+	},
 	"tripPage": {
 		"pageTitle": "Trip route track",
-		"subtitle": ""
+		"subtitle": "Using GPS, you can conveniently record route trajectory, speed, mileage, altitude and other travel data~"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "Countdown Days",
@@ -240,8 +282,6 @@
 		"forward": "Forward",
 		"edit": "Edit",
 
-		"disconnect": "Disconnect",
-
 		"networkSpeed": "Network speed {{speed}}",
 
 		"update": "Update",
@@ -282,6 +322,14 @@
 		"replace": "Replace",
 		"replaceContent": "Are you sure you want to replace the original content?",
 
-		"rename": "Rename"
+		"rename": "Rename",
+
+		"nextStepAfterLogin": "You need to log in to continue to the next step",
+
+		"deleteEmoji": "Delete Emoji",
+		"deleteEmojiContent": "Are you sure you want to delete this emoji?",
+
+		"disconnect": "Disconnect",
+		"disconnectContent": "Are you sure you want to disconnect from other devices?"
 	}
 }

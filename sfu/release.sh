@@ -2,7 +2,7 @@
 name="tools-sfu-server"
 sfuPort=23204
 metricsPort=23205
-turnPort=3479
+# turnPort=3479
 branch="main"
 configFilePath="config.pro.json"
 DIR=$(cd $(dirname $0) && pwd)
@@ -47,14 +47,14 @@ start() {
 
   echo "-> 准备运行Docker"
   stop
+  # -p $turnPort:$turnPort/udp \
+  # -p $turnPort:$turnPort \
   docker run \
     -v $DIR/$configFilePath:/config.json \
     --name=$name \
     $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
     -p $sfuPort:$sfuPort \
     -p $metricsPort:$metricsPort \
-    -p $turnPort:$turnPort/udp \
-    -p $turnPort:$turnPort \
     --restart=always \
     -d $name
   # -p 5000-5200:5000-5200/udp \

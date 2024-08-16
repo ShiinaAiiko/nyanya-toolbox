@@ -96,7 +96,9 @@ const SpeedComponent = React.memo(() => {
 					level={5}
 					color='var(--saki-default-color)'
 				>
-					Transfer data
+					{t('transferData', {
+						ns: 'fileTransferPage',
+					})}
 				</SakiTitle>
 				<div
 					style={{
@@ -106,7 +108,10 @@ const SpeedComponent = React.memo(() => {
 					}}
 					className='nsd-item'
 				>
-					{'已上传 ' + byteConvert(webRTC.transferData.sent)}
+					{t('transferData', {
+						ns: 'fileTransferPage',
+						byte: byteConvert(webRTC.transferData.sent),
+					})}
 				</div>
 				<div
 					style={{
@@ -116,14 +121,19 @@ const SpeedComponent = React.memo(() => {
 					}}
 					className='nsd-item'
 				>
-					{'已下载 ' + byteConvert(webRTC.transferData.received)}
+					{t('downloadedData', {
+						ns: 'fileTransferPage',
+						byte: byteConvert(webRTC.transferData.received),
+					})}
 				</div>
 				<SakiTitle
 					margin='6px 0 4px 0'
 					level={5}
 					color='var(--saki-default-color)'
 				>
-					Transfer rate
+					{t('transferRate', {
+						ns: 'fileTransferPage',
+					})}
 				</SakiTitle>
 				<div
 					style={{
@@ -133,9 +143,11 @@ const SpeedComponent = React.memo(() => {
 					}}
 					className='nsd-item'
 				>
-					{'上传 ' +
-						Math.floor((webRTC.transferRate.sent / 1024) * 10) / 10 +
-						' KB/s'}
+					{t('uploadData', {
+						ns: 'fileTransferPage',
+						byte:
+							Math.floor((webRTC.transferRate.sent / 1024) * 10) / 10 + ' KB/s',
+					})}
 				</div>
 				<div
 					style={{
@@ -145,9 +157,12 @@ const SpeedComponent = React.memo(() => {
 					}}
 					className='nsd-item'
 				>
-					{'下载 ' +
-						Math.floor((webRTC.transferRate.total / 1024) * 10) / 10 +
-						' KB/s'}
+					{t('downloadData', {
+						ns: 'fileTransferPage',
+						byte:
+							Math.floor((webRTC.transferRate.total / 1024) * 10) / 10 +
+							' KB/s',
+					})}
 				</div>
 			</div>
 		</saki-dropdown>

@@ -15,8 +15,9 @@ COPY . .
 
 RUN \
   ./release.sh download:saki-ui-react && \
-  ./release.sh generateSiteMap && \
-  yarn export 
+  yarn build-webworker && \
+  yarn export && \
+  ./release.sh generateSiteMap
 
 FROM node:18.19.1-alpine3.18
 

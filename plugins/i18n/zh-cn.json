@@ -6,11 +6,16 @@
 		"copy": "复制",
 		"aiikoBlog": "爱喵博客",
 
-		"photo": "照片",
+		"image": "照片",
 		"video": "视频",
 		"file": "文件",
 
-		"404": "该页面不存在"
+		"404": "该页面不存在",
+
+		"developing": "正在开发",
+
+		"emoji": "表情",
+		"customStickers": "自定义表情"
 	},
 	"appearance": {
 		"light": "浅色模式",
@@ -102,7 +107,40 @@
 		"host": "主机",
 		"prflx": "局域网",
 		"srflx": "P2P",
-		"replay": "网络"
+		"replay": "网络",
+		"start": "开始",
+		"history": "历史",
+		"waitingForOtherDevicesToConnect": "等待其他设备连接...",
+		"connectedToOtherDevices": "已连接其它设备",
+		"usingTcpConnection": "使用 TCP 连接",
+		"updateInfo": "更新资料",
+		"connect": "连接",
+		"reconnect": "重连",
+		"connected": "已连接",
+		"connecting": "正在连接",
+		"notConnected": "未连接",
+
+		"writeMessage": "输入消息",
+		"sendFile": "发送文件",
+		"connectingToServer": "正在连接服务器...",
+		"waitForDeviceToConnect": "等待设备连接...",
+
+		"transferData": "传输数据",
+		"uploadedData": "已上传 {{byte}}",
+		"downloadedData": "已下载 {{byte}}",
+		"transferRate": "传输速率",
+		"uploadData": "上传 {{byte}}",
+		"downloadData": "下载 {{byte}}",
+
+		"newRoom": "新房间",
+		"updateRoomInfo": "更新房间信息",
+		"inputName": "房间名称",
+
+		"connectOtherDevice": "连接其它设备",
+		"connectOtherDeviceContentPlaceholder": "输入分享码连接其他设备",
+
+		"copyShareCode": "复制分享码",
+		"copyShareCodePlaceholder": "复制分享码连接其他设备"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "头像角标生成器",
@@ -150,9 +188,14 @@
 		"pageTitle": "导航测速喵",
 		"subtitle": ""
 	},
+	"stopwatchPage": {
+		"pageTitle": "秒表",
+		"subtitle": "可在任何设备上免费使用的线上秒表",
+		"history": "历史"
+	},
 	"tripPage": {
 		"pageTitle": "行程路线轨迹",
-		"subtitle": ""
+		"subtitle": "便捷方便的记录GPS路线轨迹、速度、里程、海拔等行程数据~，支持步行、骑行、驾车等多种出行方式。"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "倒数日",
@@ -242,8 +285,6 @@
 		"forward": "转发",
 		"edit": "编辑",
 
-		"disconnect": "断开连接",
-
 		"networkSpeed": "传输速率 {{speed}}",
 
 		"update": "更新",
@@ -284,6 +325,14 @@
 		"replace": "替换",
 		"replaceContent": "您确定要替换原来的内容吗？",
 
-		"rename": "重命名"
+		"rename": "重命名",
+
+		"deleteEmoji": "删除表情",
+		"deleteEmojiContent": "您确定要删除这个表情符号吗?",
+
+		"disconnect": "断开连接",
+		"disconnectContent": "你确定要与其他设备断开连接吗？",
+
+		"start": "开始"
 	}
 }

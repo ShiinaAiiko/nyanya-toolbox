@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/cherrai/nyanyago-utils v1.0.7
 	github.com/go-logr/logr v1.2.0
-	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/pion/ion-sfu v1.11.0
 	github.com/pion/webrtc/v3 v3.1.7

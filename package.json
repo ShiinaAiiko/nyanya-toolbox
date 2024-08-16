@@ -13,12 +13,13 @@
 		"exportLocal": "cp -r ./config.pro.json ./config.temp.json && cross-env OUTPUT=export next build",
 		"docker": "./docker.sh start",
 		"log": "./docker.sh logs",
+		"build-webworker": "webpack --config ./webworker/webpack.config.js && cp -r ./webworker/dist/webworker-bundle.js ./public/webworker-bundle.js",
 		"protos:build": "pbjs -t static-module -w commonjs -o ./protos/proto.js ./protos_temp/**/*.proto",
 		"protos:tsc": "pbts -o ./protos/proto.d.ts ./protos/proto.js",
 		"protos": "mkdir -vp ./protos && yarn run protos:build && yarn run protos:tsc"
 	},
 	"dependencies": {
-		"@nyanyajs/utils": "^1.0.20",
+		"@nyanyajs/utils": "^1.0.22",
 		"@reduxjs/toolkit": "^1.7.0",
 		"@saki-ui/core": "^1.0.2",
 		"axios": "^0.24.0",
@@ -54,7 +55,11 @@
 		"@types/react-dom": "17.0.0",
 		"@types/react-redux": "7.1.16",
 		"@types/uuid": "^9.0.7",
+		"clean-webpack-plugin": "^4.0.0",
+		"html-webpack-plugin": "^5.5.1",
 		"sass": "^1.43.4",
-		"typescript": "^4.1.2"
+		"ts-loader": "^9.4.2",
+		"typescript": "^4.1.2",
+		"webpack": "^5.80.0"
 	}
 }

@@ -26,7 +26,7 @@ func (v V1) Init() {
 
 	// r := v.Router
 	bc := new(socketIoControllersV1.BaseController)
-	v.Server.OnConnect(r.Base, bc.Connect)
+	v.Server.OnConnect(r.Base, bc.NewConnect)
 	v.Server.OnDisconnect(r.Base, bc.Disconnect)
 
 }

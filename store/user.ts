@@ -64,6 +64,33 @@ export let userInfo: UserInfo = {
 	lastSeenTime: -1,
 }
 
+export interface TempUserInfo {
+	uid: string
+	username: string
+	nickname: string
+	avatar: string
+	createTime: number
+	lastUpdateTime: number
+	lastLoginTime: number
+	deviceId: string
+	userAgent: UserAgent
+}
+
+export const getTempUser = (): TempUserInfo => {
+	const { user } = store.getState()
+	return {
+		uid: user.userInfo.uid,
+		username: user.userInfo.username,
+		nickname: user.userInfo.nickname,
+		avatar: user.userInfo.avatar,
+		createTime: user.userInfo.creationTime,
+		lastUpdateTime: user.userInfo.lastUpdateTime,
+		lastLoginTime: user.userInfo.lastSeenTime,
+		deviceId: user.deviceId,
+		userAgent: user.userAgent,
+	}
+}
+
 const state = {
 	token: '',
 	deviceId: '',
@@ -73,12 +100,26 @@ const state = {
 	userInfo: {} as UserInfo,
 	isLogin: false,
 	isInit: false,
+	tempUsers: {} as {
+		[deviceId: string]: TempUserInfo
+	},
 }
+
 let modeName = 'user'
+
 export const userSlice = createSlice({
 	name: modeName,
 	initialState: state,
 	reducers: {
+		setTempUsers: (
+			state,
+			params: {
+				payload: (typeof state)['tempUsers']
+				type: string
+			}
+		) => {
+			state.tempUsers = params.payload
+		},
 		setInit: (state, params: ActionParams<boolean>) => {
 			state.isInit = params.payload
 		},
@@ -119,6 +160,14 @@ export const userSlice = createSlice({
 				storage.global.setSync('userInfo', userInfo)
 			}
 			setTimeout(() => {
+				const { user } = store.getState()
+				const obj = {
+					...user.tempUsers,
+				}
+
+				obj[user.deviceId] = getTempUser()
+
+				store.dispatch(userSlice.actions.setTempUsers(obj))
 				// store.dispatch(storageSlice.actions.init(userInfo.uid))
 			})
 			// store.dispatch(userSlice.actions.init({}))

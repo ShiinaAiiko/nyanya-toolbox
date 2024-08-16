@@ -14,7 +14,7 @@ func (r *Routerv1) InitFileTransfer() {
 	r.Group.GET(
 		role.SetRole(apiUrls["getFileTransferShareCode"], &middleware.RoleOptionsType{
 			CheckApp:           false,
-			Authorize:          false,
+			Authorize:          true,
 			RequestEncryption:  false,
 			ResponseEncryption: false,
 			ResponseDataType:   "protobuf",
@@ -23,19 +23,19 @@ func (r *Routerv1) InitFileTransfer() {
 	r.Group.POST(
 		role.SetRole(apiUrls["connectFileTransferRoom"], &middleware.RoleOptionsType{
 			CheckApp:           false,
-			Authorize:          false,
+			Authorize:          true,
 			RequestEncryption:  false,
 			ResponseEncryption: false,
 			ResponseDataType:   "protobuf",
 		}),
 		ftc.ConnectFTRoom)
-	r.Group.POST(
-		role.SetRole(apiUrls["reconnectFileTransferRoom"], &middleware.RoleOptionsType{
-			CheckApp:           false,
-			Authorize:          false,
-			RequestEncryption:  false,
-			ResponseEncryption: false,
-			ResponseDataType:   "protobuf",
-		}),
-		ftc.ReconnectFTRoom)
+	// r.Group.POST(
+	// 	role.SetRole(apiUrls["reconnectFileTransferRoom"], &middleware.RoleOptionsType{
+	// 		CheckApp:           false,
+	// 		Authorize:          true,
+	// 		RequestEncryption:  false,
+	// 		ResponseEncryption: false,
+	// 		ResponseDataType:   "protobuf",
+	// 	}),
+	// 	ftc.ReconnectFTRoom)
 }

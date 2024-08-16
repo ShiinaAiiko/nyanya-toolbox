@@ -86,6 +86,8 @@ export const createSocketioRouter = {
 									})
 								)
 
+								if (!nwebrtc) return
+
 								const client = nwebrtc.getClient(fileTransfer.shareCode)
 
 								const deviceId = res.data.data.connectedDevices?.filter((v) => {
@@ -137,6 +139,7 @@ export const createSocketioRouter = {
 								)
 							)
 
+              if (!nwebrtc) return
 							const client = nwebrtc.getClient(fileTransfer.shareCode)
 
 							const deviceId = res.data.data.currentDevice?.deviceId

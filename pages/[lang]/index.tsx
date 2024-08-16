@@ -88,7 +88,10 @@ const IndexPage = () => {
 					<div className='ip-c-list'>
 						{appList.map((v, i) => {
 							const urls = v.url.split('/')
-							const ns = urls[urls.length - 1] + 'Page'
+							let ns = urls[urls.length - 1] + 'Page'
+							if (v.url.indexOf('trip.') >= 0) {
+								ns = 'tripPage'
+							}
 							let title = t('pageTitle', {
 								ns,
 							})

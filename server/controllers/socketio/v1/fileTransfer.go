@@ -6,6 +6,8 @@ import (
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/response"
 	"github.com/cherrai/nyanyago-utils/nsocketio"
 	"github.com/cherrai/nyanyago-utils/validation"
+	sso "github.com/cherrai/saki-sso-go"
+	"github.com/jinzhu/copier"
 )
 
 // "github.com/cherrai/saki-sso-go"
@@ -32,14 +34,17 @@ func (s *FileTransferControllers) NewConnect(e *nsocketio.EventInstance) error {
 }
 
 func (s *FileTransferControllers) Disconnect(e *nsocketio.EventInstance) error {
-
 	log.Info("FT已经断开了", e.Reason)
 	var res response.ResponseProtobufType
 	res.Code = 200
 	c := e.ConnContext()
 
+	deviceIdAny := e.GetSessionCache("deviceId")
+	if deviceIdAny == nil {
+		log.Info("deviceId 不存在")
+		return nil
+	}
 	deviceId := e.GetSessionCache("deviceId").(string)
-	userAgent := e.GetSessionCache("userAgent").(*protos.UserAgent)
 
 	log.Info("c.GetRoomsWithNamespace()", c.GetRooms(namespace["FileTransfer"]))
 	for _, roomId := range c.GetRoomsWithNamespace() {
@@ -48,7 +53,7 @@ func (s *FileTransferControllers) Disconnect(e *nsocketio.EventInstance) error {
 		currentDevice := &protos.DeviceItem{
 			RoomId:    roomId,
 			DeviceId:  deviceId,
-			UserAgent: userAgent,
+			UserAgent: s.getProtoUserAgent(c),
 		}
 
 		for _, cc := range c.GetAllConnContextInRoomWithNamespace(roomId) {
@@ -60,12 +65,11 @@ func (s *FileTransferControllers) Disconnect(e *nsocketio.EventInstance) error {
 			if deviceId == ccDeviceId {
 				continue
 			}
-			ccUserAgent := cc.GetSessionCache("userAgent").(*protos.UserAgent)
 
 			connectedDevices = append(connectedDevices, &protos.DeviceItem{
 				RoomId:    roomId,
 				DeviceId:  ccDeviceId,
-				UserAgent: ccUserAgent,
+				UserAgent: s.getProtoUserAgent(cc),
 			})
 		}
 		responseData := protos.LeaveFTRoom_Response{
@@ -79,6 +83,15 @@ func (s *FileTransferControllers) Disconnect(e *nsocketio.EventInstance) error {
 		conf.SocketIO.Server.BroadcastToRoom(namespace["FileTransfer"], roomId, conf.SocketRouterEventNames["ExitedFTRoom"], res.ResponseProtoEncode())
 	}
 	return nil
+}
+
+func (s *FileTransferControllers) getProtoUserAgent(c *nsocketio.ConnContext) (userAgent *protos.UserAgent) {
+
+	ua := c.GetSessionCache("userAgent").(*sso.UserAgent)
+	userAgent = new(protos.UserAgent)
+	copier.Copy(userAgent, ua)
+	return
+
 }
 
 func (s *FileTransferControllers) JoinFTRoom(e *nsocketio.EventInstance) error {
@@ -112,13 +125,17 @@ func (s *FileTransferControllers) JoinFTRoom(e *nsocketio.EventInstance) error {
 	val, err := conf.Redisdb.Get(tKey.GetKey(data.RoomId))
 	if err != nil {
 		res.Errors(err)
-		res.Code = 10002
+		res.Code = 10001
 		res.EmitProto(e)
 		return err
 	}
 
-	// 未来删除
+	// 未来删除，这是让分享码时刻保持更新
 	if err = conf.Redisdb.Set(tKey.GetKey(data.RoomId), data.RoomId, tKey.GetExpiration()); err != nil {
+		res.Errors(err)
+		res.Code = 10001
+		res.EmitProto(e)
+		return err
 	}
 
 	deviceId := e.GetSessionCache("deviceId").(string)
@@ -135,12 +152,11 @@ func (s *FileTransferControllers) JoinFTRoom(e *nsocketio.EventInstance) error {
 	roomId := data.RoomId
 
 	c.JoinRoom(e.Namespace(), roomId)
-	userAgent := e.GetSessionCache("userAgent").(*protos.UserAgent)
 
 	currentDevice := &protos.DeviceItem{
 		RoomId:    roomId,
 		DeviceId:  deviceId,
-		UserAgent: userAgent,
+		UserAgent: s.getProtoUserAgent(c),
 	}
 
 	connectedDevices := []*protos.DeviceItem{}
@@ -152,12 +168,11 @@ func (s *FileTransferControllers) JoinFTRoom(e *nsocketio.EventInstance) error {
 		}
 		deviceId := cc.GetSessionCache("deviceId").(string)
 		log.Info("deviceId", deviceId, cc, c.GetAllConnContextInRoomWithNamespace(roomId))
-		userAgent := cc.GetSessionCache("userAgent").(*protos.UserAgent)
 
 		connectedDevices = append(connectedDevices, &protos.DeviceItem{
 			RoomId:    roomId,
 			DeviceId:  deviceId,
-			UserAgent: userAgent,
+			UserAgent: s.getProtoUserAgent(c),
 		})
 	}
 
@@ -181,6 +196,8 @@ func (s *FileTransferControllers) LeaveFTRoom(e *nsocketio.EventInstance) error 
 
 	// 2、获取参数
 	data := new(protos.LeaveFTRoom_Request)
+
+	log.Info("LeaveFTRoom")
 
 	var err error
 	if err = protos.DecodeBase64(e.GetString("data"), data); err != nil {
@@ -213,12 +230,10 @@ func (s *FileTransferControllers) LeaveFTRoom(e *nsocketio.EventInstance) error 
 		return err
 	}
 
-	userAgent := e.GetSessionCache("userAgent").(*protos.UserAgent)
-
 	currentDevice := &protos.DeviceItem{
 		RoomId:    roomId,
 		DeviceId:  deviceId,
-		UserAgent: userAgent,
+		UserAgent: s.getProtoUserAgent(c),
 	}
 
 	connectedDevices := []*protos.DeviceItem{}
@@ -229,12 +244,11 @@ func (s *FileTransferControllers) LeaveFTRoom(e *nsocketio.EventInstance) error 
 			continue
 		}
 		deviceId := cc.GetSessionCache("deviceId").(string)
-		userAgent := cc.GetSessionCache("userAgent").(*protos.UserAgent)
 
 		connectedDevices = append(connectedDevices, &protos.DeviceItem{
 			RoomId:    roomId,
 			DeviceId:  deviceId,
-			UserAgent: userAgent,
+			UserAgent: s.getProtoUserAgent(cc),
 		})
 	}
 

@@ -1,0 +1,96 @@
+.stopwatch-page {
+	display: flex;
+	justify-content: flex-start;
+	flex-direction: column;
+	align-items: center;
+
+	.rp-main {
+		padding: 20px 0;
+		width: 100%;
+		min-width: 200px;
+		max-width: 700px;
+		.rp-m-title {
+			margin: 10px 0;
+			font-size: 26px;
+			font-weight: 700;
+			text-align: center;
+		}
+		.rp-m-subtitle {
+			font-size: 16px;
+			color: #222;
+			text-align: center;
+		}
+
+		.rp-m-t-time {
+			font-size: 88px;
+			font-weight: 300;
+			text-align: center;
+			color: #333;
+			margin: 20px 0;
+
+			font-variant-numeric: tabular-nums;
+			font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
+				Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+
+			// border: 1px solid var(--saki-default-color);
+			// border-radius: 10px;
+		}
+		@media (max-width: 768px) {
+			.rp-m-t-time {
+				font-size: 60px;
+			}
+		}
+
+		.rp-m-buttons {
+			margin: 20px 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			saki-button {
+				-webkit-tap-highlight-color: transparent;
+			}
+			&.start {
+				.refresh {
+					transition: none;
+				}
+			}
+			.refresh {
+				transform: rotate(0deg);
+				transition: all 1s;
+				&:hover {
+					transform: rotate(360deg);
+				}
+			}
+		}
+		.rp-m-history {
+			.rm-m-h-title {
+				font-size: 20px;
+				color: #666;
+				margin: 0 0 10px 0;
+			}
+			.rm-m-h-list {
+				.rm-m-h-l-item {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 10px 0;
+					border-bottom: 1px solid #eee;
+
+					.rp-m-h-index {
+						font-size: 16px;
+						color: #555;
+						width: 50px;
+					}
+					.rp-m-h-time {
+						font-size: 16px;
+						color: #555;
+					}
+					.rp-m-h-createtime {
+						font-size: 16px;
+						color: #555;
+					}
+				}
+			}
+		}
+	}
+}

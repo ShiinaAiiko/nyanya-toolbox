@@ -46,3 +46,7 @@ generateSiteMap.js
 /public/sw.js.map
 /public/workbox*.js.map
 /public/worker*.js.map
+
+/public/webworker-bundle.js
+
+/webworker/dist

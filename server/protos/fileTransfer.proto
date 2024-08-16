@@ -43,12 +43,12 @@ message TurnServer {
 message GetShareCode {
   message Request {
     // 暂时不需要，直接用P2P同步即可
-    string name = 1;
-    string deviceId = 2;
+    // string name = 1;
+    // string deviceId = 2;
   }
   message Response {
     string shareCode = 1;
-    string token = 2;
+    // string token = 2;
     // string deviceId = 3;
     string sfuUser = 4;
     string sfuPassword = 5;
@@ -56,27 +56,27 @@ message GetShareCode {
   }
 }
 
-message ReconnectFTRoom {
-  message Request {
-    string shareCode = 1;
-    string deviceId = 2;
-  }
-  message Response {
-    string token = 2;
-    // string deviceId = 3;
-    string sfuUser = 4;
-    string sfuPassword = 5;
-    TurnServer turnServer = 6;
-  }
-}
+// message ReconnectFTRoom {
+//   message Request {
+//     string shareCode = 1;
+//     // string deviceId = 2;
+//   }
+//   message Response {
+//     // string token = 2;
+//     // string deviceId = 3;
+//     string sfuUser = 4;
+//     string sfuPassword = 5;
+//     TurnServer turnServer = 6;
+//   }
+// }
 
 message ConnectFTRoom {
   message Request {
     string shareCode = 1;
-    string deviceId = 2;
+    // string deviceId = 2;
   }
   message Response {
-    string token = 2;
+    // string token = 2;
     // string deviceId = 3;
     string sfuUser = 4;
     string sfuPassword = 5;

@@ -7,7 +7,7 @@
 				"en-US": "Convert Windows Path to Posix Path"
 			},
       "logoText": "W",
-			"url": "http://tools.aiiko.club/windowsPathToPosixPath"
+			"url": "https://tools.aiiko.club/windowsPathToPosixPath"
 		},
 		{
 			"title": {
@@ -16,7 +16,7 @@
 				"en-US": "Random Password"
 			},
       "logoText": "RP",
-			"url": "http://tools.aiiko.club/randomPassword"
+			"url": "https://tools.aiiko.club/randomPassword"
 		},
 		{
 			"title": {
@@ -34,7 +34,7 @@
 				"en-US": "Avatar Badge Generator"
 			},
       "logoText": "ABG",
-			"url": "http://tools.aiiko.club/avatarBadgeGenerator"
+			"url": "https://tools.aiiko.club/avatarBadgeGenerator"
 		},
 		{
 			"title": {
@@ -43,7 +43,7 @@
 				"en-US": "Search IP or Domain Name Details"
 			},
       "logoText": "IP",
-			"url": "http://tools.aiiko.club/ip"
+			"url": "https://tools.aiiko.club/ip"
 		},
 		{
 			"title": {
@@ -52,7 +52,7 @@
 				"en-US": "Web File Transfer"
 			},
       "logoText": "WFT",
-			"url": "http://tools.aiiko.club/fileTransfer"
+			"url": "https://tools.aiiko.club/fileTransfer"
 		},
 		{
 			"title": {
@@ -70,7 +70,7 @@
 				"en-US": "Move Car QR Code"
 			},
       "logoText": "挪车",
-			"url": "http://tools.aiiko.club/moveCarQRC"
+			"url": "https://tools.aiiko.club/moveCarQRC"
 		},
 		{
 			"title": {
@@ -79,7 +79,7 @@
 				"en-US": "Date Calculator"
 			},
       "logoText": "DateCalculator",
-			"url": "http://tools.aiiko.club/dateCalculator"
+			"url": "https://tools.aiiko.club/dateCalculator"
 		},
 		{
 			"title": {
@@ -88,7 +88,16 @@
 				"en-US": "Countdown Days"
 			},
       "logoText": "Countdown Days",
-			"url": "http://tools.aiiko.club/countdownDays"
+			"url": "https://tools.aiiko.club/countdownDays"
+		},
+		{
+			"title": {
+				"zh-CN": "秒表",
+				"zh-TW": "秒錶",
+				"en-US": "Stopwatch"
+			},
+      "logoText": "Stopwatch",
+			"url": "https://tools.aiiko.club/stopwatch"
 		}
 	]
 }

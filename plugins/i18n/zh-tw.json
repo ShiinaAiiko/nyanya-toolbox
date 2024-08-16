@@ -10,7 +10,12 @@
 		"video": "視頻",
 		"file": "文件",
 
-		"404": "該頁面不存在"
+		"404": "該頁面不存在",
+
+		"developing": "正在開發",
+
+		"emoji": "表情",
+		"customStickers": "自訂表情"
 	},
 	"appearance": {
 		"light": "淺色模式",
@@ -102,7 +107,39 @@
 		"host": "主機",
 		"prflx": "區域網路",
 		"srflx": "P2P",
-		"replay": "網路"
+		"replay": "網頁",
+		"start": "開始",
+		"history": "歷史",
+		"waitingForOtherDevicesToConnect": "等待其他裝置連線...",
+		"connectedToOtherDevices": "已連接其它設備",
+		"usingTcpConnection": "使用 TCP 連線",
+		"updateInfo": "更新資料",
+		"reconnect": "重連",
+		"connected": "已連線",
+		"connecting": "正在連線",
+		"notConnected": "未連線",
+
+		"writeMessage": "輸入訊息",
+		"sendFile": "傳送檔案",
+		"connectingToServer": "正在連線到伺服器...",
+		"waitForDeviceToConnect": "正在等待裝置連線...",
+
+		"transferData": "傳輸數據",
+		"uploadedData": "已上傳 {{byte}}",
+		"downloadedData": "已下載 {{byte}}",
+		"transferRate": "傳輸速率",
+		"uploadData": "上傳 {{byte}}",
+		"downloadData": "下載 {{byte}}",
+
+		"newRoom": "新房間",
+		"updateRoomInfo": "更新房間資訊",
+		"inputName": "房間名稱",
+
+		"connectOtherDevice": "接其它設備",
+		"connectOtherDeviceContentPlaceholder": "輸入分享碼連接其他設備",
+
+		"copyShareCode": "複製分享碼",
+		"copyShareCodePlaceholder": "複製分享碼連接其他設備"
 	},
 	"avatarBadgeGeneratorPage": {
 		"pageTitle": "頭像角標生成器",
@@ -150,9 +187,14 @@
 		"pageTitle": "導航測速喵",
 		"subtitle": ""
 	},
+	"stopwatchPage": {
+		"pageTitle": "秒錶",
+		"subtitle": "可在任何裝置上免費使用的線上秒錶",
+    "history": "歷史"
+	},
 	"tripPage": {
 		"pageTitle": "行程路線軌跡",
-		"subtitle": ""
+		"subtitle": "便捷方便的記錄GPS路線軌跡、速度、里程、海拔等行程數據~，支援步行、騎行、駕車等多種出行方式。"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "倒數日",
@@ -240,8 +282,6 @@
 		"forward": "轉發",
 		"edit": "編輯",
 
-		"disconnect": "斷開連線",
-
 		"networkSpeed": "傳輸速率 {{speed}}",
 
 		"update": "更新",
@@ -282,6 +322,12 @@
 		"replace": "替換",
 		"replaceContent": "您確定要取代原來的內容嗎？",
 
-		"rename": "重新命名"
+		"rename": "重新命名",
+
+		"deleteEmoji": "刪除表情",
+		"deleteEmojiContent": "您確定要刪除這個表情符號嗎?",
+
+		"disconnect": "斷開連接",
+		"disconnectContent": "你確定要與其他設備斷開連接嗎？"
 	}
 }

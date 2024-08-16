@@ -12,6 +12,7 @@ import store, {
 	methods,
 	apiSlice,
 	userSlice,
+	configSlice,
 } from '../../store'
 import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -23,7 +24,7 @@ import {
 	alert,
 	multiplePrompts,
 } from '@saki-ui/core'
-import { byteConvert, deepCopy, QueueLoop } from '@nyanyajs/utils'
+import { byteConvert, Debounce, deepCopy, QueueLoop } from '@nyanyajs/utils'
 import {
 	getRegExp,
 	copyText,
@@ -32,6 +33,7 @@ import {
 	emojiToText,
 	emojiToImg,
 	developing,
+	showSnackbar,
 } from '../../plugins/methods'
 import {
 	SakiAvatar,
@@ -45,6 +47,7 @@ import {
 	SakiImages,
 	SakiMenu,
 	SakiRow,
+	SakiTabs,
 } from '../../components/saki-ui-react/components'
 import nsocketioAPI from '../../plugins/socketio/api'
 import httpAPI from '../../plugins/http/api'
@@ -62,65 +65,23 @@ import {
 import { storage } from '../../store/storage'
 import moment from 'moment'
 import { emojiMethods, emojiSlice } from '../../store/emoji'
-import { localUserMethods } from '../../store/localUser'
 import {
 	changeLanguage,
 	languages,
 	defaultLanguage,
 } from '../../plugins/i18n/i18n'
 
-export async function getStaticPaths() {
-	return {
-		paths:
-			process.env.OUTPUT === 'export'
-				? languages.map((v) => {
-						return {
-							params: {
-								lang: v,
-							},
-						}
-				  })
-				: [],
-		fallback: true,
-		// fallback: process.env.OUTPUT === 'export',
-	}
-}
-
-export async function getStaticProps({
-	params,
-	locale,
-}: {
-	params: {
-		lang: string
-	}
-	locale: string
-}) {
-	process.env.OUTPUT === 'export' && changeLanguage(params.lang as any)
-	// changeLanguage(params.lang as any)
-
-	// const res = await fetch(`https://.../posts/${params.id}`)
-	// const post = await res.json()
-
-	// return { props: { post } }
-	return {
-		props: {
-			// difficulty: params.difficulty,
-			lang: params.lang || defaultLanguage,
-		},
-	}
-}
 const FileTransferPage = (props: any) => {
-	const { lang } = props
-
 	const { t, i18n } = useTranslation('fileTransferPage')
 	const [mounted, setMounted] = useState(false)
+	const [d] = useState(new Debounce())
 	const api = useSelector((state: RootState) => state.api)
 	const config = useSelector((state: RootState) => state.config)
 	const nsocketio = useSelector((state: RootState) => state.nsocketio)
 	const fileTransfer = useSelector((state: RootState) => state.fileTransfer)
 	const webRTC = useSelector((state: RootState) => state.webRTC)
-	const localUser = useSelector((state: RootState) => state.localUser)
 	const emoji = useSelector((state: RootState) => state.emoji)
+	const user = useSelector((state: RootState) => state.user)
 
 	const richtextEl = useRef<any>()
 
@@ -131,16 +92,12 @@ const FileTransferPage = (props: any) => {
 		type: '',
 		index: -1,
 	})
-	const [connectLength, setConnectLength] = useState(0)
-	const [connect, setConnect] = useState(false)
 	const [inputbarToolDorpdown, setInputbarToolDorpdown] = useState(false)
 
 	const [fileTypes] = useState(['Image', 'Video', 'File'])
 
 	const [sendFileDorpdown, setSendFileDorpdown] = useState(false)
-	const [passwordInclude, setPasswordInclude] = useState<
-		('Number' | 'Character')[]
-	>(['Number'])
+
 	const [messageRichText, setMessageRichText] = useState('')
 	const [message, setMessage] = useState('')
 	const [inputTextMessage, setInputTextMessage] = useState(true)
@@ -161,7 +118,8 @@ const FileTransferPage = (props: any) => {
 			console.log('roomHistory', roomHistory)
 			dispatch(fileTransferSlice.actions.setRoomHistory(roomHistory || []))
 
-			dispatch(localUserMethods.login())
+			dispatch(configSlice.actions.setSsoAccount(true))
+
 			dispatch(emojiMethods.init())
 		}
 		init()
@@ -179,20 +137,34 @@ const FileTransferPage = (props: any) => {
 	}, [i18n.language])
 
 	useEffect(() => {
-		console.log('user', localUser)
-	}, [localUser])
-
-	useEffect(() => {
-		if (fileTransfer.shareCode && nsocketio.token) {
+		if (fileTransfer.shareCode) {
 			dispatch(nsocketioMethods.init())
 		}
-	}, [fileTransfer.shareCode, nsocketio.token])
+	}, [fileTransfer.shareCode])
 
 	useEffect(() => {
 		if (nsocketio.status === 'success' && fileTransfer.shareCode) {
 			joinRoom(fileTransfer.shareCode)
 		}
 	}, [nsocketio.status, fileTransfer.shareCode])
+
+	useEffect(() => {
+		fileTransfer.devices.length >= 2 &&
+			d.increase(() => {
+				const { fileTransfer } = store.getState()
+				if (fileTransfer.status !== 'noMore') {
+					if (fileTransfer.tcpConnection) {
+						showSnackbar('TCP connection failed, please check the network')
+						return
+					}
+					// joinRoom(fileTransfer.shareCode)
+					showSnackbar('NWebRTC connection failed, using TCP reconnection.')
+					fileTransfer.shareCode && usingTcpConnection(fileTransfer.shareCode)
+					return
+				}
+				console.log('NWebRTC连接成功')
+			}, 2000)
+	}, [fileTransfer.status, fileTransfer.devices, fileTransfer.tcpConnection])
 
 	const sendFile = async (type: string) => {
 		console.log('sendFile ', type)
@@ -243,6 +215,18 @@ const FileTransferPage = (props: any) => {
 		}
 	}
 
+	const usingTcpConnection = async (roomId: string) => {
+		await dispatch(
+			fileTransferMethods.disconnect({
+				roomId,
+			})
+		)
+
+		dispatch(fileTransferSlice.actions.setTcpConnection(true))
+
+		await reconnectDevice(roomId, true)
+	}
+
 	const inputRoomInfo = (
 		type: 'New' | 'Update',
 		f: (name: string) => Promise<void>
@@ -251,16 +235,12 @@ const FileTransferPage = (props: any) => {
 		let avatar = ''
 
 		const mp1 = multiplePrompts({
-			title: t(type === 'New' ? 'newRoom' : 'updateRoomInfo', {
-				ns: 'fileTransfer',
-			}),
+			title: t(type === 'New' ? 'newRoom' : 'updateRoomInfo'),
 			multipleInputs: [
 				{
 					label: 'name',
 					value: name,
-					placeholder: t('typeName', {
-						ns: 'fileTransfer',
-					}),
+					placeholder: t('inputName'),
 					type: 'Text',
 					onChange(value) {
 						name = value.trim()
@@ -273,8 +253,8 @@ const FileTransferPage = (props: any) => {
 							mp1.setInput({
 								label: 'name',
 								type: 'error',
-								v: t('nameCannotBeEmpty', {
-									ns: 'fileTransfer',
+								v: t('cannotBeEmpty', {
+									ns: 'prompt',
 								}),
 							})
 							return
@@ -319,8 +299,8 @@ const FileTransferPage = (props: any) => {
 							mp1.setInput({
 								label: 'name',
 								type: 'error',
-								v: t('nameCannotBeEmpty', {
-									ns: 'fileTransfer',
+								v: t('cannotBeEmpty', {
+									ns: 'prompt',
 								}),
 							})
 							return
@@ -357,23 +337,31 @@ const FileTransferPage = (props: any) => {
 	}
 
 	const createRoom = async () => {
+		if (!user.isLogin) {
+			showSnackbar(
+				t('nextStepAfterLogin', {
+					ns: 'prompt',
+				})
+			)
+			dispatch(layoutSlice.actions.setOpenLoginModal(true))
+			return
+		}
 		console.log('createRoom')
-
-		if (!(await dispatch(localUserMethods.createLocalUser()))) return
 
 		inputRoomInfo('New', async (name) => {
 			console.log('创建房间', name)
 
-			const { user } = store.getState()
 			const res = await httpAPI.FileTransfer.GetShareCode(user.deviceId)
 			console.log('createRoom res', res)
 
-			if (res?.data?.shareCode && res?.data?.token) {
+			if (res?.data?.shareCode) {
 				prompt({
-					title: '复制分享码',
+					title: t('copyShareCode'),
 					value: res?.data?.shareCode,
-					placeholder: '复制分享码连接其他设备',
-					confirmText: '复制',
+					placeholder: t('copyShareCodePlaceholder'),
+					confirmText: t('copy', {
+						ns: 'prompt',
+					}),
 					onConfirm() {
 						copyText(res?.data?.shareCode || '')
 
@@ -389,7 +377,7 @@ const FileTransferPage = (props: any) => {
 						}).open()
 					},
 				}).open()
-				dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
+				// dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
 				// dispatch(userSlice.actions.setDeviceId(res?.data?.deviceId || ''))
 				dispatch(
 					webRTCSlice.actions.setWebrtcOptions({
@@ -407,7 +395,7 @@ const FileTransferPage = (props: any) => {
 						name,
 						id: res?.data?.shareCode,
 						avatar: '',
-						authorId: localUser.localUser?.uid || '',
+						authorId: user.userInfo?.uid || '',
 						lastUpdateTime: Math.floor(new Date().getTime() / 1000),
 					})
 				)
@@ -427,15 +415,24 @@ const FileTransferPage = (props: any) => {
 	}
 
 	const connectDevice = async () => {
-		if (!(await dispatch(localUserMethods.createLocalUser()))) return
-		const { user } = store.getState()
+		if (!user.isLogin) {
+			showSnackbar(
+				t('nextStepAfterLogin', {
+					ns: 'prompt',
+				})
+			)
+			dispatch(layoutSlice.actions.setOpenLoginModal(true))
+			return
+		}
 		let val = ''
 		const p = prompt({
-			title: '连接其他设备',
+			title: t('connectOtherDevice'),
 			value: val,
-			placeholder: '输入分享码连接其他设备',
-			confirmText: '连接',
-			cancelText: 'Cancel',
+			placeholder: t('connectOtherDeviceContentPlaceholder'),
+			confirmText: t('connect'),
+			cancelText: t('cancel', {
+				ns: 'prompt',
+			}),
 			onChange(value) {
 				val = value
 				if (!val) {
@@ -458,11 +455,11 @@ const FileTransferPage = (props: any) => {
 				console.log(val)
 				// 通过shareCode获取token
 
-				const res = await httpAPI.FileTransfer.ConnectFTRoom(val, user.deviceId)
+				const res = await httpAPI.FileTransfer.ConnectFTRoom(val)
 				console.log('createRoom res', res)
 
-				if (res?.data?.token) {
-					dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
+				if (res?.data?.sfuUser) {
+					// dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
 					// dispatch(userSlice.actions.setDeviceId(res?.data?.deviceId || ''))
 
 					dispatch(fileTransferSlice.actions.setShareCode(val))
@@ -492,21 +489,23 @@ const FileTransferPage = (props: any) => {
 		p.open()
 	}
 
-	const reconnectDevice = async (roomId: string) => {
-		if (!(await dispatch(localUserMethods.createLocalUser()))) return
-		const { user } = store.getState()
+	const reconnectDevice = async (roomId: string, tcp: boolean) => {
+		const res = await httpAPI.FileTransfer.ConnectFTRoom(roomId)
+		console.log('createRoom res', res, tcp)
 
-		const res = await httpAPI.FileTransfer.ReconnectFTRoom(
-			roomId,
-			user.deviceId
-		)
-		console.log('createRoom res', res)
-
-		if (res?.data?.token) {
-			dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
+		if (res?.data?.sfuUser) {
+			// dispatch(nsocketioSlice.actions.setToken(res?.data?.token))
 			// dispatch(userSlice.actions.setDeviceId(res?.data?.deviceId || ''))
 
 			dispatch(fileTransferSlice.actions.setShareCode(roomId))
+			if (tcp && res.data.turnServer?.urls?.length) {
+				res.data.turnServer.urls = res.data.turnServer?.urls.map((v) => {
+					if (v.indexOf('transport=tcp') >= 0) {
+						return v
+					}
+					return v + '?transport=tcp'
+				})
+			}
 			dispatch(
 				webRTCSlice.actions.setWebrtcOptions({
 					...webRTC.webrtcOptions,
@@ -584,33 +583,33 @@ const FileTransferPage = (props: any) => {
 										onTap={() => {
 											createRoom()
 										}}
-										width='200px'
+										width='220px'
 										type='Primary'
-										padding='12px 30px'
+										padding='12px 10px'
 										margin='0 0 10px 0'
 										fontSize='18px'
 									>
-										开始
+										{t('start')}
 									</SakiButton>
 									<SakiButton
 										onTap={() => {
 											connectDevice()
 										}}
-										width='200px'
+										width='220px'
 										type='Normal'
-										padding='12px 30px'
+										padding='12px 10px'
 										margin='0 0 10px 0'
 										color='var(--saki-default-color)'
 										border='1px solid var(--saki-default-color)'
 										fontSize='18px'
 									>
-										连接其他设备
+										{t('connectOtherDevice')}
 									</SakiButton>
 
 									{fileTransfer.roomHistory.length ? (
 										<saki-card
 											title={t('history', {
-												ns: 'common',
+												ns: 'fileTransferPage',
 											})}
 											subtitle='1121'
 											hide-subtitle='true'
@@ -643,7 +642,7 @@ const FileTransferPage = (props: any) => {
 																<saki-button
 																	ref={bindEvent({
 																		tap() {
-																			reconnectDevice(v.roomId)
+																			reconnectDevice(v.roomId, false)
 																			copyText(v.roomId)
 																			snackbar({
 																				message: t('copySuccessfully', {
@@ -707,8 +706,12 @@ const FileTransferPage = (props: any) => {
 												}}
 												onBack={() => {
 													alert({
-														title: '断开连接',
-														content: '你确定要与其他设备断开连接吗？',
+														title: t('disconnect', {
+															ns: 'prompt',
+														}),
+														content: t('disconnectContent', {
+															ns: 'prompt',
+														}),
 														cancelText: t('cancel', {
 															ns: 'prompt',
 														}),
@@ -850,8 +853,7 @@ const FileTransferPage = (props: any) => {
 																		}}
 																	>
 																		{fileTransfer.devices.map((v, i) => {
-																			const lUser =
-																				localUser.tempLocalUsers[v.deviceId]
+																			const lUser = user.tempUsers[v.deviceId]
 
 																			// console.log('lUser1', lUser)
 																			return (
@@ -936,7 +938,7 @@ const FileTransferPage = (props: any) => {
 																											color: '#dc4747',
 																										}}
 																									>
-																										Reconnect
+																										{t('reconnect')}
 																									</span>
 																								</SakiButton>
 																							) : (
@@ -945,7 +947,7 @@ const FileTransferPage = (props: any) => {
 																										padding: '0 7px 0 0',
 																									}}
 																								>
-																									{v.status}
+																									{t(v.status.toLowerCase())}
 																								</span>
 																							)}
 																						</div>
@@ -990,7 +992,7 @@ const FileTransferPage = (props: any) => {
 																>
 																	<saki-menu
 																		ref={bindEvent({
-																			selectvalue: (e) => {
+																			selectvalue: async (e) => {
 																				switch (e.detail.value) {
 																					case 'UpdateInfo':
 																						inputRoomInfo(
@@ -1025,13 +1027,18 @@ const FileTransferPage = (props: any) => {
 																							}
 																						)
 																						break
+																					case 'TCP':
+																						setMessageHeaderMoreDorpdown(false)
+																						usingTcpConnection(
+																							fileTransfer.shareCode
+																						)
+																						break
 																					case 'Info':
 																						break
 
 																					default:
 																						break
 																				}
-																				setMessageHeaderMoreDorpdown(false)
 																			},
 																		})}
 																	>
@@ -1060,6 +1067,18 @@ const FileTransferPage = (props: any) => {
 																				{t('updateInfo', {
 																					ns: 'fileTransferPage',
 																				})}
+																			</span>
+																		</saki-menu-item>
+																		<saki-menu-item
+																			padding='8px 12px'
+																			value='TCP'
+																		>
+																			<span
+																				style={{
+																					fontSize: '13px',
+																				}}
+																			>
+																				{t('usingTcpConnection')}
 																			</span>
 																		</saki-menu-item>
 																	</saki-menu>
@@ -1138,11 +1157,11 @@ const FileTransferPage = (props: any) => {
 										>
 											{nsocketio.status !== 'success' ? (
 												<div className='ft-m-c-m-wait'>
-													<span>正在连接服务器...</span>
+													<span>{t('connectingToServer')}</span>
 												</div>
 											) : !fileTransfer.devices.length ? (
 												<div className='ft-m-c-m-wait'>
-													<span>等待设备连接...</span>
+													<span>{t('waitForDeviceToConnect')}</span>
 												</div>
 											) : (
 												<saki-scroll-view
@@ -1175,6 +1194,11 @@ const FileTransferPage = (props: any) => {
 																	console.log('load')
 																},
 															})}
+															content={
+																fileTransfer.status === 'loading'
+																	? t('waitingForOtherDevicesToConnect')
+																	: t('connected')
+															}
 															type={fileTransfer.status}
 														></saki-scroll-loading>
 														{fileTransfer.messages.map((v, i) => {
@@ -1217,7 +1241,7 @@ const FileTransferPage = (props: any) => {
 															type = v.type || ''
 															let message = emojiToImg(v?.message || '')
 
-															const lUser = localUser.tempLocalUsers[v.deviceId]
+															const lUser = user.tempUsers[v.deviceId]
 
 															return (
 																<saki-chat-bubble
@@ -1274,7 +1298,7 @@ const FileTransferPage = (props: any) => {
 																	})}
 																	uid={v.authorId}
 																	type={
-																		v.deviceId === localUser.deviceId
+																		v.deviceId === user.deviceId
 																			? 'sender'
 																			: 'receiver'
 																	}
@@ -1400,13 +1424,20 @@ const FileTransferPage = (props: any) => {
 												<saki-col>
 													<div className='message-input-bar'>
 														<div className='message-left-buttons'>
-															<saki-dropdown
-																ref={bindEvent({
-																	close: () => {
-																		setOpenEmojiDropdown(false)
-																	},
-																})}
-																floating-direction='Left'
+															<SakiDropdown
+																ref={
+																	bindEvent({
+																		close: () => {
+																			setOpenEmojiDropdown(false)
+																		},
+																	}) as any
+																}
+																floatingDirection='Left'
+																width='100%'
+																maxWidth='300px'
+																mask
+																maskClosable
+																bodyClosable={false}
 																visible={openEmojiDropdown}
 															>
 																<saki-button
@@ -1431,11 +1462,18 @@ const FileTransferPage = (props: any) => {
 																	className='message-inputbar-emoji'
 																	slot='main'
 																>
-																	<saki-tabs type='Flex' full>
+																	<SakiTabs
+																		type='Flex'
+																		full
+																		disableMoreButton
+																		activeTabLabel='Emoji'
+																	>
 																		<saki-tabs-item
 																			font-size='14px'
 																			label='Emoji'
-																			name={t('emoji')}
+																			name={t('emoji', {
+																				ns: 'common',
+																			})}
 																		>
 																			<saki-scroll-view mode='Inherit'>
 																				<div className='mie-emoji-page'>
@@ -1462,7 +1500,7 @@ const FileTransferPage = (props: any) => {
 																									>
 																										<span>
 																											{t(v.categoryName, {
-																												ns: 'messagesPage',
+																												ns: 'common',
 																											})}
 																										</span>
 																									</saki-title>
@@ -1479,10 +1517,18 @@ const FileTransferPage = (props: any) => {
 																															'recentlyUsed'
 																														) {
 																															alert({
-																																title:
-																																	'删除表情',
-																																content:
-																																	'您确定要删除此表情吗？',
+																																title: t(
+																																	'deleteEmoji',
+																																	{
+																																		ns: 'prompt',
+																																	}
+																																),
+																																content: t(
+																																	'deleteEmojiContent',
+																																	{
+																																		ns: 'prompt',
+																																	}
+																																),
 																																cancelText: t(
 																																	'cancel',
 																																	{
@@ -1558,7 +1604,9 @@ const FileTransferPage = (props: any) => {
 																		<saki-tabs-item
 																			font-size='14px'
 																			label='CustomStickers'
-																			name={t('customStickers')}
+																			name={t('customStickers', {
+																				ns: 'common',
+																			})}
 																		>
 																			<saki-scroll-view mode='Inherit'>
 																				<div className='mie-cs-page'>
@@ -1568,7 +1616,9 @@ const FileTransferPage = (props: any) => {
 																							margin: '30px 0',
 																						}}
 																					>
-																						预留, 暂未开放
+																						{t('developing', {
+																							ns: 'common',
+																						})}
 																					</div>
 
 																					<saki-row
@@ -1638,9 +1688,9 @@ const FileTransferPage = (props: any) => {
 																				</div>
 																			</saki-scroll-view>
 																		</saki-tabs-item>
-																	</saki-tabs>
+																	</SakiTabs>
 																</div>
-															</saki-dropdown>
+															</SakiDropdown>
 														</div>
 														<div className='message-inputbar-input saki-richtext-content'>
 															{inputTextMessage ? (
@@ -1688,12 +1738,10 @@ const FileTransferPage = (props: any) => {
 																		clear-all-styles-when-pasting
 																		enter={
 																			config.deviceType === 'PC' ||
-																			localUser.userAgent?.os?.name ===
-																				'Windows' ||
-																			localUser.userAgent?.os?.name ===
+																			user.userAgent?.os?.name === 'Windows' ||
+																			user.userAgent?.os?.name ===
 																				'Linux x86_64' ||
-																			localUser.userAgent?.os?.name ===
-																				'Mac OS X'
+																			user.userAgent?.os?.name === 'Mac OS X'
 																				? 'Submit'
 																				: 'NewLine'
 																		}
@@ -1704,7 +1752,7 @@ const FileTransferPage = (props: any) => {
 																		// @clearvalue="currentChat.value = ''"
 																		// @pressenter="currentChat.send"
 																		// @changevalue="(e:CustomEvent)=>currentChat.changevalue(e)"
-																		placeholder={t('writeMmessage')}
+																		placeholder={t('writeMessage')}
 																	/>
 																</div>
 															) : (
@@ -1724,7 +1772,7 @@ const FileTransferPage = (props: any) => {
 																		borderRadius='20px'
 																		height='40px'
 																	>
-																		发送文件
+																		{t('sendFile')}
 																	</SakiButton>
 																	<div
 																		className='message-inputbar-button-file'
@@ -1768,7 +1816,7 @@ const FileTransferPage = (props: any) => {
 																								color='#777'
 																							/>
 																							<span>
-																								{t(v, {
+																								{t(v.toLowerCase(), {
 																									ns: 'common',
 																								})}
 																							</span>
@@ -1912,7 +1960,7 @@ const FileTransferPage = (props: any) => {
 																									color='#777'
 																								/>
 																								<span>
-																									{t(v, {
+																									{t(v.toLowerCase(), {
 																										ns: 'common',
 																									})}
 																								</span>
@@ -2096,9 +2144,7 @@ const FileTransferPage = (props: any) => {
 													font-size={fontSize}
 													padding={padding}
 													value='Edit'
-													hide={
-														!(m?.deviceId === localUser.deviceId && m?.message)
-													}
+													hide={!(m?.deviceId === user.deviceId && m?.message)}
 													disabled
 												>
 													{t('edit', {
@@ -2207,5 +2253,38 @@ const FileTransferPage = (props: any) => {
 	)
 }
 FileTransferPage.getLayout = getLayout
+
+export async function getStaticPaths() {
+	return {
+		paths:
+			process.env.OUTPUT === 'export'
+				? languages.map((v) => {
+						return {
+							params: {
+								lang: v,
+							},
+						}
+				  })
+				: [],
+		fallback: true,
+	}
+}
+
+export async function getStaticProps({
+	params,
+	locale,
+}: {
+	params: {
+		lang: string
+	}
+	locale: string
+}) {
+	process.env.OUTPUT === 'export' && changeLanguage(params.lang as any)
+	return {
+		props: {
+			lang: params.lang || defaultLanguage,
+		},
+	}
+}
 
 export default FileTransferPage

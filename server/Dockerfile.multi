@@ -3,7 +3,7 @@ FROM golang:1.18-alpine as BUILD_IMAGE
 WORKDIR /app
 
 ENV GO111MODULE=on
-ENV GOPROXY=https://goproxy.cn/
+ENV GOPROXY=https://goproxy.cn,direct
 ENV ENV=production
 ENV DOCKER_LOCALHOST=host.docker.internal
 ENV GOPRIVATE=github.com/MetahorizonLab,github.com/cherrai

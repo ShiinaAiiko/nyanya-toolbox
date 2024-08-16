@@ -15,8 +15,7 @@ import adapter from 'webrtc-adapter'
 import { NWebRTC } from '@nyanyajs/utils'
 import { fileTransferMethods } from './fileTransfer'
 
-const debounce = new Debounce()
-export let nwebrtc: NWebRTC
+export let nwebrtc: NWebRTC | undefined
 
 const state = {
 	status: 'notConnected' as 'connecting' | 'success' | 'fail' | 'notConnected',
@@ -112,6 +111,108 @@ export const webRTCSlice = createSlice({
 	},
 })
 export const webRTCMethods = {
+	disconnect: createAsyncThunk(
+		'webRTC/disconnect',
+		async ({ roomId }: { roomId: string }, thunkAPI) => {
+			const { webRTC, nsocketio, api, user, fileTransfer } = store.getState()
+
+			nwebrtc?.getClient(roomId).disconnect()
+			nwebrtc = undefined
+		}
+	),
+	testwebrtc: createAsyncThunk(
+		'webRTC/testwebrtc',
+		async ({ roomId }: { roomId: string }, thunkAPI) => {
+			const { webRTC, nsocketio, api, user, fileTransfer } = store.getState()
+			console.log('getDeviceType', document.body.offsetWidth)
+			console.log(roomId, nwebrtc, user.deviceId)
+
+			if (!nwebrtc) {
+				nwebrtc = new NWebRTC(
+					// '',
+					user.deviceId,
+					{
+						iceServers: [
+							{
+								// urls: ['turn:stun.voipbuster.com:3478'],
+								// urls: ['turn:tools.aiiko.club:3480'],
+								// urls: 'turn:tools.aiiko.club:3480',
+								// urls: 'turn:139.196.6.190:3480',
+								urls: webRTC.webrtcOptions.options.iceServers[0].urls[0],
+								username: webRTC.webrtcOptions.options.iceServers[0].username,
+								credential:
+									webRTC.webrtcOptions.options.iceServers[0].credential,
+								// urls: 'turn:192.168.204.129:3479',
+								// urls: 'turn:192.168.204.129:3480',
+								// credential: '4080218913',
+								// username: 'demo',
+							},
+						],
+
+						// iceServers,
+						// iceTransportPolicy: 'relay',
+						// iceServers: webRTC.webrtcOptions.options.iceServers,
+						// .concat([
+						// 	{
+						// 		urls: ['turn:stun.voipbuster.com'],
+						// 	} as any,
+						// ]),
+					},
+					{
+						updateTransferRateInterval: 1,
+					}
+				)
+				console.log(roomId, nwebrtc)
+
+				nwebrtc.on('transfer-data', (val) => {
+					// console.log('transfer-rate', val)
+					store.dispatch(webRTCSlice.actions.setTransferData(val))
+				})
+				nwebrtc.on('transfer-rate', (val) => {
+					// console.log('transfer-rate', val)
+					store.dispatch(webRTCSlice.actions.setTransferRate(val || 0))
+				})
+				nwebrtc.on('transfer-rate-sent', (val) => {
+					// console.log('transfer-rate', val)
+					store.dispatch(webRTCSlice.actions.setTransferRateSent(val || 0))
+				})
+				nwebrtc.on('transfer-rate-received', (val) => {
+					// console.log('transfer-rate', val)
+					store.dispatch(webRTCSlice.actions.setTransferRateReceived(val || 0))
+				})
+				// nwebrtc.on<number>('transfer-rate-sent', (val) => {
+				// 	console.log('transfer-rate-sent', val)
+				// })
+				// nwebrtc.on<number>('transfer-rate-received', (val) => {
+				// 	console.log('transfer-rate-received', val)
+				// })
+
+				nwebrtc.sendData(async (data) => {
+					const { webRTC, nsocketio, api, user, fileTransfer } =
+						store.getState()
+					await nsocketioAPI.FileTransfer.Data(fileTransfer.shareCode, {
+						data,
+						deviceId: user.deviceId,
+					})
+				})
+
+				nsocketio.client?.router(
+					api.nsocketio.namespace.FileTransfer,
+					'Data',
+					{},
+					async (data) => {
+						const { webRTC, nsocketio, api, user, fileTransfer } =
+							store.getState()
+						console.log('nsocketiodata', data, user.deviceId)
+
+						if (data.deviceId !== user.deviceId) {
+							await nwebrtc?.receiveData(data.data)
+						}
+					}
+				)
+			}
+		}
+	),
 	// connect: createAsyncThunk(
 	// 	'webRTC/connect',
 	// 	({ roomId }: { roomId: string }, thunkAPI) => {
@@ -214,96 +315,4 @@ export const webRTCMethods = {
 	// 		thunkAPI.dispatch(fileTransferSlice.actions.setSatus('noMore'))
 	// 	}
 	// ),
-	testwebrtc: createAsyncThunk(
-		'webRTC/testwebrtc',
-		async ({ roomId }: { roomId: string }, thunkAPI) => {
-			const { webRTC, nsocketio, api, user, fileTransfer } = store.getState()
-			console.log('getDeviceType', document.body.offsetWidth)
-			console.log(roomId)
-
-			if (!nwebrtc) {
-				nwebrtc = new NWebRTC(
-					// '',
-					user.deviceId,
-					{
-						iceServers: [
-							{
-								// urls: ['turn:stun.voipbuster.com:3478'],
-								// urls: ['turn:tools.aiiko.club:3480'],
-								// urls: 'turn:tools.aiiko.club:3480',
-								// urls: 'turn:139.196.6.190:3480',
-								urls: webRTC.webrtcOptions.options.iceServers[0].urls[0],
-								username: webRTC.webrtcOptions.options.iceServers[0].username,
-								credential:
-									webRTC.webrtcOptions.options.iceServers[0].credential,
-								// urls: 'turn:192.168.204.129:3479',
-								// urls: 'turn:192.168.204.129:3480',
-								// credential: '4080218913',
-								// username: 'demo',
-							},
-						],
-
-						// iceServers,
-						// iceTransportPolicy: 'relay',
-						// iceServers: webRTC.webrtcOptions.options.iceServers,
-						// .concat([
-						// 	{
-						// 		urls: ['turn:stun.voipbuster.com'],
-						// 	} as any,
-						// ]),
-					},
-					{
-						updateTransferRateInterval: 1,
-					}
-				)
-
-				nwebrtc.on('transfer-data', (val) => {
-					// console.log('transfer-rate', val)
-					store.dispatch(webRTCSlice.actions.setTransferData(val))
-				})
-				nwebrtc.on('transfer-rate', (val) => {
-					// console.log('transfer-rate', val)
-					store.dispatch(webRTCSlice.actions.setTransferRate(val || 0))
-				})
-				nwebrtc.on('transfer-rate-sent', (val) => {
-					// console.log('transfer-rate', val)
-					store.dispatch(webRTCSlice.actions.setTransferRateSent(val || 0))
-				})
-				nwebrtc.on('transfer-rate-received', (val) => {
-					// console.log('transfer-rate', val)
-					store.dispatch(webRTCSlice.actions.setTransferRateReceived(val || 0))
-				})
-				// nwebrtc.on<number>('transfer-rate-sent', (val) => {
-				// 	console.log('transfer-rate-sent', val)
-				// })
-				// nwebrtc.on<number>('transfer-rate-received', (val) => {
-				// 	console.log('transfer-rate-received', val)
-				// })
-
-				nwebrtc.sendData(async (data) => {
-					const { webRTC, nsocketio, api, user, fileTransfer } =
-						store.getState()
-					await nsocketioAPI.FileTransfer.Data(fileTransfer.shareCode, {
-						data,
-						deviceId: user.deviceId,
-					})
-				})
-
-				nsocketio.client?.router(
-					api.nsocketio.namespace.FileTransfer,
-					'Data',
-					{},
-					async (data) => {
-						const { webRTC, nsocketio, api, user, fileTransfer } =
-							store.getState()
-						console.log('nsocketiodata', data, user.deviceId)
-
-						if (data.deviceId !== user.deviceId) {
-							await nwebrtc.receiveData(data.data)
-						}
-					}
-				)
-			}
-		}
-	),
 }

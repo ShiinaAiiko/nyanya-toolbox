@@ -63,11 +63,11 @@ export const nsocketioSlice = createSlice({
 export const nsocketioMethods = {
 	init: createAsyncThunk('socketio/init', async (_, thunkAPI) => {
 		const { api, nsocketio, user } = store.getState()
-		if (nsocketio.client || !nsocketio.token) return
+		if (nsocketio.client) return
 
 		const query = NRequest.protobuf.ParamsEncode<protoRoot.base.IRequestType>(
 			{
-				token: nsocketio.token,
+				token: user.token,
 				userAgent: user.userAgent,
 				deviceId: user.deviceId,
 			},

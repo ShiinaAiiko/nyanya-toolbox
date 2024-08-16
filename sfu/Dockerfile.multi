@@ -47,6 +47,7 @@ COPY --from=BUILD_IMAGE \
   /app/tools-sfu \
   /
 
-EXPOSE 23204 23205 3479 3479/udp
+# 3479 3479/udp
+EXPOSE 23204 23205 
 
 CMD ["./tools-sfu","-c","config.json"]

@@ -52,6 +52,7 @@ import moment from 'moment'
 import { t } from 'i18next'
 import { storage } from '../../store/storage'
 import { protoRoot } from '../../protos'
+import { circle } from 'leaflet'
 
 let count = 0
 
@@ -137,6 +138,7 @@ const CountdownDaysEventDetailComponent = ({
 }) => {
 	const { t, i18n } = useTranslation('countdownDaysPage')
 	// const nextDay = getCountdownDay(val)
+
 	return (
 		<div
 			style={
@@ -755,12 +757,12 @@ const CountdownDaysPage = () => {
 	const cdItemContextMenuEl = useRef<any>()
 	const eventItemContextMenuEl = useRef<any>()
 
+	// console.log('CountdownDaysPage')
 	const [contentMenuActiveIndex, setContentMenuActiveIndex] =
 		useState<number>(-1)
 
 	const [updateTime, setUpdateTime] = useState(0)
 	const [eventItemActiveIndex, setEventItemActiveIndex] = useState<number>(-1)
-
 	const [showCategoryId, setShowCategoryId] = useState('All')
 	const [openCategoryDropdown, setOpenCategoryDropdown] = useState(false)
 	const [openDownloadDropdown, setOpenDownloadDropdown] = useState(false)
@@ -791,15 +793,31 @@ const CountdownDaysPage = () => {
 	const dispatch = useDispatch<AppDispatch>()
 
 	useEffect(() => {
+		// window.addEventListener('focus', () => {
+		// 	setUpdateTime(new Date().getTime())
+		// })
 		setMounted(true)
 		dispatch(configSlice.actions.setSsoAccount(true))
 
 		dispatch(methods.countdownDays.init()).unwrap()
-
-		setTimeout(() => {
-			setUpdateTime(new Date().getTime())
-		}, 3600 * 24 * 1000 - (new Date().getTime() - new Date(moment().format('YYYY-MM-DD 00:00:00')).getTime()))
+		setTimer()
 	}, [])
+
+	const setTimer = () => {
+		// console.log(
+		// 	3600 * 24 * 1000 -
+		// 		(new Date().getTime() -
+		// 			new Date(moment().format('YYYY-MM-DD 00:00:00')).getTime())
+		// )
+		setTimeout(() => {
+			// console.log('setTimer')
+			// setUpdateTime(new Date().getTime())
+			const { countdownDays } = store.getState()
+			dispatch(countdownDaysSlice.actions.setList(countdownDays.list || []))
+			setTimer()
+		// }, 5000)
+		}, 3600 * 24 * 1000 - (new Date().getTime() - new Date(moment().format('YYYY-MM-DD 00:00:00')).getTime()))
+	}
 
 	useEffect(() => {
 		dispatch(layoutSlice.actions.setLayoutHeaderLogoText(t('pageTitle')))

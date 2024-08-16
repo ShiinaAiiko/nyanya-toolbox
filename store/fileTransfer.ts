@@ -13,7 +13,7 @@ import {
 	combineReducers,
 	configureStore,
 } from '@reduxjs/toolkit'
-import store, { localUserSlice, userSlice, webRTCSlice } from '.'
+import store, { userSlice, webRTCSlice } from '.'
 import { protoRoot } from '../protos'
 import nsocketioAPI from '../plugins/socketio/api'
 import md5 from 'blueimp-md5'
@@ -22,6 +22,7 @@ import { storage } from './storage'
 import { v4 } from 'uuid'
 import { alert, multiplePrompts, snackbar } from '@saki-ui/core'
 import { t } from 'i18next'
+import { getTempUser } from './user'
 // import { NWebRTCtransport } from '../plugins/nwebrtc/transport'
 
 export interface MessageItem
@@ -88,6 +89,7 @@ const state = {
 		[hash: string]: File
 	},
 	shareCode: '',
+	tcpConnection: false,
 	roomInfo: undefined as RoomInfo | undefined,
 	messages: [] as MessageItem[],
 	status: 'loading' as 'loading' | 'loaded' | 'noMore',
@@ -104,7 +106,16 @@ export const fileTransferSlice = createSlice({
 	name: 'fileTransfer',
 	initialState: state,
 	reducers: {
-		setSatus: (
+		setTcpConnection: (
+			state,
+			params: {
+				payload: (typeof state)['tcpConnection']
+				type: string
+			}
+		) => {
+			state.tcpConnection = params.payload
+		},
+		setStatus: (
 			state,
 			params: {
 				payload: (typeof state)['status']
@@ -121,6 +132,7 @@ export const fileTransferSlice = createSlice({
 			}
 		) => {
 			state.devices = params.payload
+			console.log('fileTransferconnect', state.devices)
 		},
 		setShareCode: (
 			state,
@@ -231,6 +243,22 @@ export const fileTransferSlice = createSlice({
 })
 
 export const fileTransferMethods = {
+	connectUsingTcp: createAsyncThunk(
+		'fileTransfer/connectUsingTcp',
+		async ({ roomId }: { roomId: string }, thunkAPI) => {
+			const { user, fileTransfer } = store.getState()
+
+			// console.log('fileTransferconnect', fileTransfer.devices)
+
+			thunkAPI.dispatch(webRTCMethods.disconnect({ roomId }))
+
+			await thunkAPI.dispatch(
+				fileTransferMethods.connect({
+					roomId: roomId,
+				})
+			)
+		}
+	),
 	disconnect: createAsyncThunk(
 		'fileTransfer/disconnect',
 		async ({ roomId }: { roomId: string }, thunkAPI) => {
@@ -250,22 +278,24 @@ export const fileTransferMethods = {
 				thunkAPI.dispatch(fileTransferSlice.actions.setFiles({}))
 				thunkAPI.dispatch(fileTransferSlice.actions.setDevices([]))
 
-				nwebrtc.getClient(roomId).disconnect()
+				thunkAPI.dispatch(webRTCMethods.disconnect({ roomId }))
 			}
 		}
 	),
 	connect: createAsyncThunk(
 		'fileTransfer/connect',
 		async ({ roomId }: { roomId: string }, thunkAPI) => {
-			console.log('connect')
-			const { webRTC, user, fileTransfer } = store.getState()
+			const { user, fileTransfer } = store.getState()
+
+			// console.log('fileTransferconnect', fileTransfer.devices)
 
 			await store.dispatch(
 				webRTCMethods.testwebrtc({
 					roomId,
 				})
 			)
-			if (nwebrtc.getClient(roomId)) {
+			// console.log('fileTransferconnect', nwebrtc, nwebrtc.getClient(roomId))
+			if (!nwebrtc || nwebrtc?.getClient(roomId)) {
 				return
 			}
 
@@ -277,21 +307,21 @@ export const fileTransferMethods = {
 					status: 'Connected',
 				})
 
-				store.dispatch(fileTransferSlice.actions.setSatus('noMore'))
+				store.dispatch(fileTransferSlice.actions.setStatus('noMore'))
 			})
 			client.on('disconnected', () => {
 				console.log('webrtc connected', 'disconnected')
 				on(user.deviceId, {
 					status: 'Disconnected',
 				})
-				store.dispatch(fileTransferSlice.actions.setSatus('loading'))
+				store.dispatch(fileTransferSlice.actions.setStatus('loading'))
 			})
 			client.on('connecting', () => {
 				console.log('webrtc connected', 'connconnectingected')
 				on(user.deviceId, {
 					status: 'Connecting',
 				})
-				store.dispatch(fileTransferSlice.actions.setSatus('loading'))
+				store.dispatch(fileTransferSlice.actions.setStatus('loading'))
 			})
 
 			const dataChannelAPI = client.DataChannelAPI()
@@ -337,9 +367,9 @@ export const fileTransferMethods = {
 				})
 			})
 			client.on('data-channel-connected', (data) => {
-				const { localUser, fileTransfer } = store.getState()
+				const { fileTransfer } = store.getState()
 				console.log('data-channel connected', data)
-				dataChannelAPI.to(data.deviceId).emit('sync-user', localUser.localUser)
+				dataChannelAPI.to(data.deviceId).emit('sync-user', getTempUser())
 				dataChannelAPI
 					.to(data.deviceId)
 					.emit('sync-room', fileTransfer.roomInfo)
@@ -348,13 +378,13 @@ export const fileTransferMethods = {
 			dataChannelAPI.router('sync-user', (data) => {
 				console.log('dataChannelAPI sync-user', data, nwebrtc)
 
-				const { localUser, fileTransfer } = store.getState()
-				const obj = {
-					...localUser.tempLocalUsers,
+				const { user, fileTransfer } = store.getState()
+				const users = {
+					...user.tempUsers,
 				}
 
-				obj[data.deviceId] = data.data
-				store.dispatch(localUserSlice.actions.setTempLocalUsers(obj))
+				users[data.deviceId] = data.data
+				store.dispatch(userSlice.actions.setTempUsers(users))
 
 				console.log('JoinedFTRoom', fileTransfer.devices)
 				store.dispatch(
@@ -363,7 +393,7 @@ export const fileTransferMethods = {
 							if (v.deviceId === data.deviceId) {
 								return {
 									...v,
-									uid: obj[data.deviceId].uid || '',
+									uid: users[data.deviceId].uid || '',
 									status: 'Connected',
 								}
 							}
@@ -481,6 +511,7 @@ export const fileTransferMethods = {
 				)
 			)
 
+			if (!nwebrtc) return
 			const dataChannelAPI = nwebrtc.getClient(roomId).DataChannelAPI()
 
 			dataChannelAPI.emit('ft-message', msg)
@@ -603,6 +634,7 @@ export const fileTransferMethods = {
 					// }
 					// reader.readAsArrayBuffer(file.slice(offset, offset + chunkSize))
 
+					if (!nwebrtc) return
 					const dataChannelAPI = nwebrtc
 						.getClient(fileTransfer.shareCode)
 						.DataChannelAPI()
@@ -617,6 +649,7 @@ export const fileTransferMethods = {
 	receiveFile: createAsyncThunk('fileTransfer/receiveFile', (_, thunkAPI) => {
 		const { webRTC, user, fileTransfer } = store.getState()
 
+		if (!nwebrtc) return
 		const dataChannelAPI = nwebrtc
 			.getClient(fileTransfer.shareCode)
 			.DataChannelAPI()

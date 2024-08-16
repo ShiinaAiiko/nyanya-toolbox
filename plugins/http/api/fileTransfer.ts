@@ -30,7 +30,7 @@ export const FileTransfer = () => {
 				protoRoot.fileTransfer.GetShareCode.Response
 			)
 		},
-		async ConnectFTRoom(shareCode: string, deviceId: string) {
+		async ConnectFTRoom(shareCode: string) {
 			const { api } = store.getState()
 
 			return await RequestProtobuf<protoRoot.fileTransfer.ConnectFTRoom.IResponse>(
@@ -41,7 +41,7 @@ export const FileTransfer = () => {
 					data: NRequest.protobuf.ParamsEncode<protoRoot.fileTransfer.ConnectFTRoom.IRequest>(
 						{
 							shareCode,
-							deviceId,
+							// deviceId,
 						},
 						protoRoot.fileTransfer.ConnectFTRoom.Request
 					),
@@ -49,24 +49,24 @@ export const FileTransfer = () => {
 				protoRoot.fileTransfer.ConnectFTRoom.Response
 			)
 		},
-		async ReconnectFTRoom(shareCode: string, deviceId: string) {
-			const { api } = store.getState()
+		// async ReconnectFTRoom(shareCode: string) {
+		// 	const { api } = store.getState()
 
-			return await RequestProtobuf<protoRoot.fileTransfer.ReconnectFTRoom.IResponse>(
-				{
-					method: 'POST',
-					url: getUrl(api.apiUrls.v1.baseUrl, api.apiUrls.v1.reconnectFTRoom),
+		// 	return await RequestProtobuf<protoRoot.fileTransfer.ReconnectFTRoom.IResponse>(
+		// 		{
+		// 			method: 'POST',
+		// 			url: getUrl(api.apiUrls.v1.baseUrl, api.apiUrls.v1.reconnectFTRoom),
 
-					data: NRequest.protobuf.ParamsEncode<protoRoot.fileTransfer.ReconnectFTRoom.IRequest>(
-						{
-							shareCode,
-							deviceId,
-						},
-						protoRoot.fileTransfer.ReconnectFTRoom.Request
-					),
-				},
-				protoRoot.fileTransfer.ReconnectFTRoom.Response
-			)
-		},
+		// 			data: NRequest.protobuf.ParamsEncode<protoRoot.fileTransfer.ReconnectFTRoom.IRequest>(
+		// 				{
+		// 					shareCode,
+		// 					// deviceId,
+		// 				},
+		// 				protoRoot.fileTransfer.ReconnectFTRoom.Request
+		// 			),
+		// 		},
+		// 		protoRoot.fileTransfer.ReconnectFTRoom.Response
+		// 	)
+		// },
 	}
 }

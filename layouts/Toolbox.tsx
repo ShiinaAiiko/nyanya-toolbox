@@ -151,6 +151,7 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 					)}
 
 					<div className={'tb-main '}>
+            
 						<div className='tb-main-wrap'>
 							{children}
 
@@ -199,7 +200,7 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 									github
 									github-link='https://github.com/ShiinaAiiko/nyanya-toolbox'
 									github-text='Github'
-									blog
+                  blog
 								></SakiTemplateFooter>
 							) : (
 								''
