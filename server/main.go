@@ -7,12 +7,14 @@ import (
 	conf "github.com/ShiinaAiiko/nyanya-toolbox/server/config"
 	mongodb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/mongo"
 	redisdb "github.com/ShiinaAiiko/nyanya-toolbox/server/db/redis"
+	dbxV1 "github.com/ShiinaAiiko/nyanya-toolbox/server/dbx/v1"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/gin_service"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/i18n"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/socketio_service"
 
 	"github.com/cherrai/nyanyago-utils/nlog"
 	"github.com/cherrai/nyanyago-utils/nredis"
+	"github.com/cherrai/nyanyago-utils/ntimer"
 	"github.com/cherrai/nyanyago-utils/saass"
 	sso "github.com/cherrai/saki-sso-go"
 
@@ -22,7 +24,8 @@ import (
 )
 
 var (
-	log = nlog.New()
+	log    = nlog.New()
+	geoDbx = new(dbxV1.GeoDbx)
 )
 
 // 文件到期后根据时间进行删除 未做
@@ -81,6 +84,15 @@ func main() {
 
 		// log.Info("conf.Config.Mongodb.Currentdb", conf.Config.Mongodb.Currentdb)
 		socketio_service.Init()
+
+		ntimer.SetTimeout(func() {
+
+			geoDbx.InitCity()
+			// methods.GetCityBoundaries(conf.Config.CityVersion)
+
+			log.Info("Done.")
+		}, 1500)
+
 		gin_service.Init()
 		return nil
 	})

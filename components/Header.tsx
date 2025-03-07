@@ -208,14 +208,22 @@ const HeaderComponent = ({
 
 						e?.setAppList?.(
 							config.appList.map((v) => {
+								let url = v.url.replace(
+									'tools.aiiko.club/',
+									'tools.aiiko.club/' +
+										(router.query.lang ? router.query.lang + '/' : '')
+								)
+								if (mounted) {
+									url = url.replace(
+										'https://tools.aiiko.club',
+										location?.origin.indexOf('192.168.') >= 0
+											? location?.origin
+											: 'https://tools.aiiko.club'
+									)
+								}
 								return {
 									...v,
-									url: v.url.replace(
-										'http://tools.aiiko.club/',
-										'http://tools.aiiko.club/' +
-											// 'http://192.168.204.129:23200/' +
-											(router.query.lang ? router.query.lang + '/' : '')
-									),
+									url,
 								}
 							})
 						)

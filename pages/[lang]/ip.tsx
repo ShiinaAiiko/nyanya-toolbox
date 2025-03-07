@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import ToolboxLayout, { getLayout } from '../../layouts/Toolbox'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import path from 'path'
@@ -78,7 +78,7 @@ const IpPage = () => {
 	const [isMyIp, setIsMyIp] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [connectionOSM, setConnectionOSM] = useState(true)
-	const [map, setMap] = useState<any>()
+	const map = useRef<any>()
 
 	const [ipInfo, setIpInfo] = useState<{
 		ipv4: string
@@ -154,7 +154,7 @@ const IpPage = () => {
 						'?ip=' +
 						(ip === 'me' ? '' : ip) +
 						'&language=' +
-						i18n.language
+						(i18n.language.indexOf('zh') >= 0 ? 'zh-CN' : i18n.language)
 				)
 			).json()
 			console.log('res', res)
@@ -172,52 +172,53 @@ const IpPage = () => {
 					org: res?.data?.org,
 				}
 				setIpInfo(ipInfoObj)
-				const L = (window as any).L
-				if (L) {
-					var m = map
 
-					if (!m) {
-						m = L.map('ip-m-d-map', {
-							// center: [Number(res?.data?.lat), Number(res?.data?.lon)],
-						})
-						m.setView(
-							[Number(ipInfoObj.lat), Number(ipInfoObj.lon)],
-							// [
-							//   120.3814, -1.09],
-							connectionOSM ? 13 : 9
-						)
-						setMap(m)
-					} else {
-						m.panTo([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
-					}
-					console.log('connectionOSM', connectionOSM)
-					L.tileLayer(
-						// 'GaoDe.Normal.Map',
-						connectionOSM
-							? `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
-							: 'https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}',
-						// : 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
-						// `https://c.tile.openstreetmap.org/{z}/{x}/{y}.png`,
-						// `https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}`,
-						// `https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}`,
-						{
-							maxZoom: 19,
-							attribution: `&copy; ${
-								connectionOSM
-									? '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-									: '<a href="https://map.geoq.cn/copyright">ArcGIS</a>'
-							}`,
+				setTimeout(() => {
+					const L = (window as any).L
+					if (L) {
+						if (!map.current) {
+							map.current = L.map('ip-m-d-map', {
+								// center: [Number(res?.data?.lat), Number(res?.data?.lon)],
+							})
+							map.current.setView(
+								[Number(ipInfoObj.lat), Number(ipInfoObj.lon)],
+								// [
+								//   120.3814, -1.09],
+								connectionOSM ? 13 : 9
+							)
 						}
-					).addTo(m)
-					L.marker([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
-						.addTo(m)
-						.bindPopup(
-							`${ipInfoObj.ipv4}`
-							// `${ipInfoObj.country}, ${ipInfoObj.regionName}, ${ipInfoObj.city}`
-						)
-						.openPopup()
-					// console.log('map', map)
-				}
+						console.log('map.current', map.current)
+						map.current.panTo([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
+						console.log('connectionOSM', connectionOSM)
+						L.tileLayer(
+							// 'GaoDe.Normal.Map',
+							connectionOSM
+								? `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
+								: 'https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}',
+							// : 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+							// `https://c.tile.openstreetmap.org/{z}/{x}/{y}.png`,
+							// `https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}`,
+							// `https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}`,
+							{
+								maxZoom: 19,
+								attribution: `&copy; ${
+									connectionOSM
+										? '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+										: '<a href="https://map.geoq.cn/copyright">ArcGIS</a>'
+								}`,
+							}
+						).addTo(map.current)
+						L.marker([Number(ipInfoObj.lat), Number(ipInfoObj.lon)])
+							.addTo(map.current)
+							.bindPopup(
+								`${ipInfoObj.ipv4}`
+								// `${ipInfoObj.country}, ${ipInfoObj.regionName}, ${ipInfoObj.city}`
+							)
+							.openPopup()
+						// console.log('map', map)
+					}
+				}, 100)
+
 				setLoading(false)
 				snackbar({
 					message: t('querySuccessfully', {

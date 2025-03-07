@@ -163,6 +163,21 @@
 		"resolution": "分辨率",
 		"quality": "質量"
 	},
+	"imageColorInversionPage": {
+		"pageTitle": "圖片顏色反轉",
+		"subtitle": "能夠將圖片中特定範圍的顏色具體轉換為目標顏色",
+		"output": "輸出",
+		"outputParameters": "輸出參數",
+		"resolution": "解析度",
+		"quality": "品質",
+		"configure": "設定",
+		"rgbRangeMin": "RGB 範圍最小值",
+		"rgbRangeMax": "RGB 範圍最大值",
+		"toRGBA": "轉換為 RGB",
+		"convert": "轉換",
+		"recover": "恢復",
+		"resetRGB": "重置 RGB"
+	},
 	"ipPage": {
 		"pageTitle": "查詢IP或域名詳情",
 		"subtitle": "可免費査詢IP或功能變數名稱的IPv4、IPv6及地理位置。",
@@ -190,11 +205,24 @@
 	"stopwatchPage": {
 		"pageTitle": "秒錶",
 		"subtitle": "可在任何裝置上免費使用的線上秒錶",
-    "history": "歷史"
+		"history": "歷史"
 	},
 	"tripPage": {
 		"pageTitle": "行程路線軌跡",
 		"subtitle": "便捷方便的記錄GPS路線軌跡、速度、里程、海拔等行程數據~，支援步行、騎行、駕車等多種出行方式。"
+	},
+	"webScreenRecordingPage": {
+		"pageTitle": "網頁螢幕錄製",
+		"subtitle": "可透過Web網站即可實現網頁錄影畫面、視窗錄影、全螢幕錄影等功能",
+		"recording": "錄製",
+
+		"adaptive": "自適應",
+		"clearRecordedVideo": "清除錄製的影片",
+		"systemSoundEnabled": "系统声音已启用",
+		"systemSoundDisabled": "系统声音已禁用",
+    
+		"noSupportMobile": "不支援行動裝置",
+		"onlySupportPC": "目前僅在 PC 上提供網頁螢幕錄製功能"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "倒數日",
@@ -328,6 +356,12 @@
 		"deleteEmojiContent": "您確定要刪除這個表情符號嗎?",
 
 		"disconnect": "斷開連接",
-		"disconnectContent": "你確定要與其他設備斷開連接嗎？"
+		"disconnectContent": "你確定要與其他設備斷開連接嗎？",
+
+		"start": "開始",
+		"output": "输出",
+		"outputParameters": "输出参数",
+		"resolution": "分辨率",
+		"configure": "配置"
 	}
 }

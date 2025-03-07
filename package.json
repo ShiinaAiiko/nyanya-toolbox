@@ -19,9 +19,9 @@
 		"protos": "mkdir -vp ./protos && yarn run protos:build && yarn run protos:tsc"
 	},
 	"dependencies": {
-		"@nyanyajs/utils": "^1.0.22",
+		"@nyanyajs/utils": "1.0.27",
 		"@reduxjs/toolkit": "^1.7.0",
-		"@saki-ui/core": "^1.0.2",
+		"@saki-ui/core": "1.0.2",
 		"axios": "^0.24.0",
 		"blueimp-md5": "^2.19.0",
 		"chart.js": "^4.4.0",

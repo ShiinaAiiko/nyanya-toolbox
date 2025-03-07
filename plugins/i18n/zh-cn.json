@@ -164,6 +164,21 @@
 		"resolution": "分辨率",
 		"quality": "质量"
 	},
+	"imageColorInversionPage": {
+		"pageTitle": "图片颜色反转",
+		"subtitle": "能够将图片中特定范围的颜色具体转换为目标颜色",
+		"output": "输出",
+		"outputParameters": "输出参数",
+		"resolution": "分辨率",
+		"quality": "质量",
+		"configure": "配置",
+		"rgbRangeMin": "RGB 范围最小值",
+		"rgbRangeMax": "RGB 范围最大值",
+		"toRGBA": "转换为 RGB",
+		"convert": "转换",
+		"recover": "恢复",
+		"resetRGB": "重置 RGB"
+	},
 	"ipPage": {
 		"pageTitle": "查询IP或域名详情",
 		"subtitle": "可免费查询IP或域名的IPv4、IPv6及地理位置",
@@ -196,6 +211,19 @@
 	"tripPage": {
 		"pageTitle": "行程路线轨迹",
 		"subtitle": "便捷方便的记录GPS路线轨迹、速度、里程、海拔等行程数据~，支持步行、骑行、驾车等多种出行方式。"
+	},
+	"webScreenRecordingPage": {
+		"pageTitle": "网页屏幕录制",
+		"subtitle": "一个可通过Web网站即可实现网页录屏、窗口录屏、全屏录屏等功能",
+		"recording": "录制",
+
+		"adaptive": "自适应",
+		"clearRecordedVideo": "清除录制的视频",
+		"systemSoundEnabled": "系统声音已启用",
+		"systemSoundDisabled": "系统声音已禁用",
+
+		"noSupportMobile": "不支持移动设备",
+		"onlySupportPC": "目前仅在 PC 上提供网页屏幕录制功能"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "倒数日",
@@ -333,6 +361,10 @@
 		"disconnect": "断开连接",
 		"disconnectContent": "你确定要与其他设备断开连接吗？",
 
-		"start": "开始"
+		"start": "开始",
+		"output": "输出",
+		"outputParameters": "输出参数",
+		"resolution": "分辨率",
+		"configure": "配置"
 	}
 }

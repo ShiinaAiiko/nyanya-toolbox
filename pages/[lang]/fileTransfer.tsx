@@ -71,6 +71,8 @@ import {
 	defaultLanguage,
 } from '../../plugins/i18n/i18n'
 
+
+
 const FileTransferPage = (props: any) => {
 	const { t, i18n } = useTranslation('fileTransferPage')
 	const [mounted, setMounted] = useState(false)
@@ -1012,7 +1014,7 @@ const FileTransferPage = (props: any) => {
 																									)
 																								)
 
-																								if (nwebrtc) {
+                                                if (nwebrtc) {
 																									const dataChannelAPI = nwebrtc
 																										.getClient(
 																											fileTransfer.roomInfo

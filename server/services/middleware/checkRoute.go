@@ -44,7 +44,7 @@ func CheckRouteMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		Log.Info("c.Request.URL.Path,", c.Request.URL.Path, strings.Contains(c.Request.URL.Path, "/api"))
+		// Log.Info("c.Request.URL.Path,", c.Request.URL.Path, strings.Contains(c.Request.URL.Path, "/api"))
 		isHttpServer := strings.Contains(c.Request.URL.Path, "/api")
 		if isHttpServer {
 			c.Set("isHttpServer", true)

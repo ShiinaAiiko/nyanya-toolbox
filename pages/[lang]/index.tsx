@@ -106,15 +106,24 @@ const IndexPage = () => {
 								description = title
 							}
 
+							let url = v.url.replace(
+								'tools.aiiko.club/',
+								'tools.aiiko.club/' +
+									// 'http://192.168.204.132:23200/' +
+									(router.query.lang ? router.query.lang + '/' : '')
+							)
+							if (mounted) {
+								url = url.replace(
+									'https://tools.aiiko.club',
+									location?.origin.indexOf('192.168.') >= 0
+										? location?.origin
+										: 'https://tools.aiiko.club'
+								)
+							}
 							return (
 								<a
 									key={i}
-									href={v.url.replace(
-										'tools.aiiko.club/',
-										'tools.aiiko.club/' +
-											// 'http://192.168.204.129:23200/' +
-											(router.query.lang ? router.query.lang + '/' : '')
-									)}
+									href={url}
 									target={config.pwaApp ? '' : '_blank'}
 									onClick={(e) => {
 										e.stopPropagation()

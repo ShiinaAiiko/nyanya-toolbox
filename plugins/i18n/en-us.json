@@ -163,6 +163,21 @@
 		"resolution": "Resolution",
 		"quality": "Quality"
 	},
+	"imageColorInversionPage": {
+		"pageTitle": "Image color inversion",
+		"subtitle": "Able to specifically convert a certain range of colors in the image to the target color",
+		"output": "Output",
+		"outputParameters": "Output Parameters",
+		"resolution": "Resolution",
+		"quality": "Quality",
+		"configure": "Configure",
+		"rgbRangeMin": "RGB Range Min",
+		"rgbRangeMax": "RGB Range Max",
+		"toRGBA": "To RGB",
+		"convert": "Convert",
+		"recover": "Recover",
+		"resetRGB": "Reset RGB"
+	},
 	"ipPage": {
 		"pageTitle": "Search IP or Domain Name Details",
 		"subtitle": "You can query IPv4, IPv6 and geographical location of IP or domain name for free.",
@@ -195,6 +210,18 @@
 	"tripPage": {
 		"pageTitle": "Trip route track",
 		"subtitle": "Using GPS, you can conveniently record route trajectory, speed, mileage, altitude and other travel data~"
+	},
+	"webScreenRecordingPage": {
+		"pageTitle": "Web Screen Recording",
+		"subtitle": "You can record web pages, windows, and full screen screens just by using the web site.",
+		"recording": "Recording",
+
+		"adaptive": "Adaptive",
+		"clearRecordedVideo": "Clear recorded video",
+		"systemSoundEnabled": "System sound enabled",
+		"systemSoundDisabled": "System sound disabled",
+		"noSupportMobile": "No support for mobile devices",
+		"onlySupportPC": "Web screen recording is currently only available on PC"
 	},
 	"countdownDaysPage": {
 		"pageTitle": "Countdown Days",
@@ -330,6 +357,12 @@
 		"deleteEmojiContent": "Are you sure you want to delete this emoji?",
 
 		"disconnect": "Disconnect",
-		"disconnectContent": "Are you sure you want to disconnect from other devices?"
+		"disconnectContent": "Are you sure you want to disconnect from other devices?",
+
+		"start": "Start",
+		"output": "Output",
+		"outputParameters": "Output Parameters",
+		"resolution": "Resolution",
+		"configure": "Configure"
 	}
 }

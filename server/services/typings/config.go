@@ -1,16 +1,20 @@
 package typings
 
 type Config struct {
-	Server  Server
-	SSO     Sso
-	BaseUrl string
-	Email   Email
-	Redis   Redis
-	Saass   SAaSS
+	CityVersion string
+	Server      Server
+	SSO         Sso
+	BaseUrl     string
+	Email       Email
+	Redis       Redis
+	Saass       SAaSS
 	// StaticPathDomain string
-	Mongodb Mongodb
-	Sfu     Sfu
-	Turn    Turn
+	Mongodb         Mongodb
+	Sfu             Sfu
+	Turn            Turn
+	AmapKey         string
+	NominatimApiUrl string
+	BaiduTranslate  BaiduTranslate
 }
 
 type Server struct {
@@ -63,4 +67,9 @@ type Turn struct {
 		Secret   string
 		Duration int64
 	}
+}
+
+type BaiduTranslate struct {
+	AppId     string
+	SecretKey string
 }

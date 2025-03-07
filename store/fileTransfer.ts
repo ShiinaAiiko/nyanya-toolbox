@@ -299,7 +299,7 @@ export const fileTransferMethods = {
 				return
 			}
 
-			let client = nwebrtc.createClient(roomId)
+      let client = nwebrtc.createClient(roomId)
 
 			client.on('connected', () => {
 				console.log('webrtc connected', 'connected')

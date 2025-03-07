@@ -39,3 +39,5 @@ dump.rdb
 !/client/out
 
 go.work*
+ssh*
+build.tgz

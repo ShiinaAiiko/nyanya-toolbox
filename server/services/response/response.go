@@ -185,6 +185,9 @@ func (res *ResponseType) GetResponse() *ResponseType {
 	switch res.Code {
 	case 200:
 
+	case 10018:
+		res.Msg = "Content does not exist."
+		res.CnMsg = "内容不存在"
 	case 10017:
 		res.Msg = "Delete failed."
 		res.CnMsg = "删除失败"

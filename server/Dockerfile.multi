@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine as BUILD_IMAGE
+FROM golang:1.21-alpine as BUILD_IMAGE
 
 WORKDIR /app
 
@@ -44,18 +44,19 @@ RUN \
 
 FROM alpine:3.10
 
-WORKDIR /
+WORKDIR /build
 
 COPY --from=BUILD_IMAGE \
   /app/nyanya-toolbox \
-  /
+  /build
 COPY --from=BUILD_IMAGE \
   /app/services/i18n/ \
-  /services/i18n/
-# COPY --from=BUILD_IMAGE \
-#   /app/client/ \
-#   /client
+  /build/services/i18n/
+
+RUN \ 
+  # yarn global add spa-http-server --registry https://registry.npmmirror.com/ && \
+  tar cvzf /build.tgz  -C /build .
 
 EXPOSE 23201
 
-CMD ["./nyanya-toolbox","--config","config.json"]
+CMD ["/build/nyanya-toolbox","--config","config.json"]

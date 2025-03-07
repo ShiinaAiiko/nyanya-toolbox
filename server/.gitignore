@@ -41,3 +41,5 @@ dump.rdb
 !/protos/coding.go
 
 go.work*
+ssh*
+build.tgz

@@ -1,11 +1,12 @@
 #! /bin/bash
 name="meow-toolbox-server"
+runName="$name-run"
 port=23201
 branch="main"
 # configFilePath="config.dev.json"
 configFilePath="config.pro.json"
 DIR=$(cd $(dirname $0) && pwd)
-allowMethods=("stop gitpull protos dockerremove start logs")
+allowMethods=("zip unzip run stop gitpull protos dockerremove start logs runLogs")
 
 gitpull() {
   echo "-> 正在拉取远程仓库"
@@ -53,15 +54,59 @@ start() {
     --restart=always \
     -d $name
 
-  # echo "-> 编译前端镜头文件"
-  # cd ./client
-  # ./release.sh start
-  # cd ..
+  echo "-> 整理文件资源"
+  docker cp $name:/build.tgz $DIR/build.tgz
+  stop
+
+  ./ssh.sh run
+
+  rm -rf $DIR/build.tgz
+}
+
+run() {
+  unzip
+
+  echo "-> 正在启动「${runName}」服务"
+  dockerremove
+
+  echo "-> 准备构建Docker"
+  docker build \
+    -t \
+    $runName \
+    --network host \
+    . \
+    -f Dockerfile.run.multi
+
+  echo "-> 准备运行Docker"
+  stop
+  docker run \
+    -v $DIR/$configFilePath:/config.json \
+    -v $DIR/nyanya-toolbox:/nyanya-toolbox \
+    -v $DIR/services:/services \
+    --name=$runName \
+    -p $port:$port \
+    --restart=always \
+    -d $runName
+}
+
+unzip() {
+  rm -rf ./services/i18n
+  mkdir -p ./services/i18n
+  tar -zxvf ./build.tgz -C ./
+  chmod -R 700 nyanya-toolbox
+  
+  rm -rf build.tgz
+}
+
+zip() {
+  tar cvzf /build.tgz -C /build .
 }
 
 stop() {
   docker stop $name
   docker rm $name
+  docker stop $runName
+  docker rm $runName
 }
 
 protos() {
@@ -81,6 +126,10 @@ protos() {
 
 logs() {
   docker logs -f $name
+}
+
+runLogs() {
+  docker logs -f $runName
 }
 
 main() {

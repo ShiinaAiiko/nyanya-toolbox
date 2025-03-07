@@ -1,6 +1,6 @@
 module github.com/ShiinaAiiko/nyanya-toolbox/server
 
-go 1.18
+go 1.21
 
 require (
 	// github.com/cherrai/nyanyago-utils v1.0.0
@@ -8,12 +8,12 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/googollee/go-socket.io v1.6.2
-	github.com/mozillazg/go-pinyin v0.19.0 // indirect
+	github.com/mozillazg/go-pinyin v0.20.0 // indirect
 	google.golang.org/protobuf v1.28.1
 )
 
 require (
-	github.com/cherrai/nyanyago-utils v1.0.9
+	github.com/cherrai/nyanyago-utils v1.0.17
 	github.com/cherrai/saki-sso-go v1.0.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jinzhu/copier v0.3.5

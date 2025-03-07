@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	conf "github.com/ShiinaAiiko/nyanya-toolbox/server/config"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/response"
 	"github.com/cherrai/nyanyago-utils/validation"
 
@@ -114,7 +115,7 @@ func (ic *IpController) IpDetails(c *gin.Context) {
 		return
 	}
 
-	resp, err := restyClient.R().SetQueryParams(map[string]string{
+	resp, err := conf.RestyClient.R().SetQueryParams(map[string]string{
 		"lang":   data.Language,
 		"fields": "status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query",
 	}).Get(

@@ -31,4 +31,12 @@ var RedisCacheKeys = map[string]*nredis.RedisCacheKeysType{
 		Key:        "GetMoveCarQRCList",
 		Expiration: 5 * 60 * time.Second,
 	},
+	"Regeo": {
+		Key:        "Regeo",
+		Expiration: 30 * 60 * time.Second,
+	},
+	"RegeoByAmap": {
+		Key:        "RegeoByAmap",
+		Expiration: 2 * 60 * time.Second,
+	},
 }

@@ -22,8 +22,13 @@ var ApiUrls = map[string](map[string]string){
 		"getUploadTokenOfCountdownDays": "/countdownDays/uploadToken/get",
 		"getCountdownDaysFileUrls":      "/countdownDays/fileUrls/get",
 
-		// Net
-		"ipDetails": "/ip/details",
-		"urlToIp":   "/url/toIp",
+		// Net 对外api
+		"ipDetails":       "/ip/details",
+		"urlToIp":         "/url/toIp",
+		"weatherForecast": "/weather/forecast",
+
+		"httpProxy": "/net/httpProxy",
+		"regeo":     "/geocode/regeo",
+		"geo":       "/geocode/geo",
 	},
 }

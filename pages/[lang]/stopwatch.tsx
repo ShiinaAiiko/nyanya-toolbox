@@ -17,7 +17,12 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { bindEvent, snackbar, progressBar } from '@saki-ui/core'
 import { deepCopy, QueueLoop, WebWorker } from '@nyanyajs/utils'
-import { getRegExp, copyText, getRandomPassword } from '../../plugins/methods'
+import {
+	getRegExp,
+	copyText,
+	getRandomPassword,
+	formatTime,
+} from '../../plugins/methods'
 import {
 	changeLanguage,
 	languages,
@@ -87,17 +92,6 @@ const StopWatchPage = () => {
 		worker.current?.postMessage('stopwatch-clear', {})
 	}
 
-	const formatTime = (time: number) => {
-		const ms = Math.floor(time / 10) % 100
-		const s = Math.floor(time / 1000) % 60
-		const m = Math.floor(time / 60000)
-		const h = Math.floor(time / 3600000)
-		return `${String(h).padStart(2, '0')}:${String(m).padStart(
-			2,
-			'0'
-		)}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}`
-	}
-
 	return (
 		<>
 			<Head>
@@ -115,7 +109,9 @@ const StopWatchPage = () => {
 					<div className='rp-m-title'>{t('pageTitle')}</div>
 					<div className='rp-m-subtitle'>{t('subtitle')}</div>
 
-					<div className='rp-m-t-time'>{formatTime(time)}</div>
+					<div className='rp-m-t-time'>
+						{formatTime(time, ['h', 'm', 's', 'ms'])}
+					</div>
 
 					<div className={'rp-m-buttons ' + (start ? 'start' : '')}>
 						{mounted && (
@@ -208,7 +204,7 @@ const StopWatchPage = () => {
 												<span># {arr.length - i}</span>
 											</div>
 											<div className='rp-m-h-time text-elipsis'>
-												{formatTime(v.time)}
+												{formatTime(v.time, ['h', 'm', 's', 'ms'])}
 											</div>
 											<div className='rp-m-h-createtime text-elipsis'>
 												{moment(v.crateTime).format('YYYY-MM-DD HH:mm:ss')}

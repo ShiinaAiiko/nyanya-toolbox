@@ -9,12 +9,14 @@ import (
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/typings"
 	"github.com/cherrai/nyanyago-utils/goroutinepanic"
 	"github.com/cherrai/nyanyago-utils/nlog"
+	"github.com/go-resty/resty/v2"
 )
 
 var (
 	Log           = nlog.New()
 	log           = Log
 	Config        *typings.Config
+	RestyClient   = resty.New()
 	G             = goroutinepanic.G
 	FileTokenSign = "saass_2022_6_4"
 	// TrunAddress      = "turn:192.168.1.104:3478"
