@@ -26,6 +26,7 @@ import store from '../store'
 import Init from '../plugins/init'
 
 import * as nyanyalog from 'nyanyajs-log'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 nyanyalog.timer()
 nyanyalog.config({
@@ -45,17 +46,19 @@ function App({ Component, pageProps }: any) {
 	const ProviderAny = Provider as any
 
 	return (
-		<ProviderAny store={store}>
-			<>
-				<Init />
+		<ErrorBoundary>
+			<ProviderAny store={store}>
+				<>
+					<Init />
 
-				{getLayout() ? (
-					getLayout(<Component router={router} {...pageProps} />, pageProps)
-				) : (
-					<Component router={router} {...pageProps} />
-				)}
-			</>
-		</ProviderAny>
+					{getLayout() ? (
+						getLayout(<Component router={router} {...pageProps} />, pageProps)
+					) : (
+						<Component router={router} {...pageProps} />
+					)}
+				</>
+			</ProviderAny>
+		</ErrorBoundary>
 	)
 }
 export default App

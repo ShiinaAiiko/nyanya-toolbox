@@ -25,12 +25,13 @@ import {
 	changeLanguage,
 	resources,
 	languages,
+	initI18n,
 } from '../plugins/i18n/i18n'
 import {
 	SakiBaseStyle,
 	SakiColor,
+	SakiI18n,
 	SakiInit,
-	SakiInitLanguage,
 	SakiTemplateFooter,
 } from '../components/saki-ui-react/components'
 import { Query, isInPwa } from '../plugins/methods'
@@ -151,7 +152,6 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 					)}
 
 					<div className={'tb-main '}>
-            
 						<div className='tb-main-wrap'>
 							{children}
 
@@ -200,7 +200,7 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 									github
 									github-link='https://github.com/ShiinaAiiko/nyanya-toolbox'
 									github-text='Github'
-                  blog
+									blog
 								></SakiTemplateFooter>
 							) : (
 								''
@@ -255,15 +255,18 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
 									])
 								}}
 							></SakiInit>
-							<SakiInitLanguage
-								language={config.language}
-								lang={config.lang}
-								defalutLanguage={config.defaultLanguage}
-								ref={(e) => {
-									// console.log('initLanguagee', e, config)
-									e?.initLanguage?.(config.languages, resources as any)
+							<SakiI18n
+								onMounted={async (e) => {
+									console.log('SakiI18n', e.target)
+									const r = await e.target.getResources()
+									console.log('SakiI18n', r)
+									initI18n(r)
 								}}
-							></SakiInitLanguage>
+								language={config.language}
+								lang={i18n.language}
+								languages={config.languages}
+								resources={resources as any}
+							></SakiI18n>
 							<SakiColor
 								// appearance={config.appearance}
 								defaultColor={'#f29cb2'}

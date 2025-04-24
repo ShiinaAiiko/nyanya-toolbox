@@ -1400,7 +1400,7 @@ const MoveCarPhonePage = () => {
 					{mounted && (
 						<SakiColor
 							ref={(e: any) => {
-								e?.changeAppearance()
+								e?.changeAppearance?.()
 							}}
 							appearance={'Pink'}
 						></SakiColor>

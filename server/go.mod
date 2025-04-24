@@ -1,6 +1,6 @@
 module github.com/ShiinaAiiko/nyanya-toolbox/server
 
-go 1.21
+go 1.22
 
 require (
 	// github.com/cherrai/nyanyago-utils v1.0.0

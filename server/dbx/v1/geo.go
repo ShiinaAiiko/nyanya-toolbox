@@ -31,17 +31,17 @@ type (
 		Latlng   *CityDistrictsLatlng
 	}
 	CityDistrictsLatlng struct {
-		Lat float64
-		Lng float64
+		Lat float64 `bson:"lat" json:"type,omitempty"`
+		Lng float64 `bson:"lng" json:"type,omitempty"`
 	}
 	CityDistrictsItem struct {
-		Adcode string
-		Name   string
+		Adcode string `bson:"adcode" json:"adcode,omitempty"`
+		Name   string `bson:"name" json:"name,omitempty"`
 
 		// Country\State\Region\City\Town\Road
-		Type       string
-		Latlng     *CityDistrictsLatlng
-		ParentCity *CityDistrictsItem
+		Type       string               `bson:"type" json:"type,omitempty"`
+		Latlng     *CityDistrictsLatlng `bson:"latlng" json:"latlng,omitempty"`
+		ParentCity *CityDistrictsItem   `bson:"parentCity" json:"parentCity,omitempty"`
 	}
 
 	// Country\State\Region\City\Town\Road
@@ -72,7 +72,7 @@ func (d *GeoDbx) FilterChinaGeoInfo(cd *CityDistrictsItem, displayNameArr []stri
 }
 
 func (d *GeoDbx) GetChinaGeoInfo(town string, displayNameArr []string) *GeoInfo {
-	districts := d.GetCityDistricts()
+	districts := d.GetChinaCityDistricts()
 
 	geoInfo := new(GeoInfo)
 
@@ -147,10 +147,10 @@ type GeoJSON struct {
 func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) {
 	geoInfo := new(GeoInfo)
 
-	log.Error("zoom", zoom)
 	if zoom == 0 {
 		zoom = 14
 	}
+	log.Error("zoom", zoom)
 
 	resp, err := conf.RestyClient.R().SetQueryParams(map[string]string{}).
 		Get(
@@ -183,6 +183,9 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 
 	if rgc.Address.CountryCode == "cn" && !(rgc.Address.State == "香港" || rgc.Address.State == "澳門") {
 		geoInfo = d.GetChinaGeoInfo(rgc.Name, displayNameArr)
+		if geoInfo.Country == "" {
+			geoInfo.Country = rgc.Address.Country
+		}
 
 		log.Info(geoInfo)
 		if geoInfo.Address == "" || geoInfo.Town == "" {
@@ -267,7 +270,8 @@ func (d *GeoDbx) RegeoByAmap(lat, lng float64) (*GeoInfo, error) {
 
 	key := conf.Redisdb.GetKey("RegeoByAmap")
 
-	if err := conf.Redisdb.GetStruct(key.GetKey("amap"), geoInfo); err != nil {
+	err := conf.Redisdb.GetStruct(key.GetKey("amap"), geoInfo)
+	if true || err != nil {
 
 		resp, err := conf.RestyClient.R().SetQueryParams(map[string]string{}).
 			Get(
@@ -368,7 +372,7 @@ func (d *GeoDbx) getParentCityName(city *CityDistrictsItem, geoInfo *GeoInfo) {
 	}
 }
 
-func (d *GeoDbx) GetCityDistricts() map[string][]*CityDistrictsItem {
+func (d *GeoDbx) GetChinaCityDistricts() map[string][]*CityDistrictsItem {
 	return chinaCityDistricts
 }
 
@@ -489,7 +493,7 @@ func (d *GeoDbx) GetChinaCityDistrictsByAmap(country string) (map[string]([]*Cit
 		}
 		// log.Info("resp.Body()", res)
 
-		log.Info(amapRes)
+		log.Info(amapRes, conf.Config.AmapKey)
 
 		if amapRes.Status != "1" {
 			return nil, errors.New(amapRes.Info)

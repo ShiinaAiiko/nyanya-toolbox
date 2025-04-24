@@ -73,7 +73,9 @@ func (ic *GeoController) Regeo(c *gin.Context) {
 
 	cache := true
 
-	if true || err != nil || geoInfo.Country == "" || geoInfo.Address == "" {
+	log.Info(err, geoInfo)
+
+	if err != nil || geoInfo.Country == "" || geoInfo.Address == "" {
 		cache = false
 		geoInfo, err = geoDbx.RegeoByNominatim(data.Latitude, data.Longitude, 0)
 
@@ -259,6 +261,47 @@ func (ic *GeoController) Geo(c *gin.Context) {
 			"longitude": geoInfo.Longitude,
 			"code":      geoInfo.Code,
 			"level":     geoInfo.Level,
+		}
+		res.Code = 200
+		res.Call(c)
+
+		return
+	}
+
+	res.Code = 10006
+	res.Call(c)
+}
+
+func (ic *GeoController) GetCityDistricts(c *gin.Context) {
+	// 1、请求体
+	var res response.ResponseType
+	var err error
+
+	data := struct {
+		Country string
+	}{
+		Country: c.Query("country"),
+	}
+
+	log.Info("geo", data)
+
+	if err = validation.ValidateStruct(
+		&data,
+		validation.Parameter(&data.Country,
+			validation.Enum([]string{"China"}), validation.Type("string"), validation.Required()),
+	); err != nil {
+		res.Errors(err)
+		res.Code = 10002
+		res.Call(c)
+		return
+	}
+
+	if data.Country == "China" {
+
+		cd := geoDbx.GetChinaCityDistricts()
+
+		res.Data = response.H{
+			"cityDistricts": cd,
 		}
 		res.Code = 200
 		res.Call(c)

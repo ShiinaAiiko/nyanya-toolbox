@@ -30,5 +30,8 @@ var ApiUrls = map[string](map[string]string){
 		"httpProxy": "/net/httpProxy",
 		"regeo":     "/geocode/regeo",
 		"geo":       "/geocode/geo",
+		"geoDetail": "/geocode/details",
+
+		"getCityDistricts": "/geocode/cityDistricts",
 	},
 }

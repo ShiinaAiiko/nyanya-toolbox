@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"nodemon": "nodemon ./nodemon.js",
-		"dev": "cp -r ./config.dev.json ./config.temp.json && rm -rf ./.next && cross-env CLIENT_ENV=development next dev -p 23200",
+		"dev": "cp -r ./config.dev.json ./config.temp.json && yarn sakiui && rm -rf ./.next && cross-env CLIENT_ENV=development next dev -p 23200",
 		"build": "next build",
 		"sakiui": "./release.sh download:saki-ui-react",
 		"devstart": "yarn run build && cross-env CLIENT_ENV=development next start -p 23200",
@@ -37,6 +37,7 @@
 		"qs": "^6.10.1",
 		"react": "18.3.0-canary-c5b937576-20231219",
 		"react-dom": "^18.2.0",
+		"react-error-boundary": "^5.0.0",
 		"react-i18next": "14.0.0",
 		"react-redux": "^7.2.6",
 		"redux": "^4.1.2",

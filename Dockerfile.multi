@@ -14,7 +14,7 @@ RUN \
 COPY . .
 
 RUN \
-  ./release.sh download:saki-ui-react && \
+  yarn sakiui && \
   yarn build-webworker && \
   yarn export && \
   ./release.sh generateSiteMap

@@ -190,7 +190,7 @@ const MoveCarPhoneDetailPage = () => {
 						<>
 							<SakiColor
 								ref={(e: any) => {
-									e?.changeAppearance()
+									e?.changeAppearance?.()
 								}}
 								// appearance={config.appearance}
 								defaultColor={color}

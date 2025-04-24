@@ -61,4 +61,14 @@ func (r *Routerv1) InitNet() {
 			ResponseDataType:   "json",
 		}),
 		gc.Geo)
+
+	r.Group.GET(
+		role.SetRole(apiUrls["getCityDistricts"], &middleware.RoleOptionsType{
+			CheckApp:           false,
+			Authorize:          false,
+			RequestEncryption:  false,
+			ResponseEncryption: false,
+			ResponseDataType:   "json",
+		}),
+		gc.GetCityDistricts)
 }

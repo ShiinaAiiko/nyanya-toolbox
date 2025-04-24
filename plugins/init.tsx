@@ -38,9 +38,11 @@ const Init = () => {
 							? '/' + router.query.lang
 							: ''
 					}/manifest.json`}
-        />
-        
+				/>
+
 				<link rel='stylesheet' type='text/css' href='/color.css'></link>
+
+				<script src='/js/sw-register.js' defer></script>
 
 				<meta httpEquiv='X-UA-Compatible' content='IE=edge'></meta>
 				<meta
