@@ -8,6 +8,8 @@ import axios, { AxiosRequestConfig } from 'axios'
 
 import store, { userSlice } from '../store'
 import { snackbar } from '@saki-ui/core'
+import moment from 'moment'
+import { t } from './i18n/i18n'
 
 export const getRegExp = (type: 'email') => {
   return /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
@@ -25,6 +27,7 @@ export const emojiToText = (message: string) => {
     }
   )
 }
+
 export const emojiToImg = (message: string) => {
   return message.replace(/\[(.+?)\]/g, (el: string, name: string) => {
     // console.log(el, name)
@@ -193,28 +196,127 @@ export const hidePhone = (phone: string) => {
 }
 
 export const formatTime = (time: number, format: string[]) => {
-  let str = ""
-  if (format.includes("h")) {
+  let str = ''
+  if (format.includes('h')) {
     const h = Math.floor(time / 3600000)
     str = str + `${String(h).padStart(2, '0')}`
   }
-  if (format.includes("m")) {
-    str && (str = str + ":")
+  if (format.includes('m')) {
+    str && (str = str + ':')
     const m = Math.floor(time / 60000)
-    str = str + `${String(m).padStart(
-      2,
-      '0'
-    )}`
+    str = str + `${String(m).padStart(2, '0')}`
   }
-  if (format.includes("s")) {
-    str && (str = str + ":")
+  if (format.includes('s')) {
+    str && (str = str + ':')
     const s = Math.floor(time / 1000) % 60
     str = str + `${String(s).padStart(2, '0')}`
   }
-  if (format.includes("ms")) {
-    str && (str = str + ".")
+  if (format.includes('ms')) {
+    str && (str = str + '.')
     const ms = Math.floor(time / 10) % 100
     str = str + `${String(ms).padStart(2, '0')}`
   }
   return str
+}
+
+export const formatDuration = (timestamp: number, fields: string[]) => {
+  const h = Math.floor(timestamp / 3600)
+  const m = Math.floor(timestamp / 60) % 60
+  const s = Math.floor(timestamp % 60)
+
+  if (!fields.length) {
+    return h + 'h ' + (m + 'm ') + (s + 's ')
+  }
+
+  return (
+    (h === 0 && fields.includes('h') ? '' : h + 'h ') +
+    (m === 0 && fields.includes('m') ? '' : m + 'm ') +
+    (s === 0 && fields.includes('s') ? '' : s + 's ')
+  )
+}
+
+export const formatDurationI18n = (
+  timestamp: number,
+  full = true,
+  fields: string[] = ['h', 'm', 's']
+) => {
+  const h = Math.floor(timestamp / 3600)
+  const m = Math.floor(timestamp / 60) % 60
+  const s = Math.floor(timestamp % 60)
+
+  let str = ''
+  if (full) {
+    str =
+      h +
+      t('hourTime', {
+        ns: 'prompt',
+      }) +
+      (m +
+        t('minuteTime', {
+          ns: 'prompt',
+        })) +
+      (s +
+        t('secondTime', {
+          ns: 'prompt',
+        }))
+  } else {
+    str =
+      (h === 0 && fields.includes('h')
+        ? ''
+        : h +
+          t('hourTime', {
+            ns: 'prompt',
+          })) +
+      (m === 0 && fields.includes('m')
+        ? ''
+        : m +
+          t('minuteTime', {
+            ns: 'prompt',
+          })) +
+      (s === 0 && fields.includes('s')
+        ? ''
+        : s +
+          t('secondTime', {
+            ns: 'prompt',
+          }))
+  }
+
+  return str.trim()
+}
+
+
+
+// 单位米
+
+export const getDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  let radLat1 = (lat1 * Math.PI) / 180.0
+  let radLat2 = (lat2 * Math.PI) / 180.0
+  let a = radLat1 - radLat2
+  let b = (lon1 * Math.PI) / 180.0 - (lon2 * Math.PI) / 180.0
+  let s =
+    2 *
+    Math.asin(
+      Math.sqrt(
+        Math.pow(Math.sin(a / 2), 2) +
+          Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)
+      )
+    )
+  s = s * 6378.137
+  s = Math.round(s * 1000000) / 1000
+  return s
+}
+
+export const formatDistance = (distance: number) => {
+  if (distance < 1000) {
+    return Math.round(distance || 0) + ' m'
+  }
+  if (distance < 1000 * 10) {
+    return Math.round((distance || 0) / 10) / 100 + ' km'
+  }
+  return Math.round((distance || 0) / 100) / 10 + ' km'
 }

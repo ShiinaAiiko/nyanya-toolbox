@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package weather;
+import "saass.proto";
+
+message GetUploadTokenOfWeather {
+  message Request {
+    int64 size = 1;
+    string hash = 2;
+    int64 lastUpdateTime = 3;
+  }
+  message Response {
+    saass.Urls urls = 1;
+    string apiUrl = 2;
+    string token = 3;
+    int64 chunkSize = 4;
+    repeated int64 uploadedOffset = 5;
+    int64 uploadedTotalSize = 7;
+
+    saass.FileInfo fileInfo = 6;
+  }
+}
+
+// 提供的下载地址只能临时下载5分钟
+message GetWeatherFileUrls {
+  message Request {}
+  message Response {
+    saass.FileInfo fileInfo = 1;
+    saass.Urls urls = 2;
+  }
+}

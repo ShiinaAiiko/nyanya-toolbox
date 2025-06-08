@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>D3 Line Chart with Gradient Area Fill</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      .chart-container {
+        width: 600px;
+        height: 300px;
+        margin: 20px auto;
+      }
+      svg {
+        background: #b71c1c9d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chart-container">
+      <svg></svg>
+    </div>
+
+    <script>
+      const width = 600
+      const height = 300
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 }
+      const innerWidth = width - margin.left - margin.right
+      const innerHeight = height - margin.top - margin.bottom
+
+      const svg = d3
+        .select('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`)
+
+      const data = [
+        { time: '7:00', temp: 11 },
+        { time: '8:00', temp: 13 },
+        { time: '9:00', temp: 14 },
+        { time: '10:00', temp: 14 },
+        { time: '11:00', temp: 14 },
+        { time: '12:00', temp: 16 },
+      ]
+
+      const xScale = d3
+        .scalePoint()
+        .domain(data.map((d) => d.time))
+        .range([0, innerWidth])
+
+      const yScale = d3.scaleLinear().domain([10, 17]).range([innerHeight, 0])
+
+      // 定义渐变
+      const defs = svg.append('defs')
+      const gradient = defs
+        .append('linearGradient')
+        .attr('id', 'area-gradient')
+        .attr('gradientUnits', 'userSpaceOnUse')
+        .attr('x1', 0)
+        .attr('y1', innerHeight)
+        .attr('x2', 0)
+        .attr('y2', 0) // 垂直渐变，从下到上
+
+      gradient
+        .append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', 'rgba(0, 119, 204, 0.1)') // 底部颜色
+
+      gradient
+        .append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', 'rgba(0, 119, 204, 0.5)') // 顶部颜色
+
+      // 创建面积生成器
+      const area = d3
+        .area()
+        .x((d) => xScale(d.time))
+        .y0(innerHeight)
+        .y1((d) => yScale(d.temp))
+
+      // 创建折线生成器
+      const line = d3
+        .line()
+        .x((d) => xScale(d.time))
+        .y((d) => yScale(d.temp))
+
+      // 添加填充区域，使用渐变
+      svg
+        .append('path')
+        .datum(data)
+        .attr('fill', 'url(#area-gradient)') // 应用渐变
+        .attr('d', area)
+
+      // 添加折线
+      svg
+        .append('path')
+        .datum(data)
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-width', 2)
+        .attr('d', line)
+
+      // 添加数据点
+      svg
+        .selectAll('.dot')
+        .data(data)
+        .enter()
+        .append('circle')
+        .attr('class', 'dot')
+        .attr('cx', (d) => xScale(d.time))
+        .attr('cy', (d) => yScale(d.temp))
+        .attr('r', 4)
+        .attr('fill', 'steelblue')
+
+      // 添加X轴
+      svg
+        .append('g')
+        .attr('transform', `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale))
+
+      // 添加Y轴
+      svg.append('g').call(d3.axisLeft(yScale))
+    </script>
+  </body>
+</html>

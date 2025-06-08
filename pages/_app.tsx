@@ -16,9 +16,11 @@ import './[lang]/index.scss'
 import './[lang]/ip.scss'
 import './[lang]/imageColorInversion.scss'
 import './[lang]/webScreenRecording.scss'
+import './[lang]/weather.scss'
 import '../components/Header.scss'
 import '../components/SakiSSOLogin.scss'
 import '../components/Statistics.scss'
+import '../components/LoadingPage.scss'
 
 import { useRouter } from 'next/router'
 import { Provider } from 'react-redux'
@@ -30,35 +32,35 @@ import ErrorBoundary from '../components/ErrorBoundary'
 
 nyanyalog.timer()
 nyanyalog.config({
-	format: {
-		function: {
-			fullFunctionChain: false,
-		},
-		prefixTemplate: '[{{Timer}}] [{{Type}}] [{{File}}]@{{Name}}',
-	},
+  format: {
+    function: {
+      fullFunctionChain: false,
+    },
+    prefixTemplate: '[{{Timer}}] [{{Type}}] [{{File}}]@{{Name}}',
+  },
 })
 // import '../assets/style/base.scss'
 function App({ Component, pageProps }: any) {
-	const getLayout = Component.getLayout || ((page: any) => page)
+  const getLayout = Component.getLayout || ((page: any) => page)
 
-	const router = useRouter()
+  const router = useRouter()
 
-	const ProviderAny = Provider as any
+  const ProviderAny = Provider as any
 
-	return (
-		<ErrorBoundary>
-			<ProviderAny store={store}>
-				<>
-					<Init />
+  return (
+    <ErrorBoundary>
+      <ProviderAny store={store}>
+        <>
+          <Init />
 
-					{getLayout() ? (
-						getLayout(<Component router={router} {...pageProps} />, pageProps)
-					) : (
-						<Component router={router} {...pageProps} />
-					)}
-				</>
-			</ProviderAny>
-		</ErrorBoundary>
-	)
+          {getLayout() ? (
+            getLayout(<Component router={router} {...pageProps} />, pageProps)
+          ) : (
+            <Component router={router} {...pageProps} />
+          )}
+        </>
+      </ProviderAny>
+    </ErrorBoundary>
+  )
 }
 export default App

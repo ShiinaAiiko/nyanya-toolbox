@@ -33,5 +33,9 @@ var ApiUrls = map[string](map[string]string){
 		"geoDetail": "/geocode/details",
 
 		"getCityDistricts": "/geocode/cityDistricts",
+
+		// Weather
+		"getUploadTokenOfWeather": "/weather/uploadToken/get",
+		"getWeatherFileUrls":      "/weather/fileUrls/get",
 	},
 }

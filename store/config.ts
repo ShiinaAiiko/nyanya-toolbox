@@ -7,7 +7,12 @@ import {
 import { getI18n } from 'react-i18next'
 import store, { ActionParams, methods } from '.'
 
-import { Languages, languages, defaultLanguage, changeLanguage } from '../plugins/i18n/i18n'
+import {
+  Languages,
+  languages,
+  defaultLanguage,
+  changeLanguage,
+} from '../plugins/i18n/i18n'
 import { storage } from './storage'
 import { NRequest, SAaSS } from '@nyanyajs/utils'
 import moment from 'moment'
@@ -48,8 +53,25 @@ export const configSlice = createSlice({
     ssoAccount: false,
     pwaApp: false,
     appearance: 'system',
+    connectionStatus: {
+      openMeteo: false,
+      airQualityAPI: false,
+      openStreetMap: false,
+    },
   },
   reducers: {
+    setConnectionStatus: (
+      state,
+      params: {
+        payload: {
+          filed: keyof typeof state.connectionStatus
+          val: boolean
+        }
+        type: string
+      }
+    ) => {
+      state.connectionStatus[params.payload.filed] = !!params.payload.val
+    },
     setAppearance: (
       state,
       params: {
@@ -220,4 +242,76 @@ export const configMethods = {
     }
     thunkAPI.dispatch(configSlice.actions.setDeviceType('PC'))
   }),
+  initConnectionOSM: createAsyncThunk(
+    'config/initConnectionOSM',
+    async (_, thunkAPI) => {
+      try {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'openStreetMap',
+            val:
+              (
+                await fetch(
+                  'https://nominatim.openstreetmap.org/search?q=&format=jsonv2'
+                )
+              ).status === 200,
+          })
+        )
+      } catch (error) {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'openStreetMap',
+            val: false,
+          })
+        )
+      }
+    }
+  ),
+  initConnectionOpenMeteo: createAsyncThunk(
+    'config/initConnectionOpenMeteo',
+    async (_, thunkAPI) => {
+      try {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'openMeteo',
+            val:
+              (await fetch('https://api.open-meteo.com/v1/forecast')).status ===
+              200,
+          })
+        )
+      } catch (error) {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'openMeteo',
+            val: false,
+          })
+        )
+      }
+    }
+  ),
+  initConnectionAirQualityAPI: createAsyncThunk(
+    'config/initConnectionAirQualityAPI',
+    async (_, thunkAPI) => {
+      try {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'airQualityAPI',
+            val:
+              (
+                await fetch(
+                  'https://air-quality-api.open-meteo.com/v1/air-quality'
+                )
+              ).status === 200,
+          })
+        )
+      } catch (error) {
+        thunkAPI.dispatch(
+          configSlice.actions.setConnectionStatus({
+            filed: 'airQualityAPI',
+            val: false,
+          })
+        )
+      }
+    }
+  ),
 }

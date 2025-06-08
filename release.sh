@@ -2,7 +2,7 @@
 name="nyanya-toolbox"
 port=23200
 version="v1.0.13"
-sakiuiVersion="v1.0.8"
+sakiuiVersion="v1.0.9"
 branch="main"
 # configFilePath="config.dev.json"
 configFilePath="config.pro.json"

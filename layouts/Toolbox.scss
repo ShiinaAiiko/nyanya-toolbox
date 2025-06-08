@@ -1,31 +1,50 @@
 .tool-box-layout {
-	.tb-main {
-		width: 100%;
-		.tb-main-wrap {
-			width: calc(100% - 20px);
-			min-width: 200px;
-			max-width: 700px;
-			margin: 10px auto;
-			overflow: hidden;
-		}
-	}
+  .tb-main {
+    width: 100%;
+    .tb-main-wrap {
+      width: calc(100% - 20px);
+      min-width: 200px;
+      max-width: 700px;
+      margin: 10px auto;
+      overflow: hidden;
+    }
+  }
 }
 
 .tool-box-layout-menu-list {
-	.tblml-item {
-		a {
-			font-size: 14px;
-			padding: 14px 16px;
-			display: block;
-			color: #000;
-		}
-	}
-	// width: calc(60px * 3);
-	// display: flex;
-	// flex-direction: row;
-	// flex-wrap: wrap;
-	// .tblml-item {
-	// 	width: 60px;
-	// 	height: 60px;
-	// }
+  .tblml-item {
+    a {
+      font-size: 14px;
+      padding: 14px 16px;
+      display: block;
+      color: #000;
+    }
+  }
+  // width: calc(60px * 3);
+  // display: flex;
+  // flex-direction: row;
+  // flex-wrap: wrap;
+  // .tblml-item {
+  // 	width: 60px;
+  // 	height: 60px;
+  // }
+}
+
+.context-menu-item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 14px;
+  .icon {
+    fill: #666;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
+  &.disabletap {
+    .icon {
+      fill: #aaa;
+    }
+  }
 }

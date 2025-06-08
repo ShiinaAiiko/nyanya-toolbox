@@ -1,121 +1,130 @@
 {
-	"appList": [
-		{
-			"title": {
-				"zh-CN": "将 Windows 路径转换为 Posix 路径",
-				"zh-TW": "將 Windows 路徑轉換為 Posix 路徑",
-				"en-US": "Convert Windows Path to Posix Path"
-			},
-			"logoText": "W",
-			"url": "https://tools.aiiko.club/windowsPathToPosixPath"
-		},
-		{
-			"title": {
-				"zh-CN": "随机密码",
-				"zh-TW": "隨機密碼",
-				"en-US": "Random Password"
-			},
-			"logoText": "RP",
-			"url": "https://tools.aiiko.club/randomPassword"
-		},
-		{
-			"title": {
-				"zh-CN": "喵链接",
-				"zh-TW": "喵鏈接",
-				"en-US": "Meow Links"
-			},
-			"logoText": "Links",
-			"url": "https://link.aiiko.club"
-		},
-		{
-			"title": {
-				"zh-CN": "头像角标生成器",
-				"zh-TW": "頭像角標生成器",
-				"en-US": "Avatar Badge Generator"
-			},
-			"logoText": "ABG",
-			"url": "https://tools.aiiko.club/avatarBadgeGenerator"
-		},
-		{
-			"title": {
-				"zh-CN": "查询IP或域名详情",
-				"zh-TW": "查詢IP或域名詳情",
-				"en-US": "Search IP or Domain Name Details"
-			},
-			"logoText": "IP",
-			"url": "https://tools.aiiko.club/ip"
-		},
-		{
-			"title": {
-				"zh-CN": "Web文件传输",
-				"zh-TW": "Web檔案傳輸",
-				"en-US": "Web File Transfer"
-			},
-			"logoText": "WFT",
-			"url": "https://tools.aiiko.club/fileTransfer"
-		},
-		{
-			"title": {
-				"zh-CN": "行程路线轨迹",
-				"zh-TW": "行程路線軌跡",
-				"en-US": "Trip route track"
-			},
-			"logoText": "Trip",
-			"url": "https://trip.aiiko.club"
-		},
-		{
-			"title": {
-				"zh-CN": "挪车二维码",
-				"zh-TW": "挪車二維碼",
-				"en-US": "Move Car QR Code"
-			},
-			"logoText": "挪车",
-			"url": "https://tools.aiiko.club/moveCarQRC"
-		},
-		{
-			"title": {
-				"zh-CN": "日期计算器",
-				"zh-TW": "日期計算器",
-				"en-US": "Date Calculator"
-			},
-			"logoText": "DateCalculator",
-			"url": "https://tools.aiiko.club/dateCalculator"
-		},
-		{
-			"title": {
-				"zh-CN": "倒数日",
-				"zh-TW": "倒數日",
-				"en-US": "Countdown Days"
-			},
-			"logoText": "Countdown Days",
-			"url": "https://tools.aiiko.club/countdownDays"
-		},
-		{
-			"title": {
-				"zh-CN": "秒表",
-				"zh-TW": "秒錶",
-				"en-US": "Stopwatch"
-			},
-			"logoText": "Stopwatch",
-			"url": "https://tools.aiiko.club/stopwatch"
-		},
-		{
-			"title": {
-				"zh-CN": "图片颜色反转",
-				"zh-TW": "圖片顏色反轉",
-				"en-US": "Image color inversion"
-			},
-			"logoText": "ImageColorInversion",
-			"url": "https://tools.aiiko.club/imageColorInversion"
-		},
-		{
-			"title": {
-				"zh-CN": "网页屏幕录制",
-				"zh-TW": "網頁螢幕錄製",
-				"en-US": "Web Screen Recording"
-			},
-			"logoText": "WebScreenRecording",
-			"url": "https://tools.aiiko.club/webScreenRecording"
-		}
-	]
+  "appList": [
+    {
+      "title": {
+        "zh-CN": "将 Windows 路径转换为 Posix 路径",
+        "zh-TW": "將 Windows 路徑轉換為 Posix 路徑",
+        "en-US": "Convert Windows Path to Posix Path"
+      },
+      "logoText": "W",
+      "url": "https://tools.aiiko.club/windowsPathToPosixPath"
+    },
+    {
+      "title": {
+        "zh-CN": "随机密码",
+        "zh-TW": "隨機密碼",
+        "en-US": "Random Password"
+      },
+      "logoText": "RP",
+      "url": "https://tools.aiiko.club/randomPassword"
+    },
+    {
+      "title": {
+        "zh-CN": "喵链接",
+        "zh-TW": "喵鏈接",
+        "en-US": "Meow Links"
+      },
+      "logoText": "Links",
+      "url": "https://link.aiiko.club"
+    },
+    {
+      "title": {
+        "zh-CN": "头像角标生成器",
+        "zh-TW": "頭像角標生成器",
+        "en-US": "Avatar Badge Generator"
+      },
+      "logoText": "ABG",
+      "url": "https://tools.aiiko.club/avatarBadgeGenerator"
+    },
+    {
+      "title": {
+        "zh-CN": "查询IP或域名详情",
+        "zh-TW": "查詢IP或域名詳情",
+        "en-US": "Search IP or Domain Name Details"
+      },
+      "logoText": "IP",
+      "url": "https://tools.aiiko.club/ip"
+    },
+    {
+      "title": {
+        "zh-CN": "Web文件传输",
+        "zh-TW": "Web檔案傳輸",
+        "en-US": "Web File Transfer"
+      },
+      "logoText": "WFT",
+      "url": "https://tools.aiiko.club/fileTransfer"
+    },
+    {
+      "title": {
+        "zh-CN": "行程路线轨迹",
+        "zh-TW": "行程路線軌跡",
+        "en-US": "Trip route track"
+      },
+      "logoText": "Trip",
+      "url": "https://trip.aiiko.club"
+    },
+    {
+      "title": {
+        "zh-CN": "挪车二维码",
+        "zh-TW": "挪車二維碼",
+        "en-US": "Move Car QR Code"
+      },
+      "logoText": "挪车",
+      "url": "https://tools.aiiko.club/moveCarQRC"
+    },
+    {
+      "title": {
+        "zh-CN": "日期计算器",
+        "zh-TW": "日期計算器",
+        "en-US": "Date Calculator"
+      },
+      "logoText": "DateCalculator",
+      "url": "https://tools.aiiko.club/dateCalculator"
+    },
+    {
+      "title": {
+        "zh-CN": "倒数日",
+        "zh-TW": "倒數日",
+        "en-US": "Countdown Days"
+      },
+      "logoText": "Countdown Days",
+      "url": "https://tools.aiiko.club/countdownDays"
+    },
+    {
+      "title": {
+        "zh-CN": "秒表",
+        "zh-TW": "秒錶",
+        "en-US": "Stopwatch"
+      },
+      "logoText": "Stopwatch",
+      "url": "https://tools.aiiko.club/stopwatch"
+    },
+    {
+      "title": {
+        "zh-CN": "图片颜色反转",
+        "zh-TW": "圖片顏色反轉",
+        "en-US": "Image color inversion"
+      },
+      "logoText": "ImageColorInversion",
+      "url": "https://tools.aiiko.club/imageColorInversion"
+    },
+    {
+      "title": {
+        "zh-CN": "网页屏幕录制",
+        "zh-TW": "網頁螢幕錄製",
+        "en-US": "Web Screen Recording"
+      },
+      "logoText": "WebScreenRecording",
+      "url": "https://tools.aiiko.club/webScreenRecording"
+    },
+    {
+      "title": {
+        "zh-CN": "喵天气",
+        "zh-TW": "喵天氣",
+        "en-US": "Meow Weather"
+      },
+      "logoText": "WebScreenRecording",
+      "url": "https://tools.aiiko.club/weather"
+    }
+  ]
 }

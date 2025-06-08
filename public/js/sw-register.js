@@ -47,7 +47,10 @@ const showAlert = ({
     },
     close() {
       var _a
-      ;(_a = el === null || el === void 0 ? void 0 : el.close) === null || _a === void 0 ? void 0 : _a.call(el)
+      ;(_a = el === null || el === void 0 ? void 0 : el.close) === null ||
+      _a === void 0
+        ? void 0
+        : _a.call(el)
     },
   }
   return api
@@ -87,7 +90,7 @@ const snackbar = (options) => {
       document.body.appendChild(el)
     },
     close() {
-      el?.close && el?.close()
+      el && el.close && el.close()
     },
     setMessage(msg) {
       console.log('elelelel', el)
@@ -104,7 +107,8 @@ const snackbar = (options) => {
 const i18nJson = {
   'en-US': {
     newVersion: 'New Version!',
-    newVersionContent: 'Version update has been completed. Do you want to refresh the page?',
+    newVersionContent:
+      'Version update has been completed. Do you want to refresh the page?',
     refresh: 'Refresh',
     cancel: 'Cancel',
   },
@@ -123,7 +127,11 @@ const i18nJson = {
 }
 
 const t = (k) => {
-  const lang = location.pathname?.split('/')?.[1] || 'en-US'
+  let pathnameArr = (location.pathname || '').split('/')
+  let lang = 'en-US'
+  if (pathnameArr.length) {
+    lang = pathnameArr[1] || 'en-US'
+  }
 
   return i18nJson[lang][k] || ''
 }
@@ -133,7 +141,10 @@ if ('serviceWorker' in navigator) {
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          if (
+            newWorker.state === 'installed' &&
+            navigator.serviceWorker.controller
+          ) {
             // 新版本已安装，提示刷新
             // snackbar({
             // 	message: 'The new version has been updated! Refresh to use.',

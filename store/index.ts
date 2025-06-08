@@ -1,8 +1,8 @@
 import {
-	createSlice,
-	createAsyncThunk,
-	combineReducers,
-	configureStore,
+  createSlice,
+  createAsyncThunk,
+  combineReducers,
+  configureStore,
 } from '@reduxjs/toolkit'
 import exp from 'constants'
 // import thunk from 'redux-thunk'
@@ -18,56 +18,64 @@ import { fileTransferSlice, fileTransferMethods } from './fileTransfer'
 import { webRTCSlice, webRTCMethods } from './webRTC'
 import { emojiSlice, emojiMethods } from './emoji'
 import { countdownDaysSlice, countdownDaysMethods } from './countdownDays'
+import { positionSlice, positionMethods } from './position'
+import { weatherSlice, weatherMethods } from './weather'
 
 export interface ActionParams<T = any> {
-	type: string
-	payload: T
+  type: string
+  payload: T
 }
 
 const rootReducer = combineReducers({
-	api: apiSlice.reducer,
-	user: userSlice.reducer,
-	layout: layoutSlice.reducer,
-	config: configSlice.reducer,
-	nsocketio: nsocketioSlice.reducer,
-	fileTransfer: fileTransferSlice.reducer,
-	webRTC: webRTCSlice.reducer,
-	emoji: emojiSlice.reducer,
-	localUser: localUserSlice.reducer,
-	countdownDays: countdownDaysSlice.reducer,
+  api: apiSlice.reducer,
+  user: userSlice.reducer,
+  layout: layoutSlice.reducer,
+  config: configSlice.reducer,
+  nsocketio: nsocketioSlice.reducer,
+  fileTransfer: fileTransferSlice.reducer,
+  webRTC: webRTCSlice.reducer,
+  emoji: emojiSlice.reducer,
+  localUser: localUserSlice.reducer,
+  countdownDays: countdownDaysSlice.reducer,
+  position: positionSlice.reducer,
+  weather: weatherSlice.reducer,
 })
 
 const store = configureStore({
-	reducer: rootReducer,
-	middleware: (getDefaultMiddleware) =>
-		getDefaultMiddleware({
-			serializableCheck: false,
-		}),
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 })
 
 export {
-	apiSlice,
-	userSlice,
-	configSlice,
-	fileTransferSlice,
-	nsocketioSlice,
-	layoutSlice,
-	webRTCSlice,
-	emojiSlice,
-	localUserSlice,
-	countdownDaysSlice,
+  apiSlice,
+  userSlice,
+  configSlice,
+  fileTransferSlice,
+  nsocketioSlice,
+  layoutSlice,
+  webRTCSlice,
+  emojiSlice,
+  localUserSlice,
+  countdownDaysSlice,
+  positionSlice,
+  weatherSlice,
 }
 export const methods = {
-	api: apiMethods,
-	user: userMethods,
-	layout: layoutMethods,
-	config: configMethods,
-	nsocketio: nsocketioMethods,
-	fileTransfer: fileTransferMethods,
-	webRTC: webRTCMethods,
-	emoji: emojiMethods,
-	localUser: localUserMethods,
-	countdownDays: countdownDaysMethods,
+  api: apiMethods,
+  user: userMethods,
+  layout: layoutMethods,
+  config: configMethods,
+  nsocketio: nsocketioMethods,
+  fileTransfer: fileTransferMethods,
+  webRTC: webRTCMethods,
+  emoji: emojiMethods,
+  localUser: localUserMethods,
+  countdownDays: countdownDaysMethods,
+  position: positionMethods,
+  weather: weatherMethods,
 }
 
 // console.log(store.getState())
