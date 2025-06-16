@@ -61,20 +61,37 @@ import {
   createPrecipitationDataChart,
   createDewPointChart,
   weatherSlice,
+  getMaxMinTempWeatherCodes,
+  getThemeColors,
+  getWeatherVideoUrl,
+  getWeatherIcon,
+  ntextWcode,
+  getWarningColor,
 } from '../../store/weather'
+
+import {
+  convertTemperature,
+  convertPrecipitation,
+  convertWindSpeed,
+  convertPressure,
+  convertVisibility,
+} from '@nyanyajs/utils/dist/units/weather'
+import { covertTimeFormat } from '@nyanyajs/utils/dist/units/time'
 import {
   changeLanguage,
   languages,
   defaultLanguage,
 } from '../../plugins/i18n/i18n'
 import moment, { unix } from 'moment'
-import { configSlice, R } from '../../store/config'
+import { configSlice, eventListener, R } from '../../store/config'
 import { server } from '../../config'
-import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji'
+// import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji'
+// import { WeatherCodes } from '@openmeteo/sdk';
 import {
   SakiAnimationLoading,
   SakiAsideModal,
   SakiButton,
+  SakiCol,
   SakiDropdown,
   SakiIcon,
   SakiInput,
@@ -90,6 +107,13 @@ import NoSSR from '../../components/NoSSR'
 import dynamic from 'next/dynamic'
 import { CityInfo } from '../../plugins/http/api/geo'
 import { httpApi } from '../../plugins/http/api'
+import {
+  networkConnectionStatusDetection,
+  networkConnectionStatusDetectionEnum,
+} from '@nyanyajs/utils/dist/common/common'
+import WeatherDetailModal, {
+  WarningIcon,
+} from '../../components/WeatherDetailModal'
 
 // const NoSSR = ({ children }: PropsType) => {
 //   return <React.Fragment>{children}</React.Fragment>
@@ -143,18 +167,26 @@ const WeatherPage = () => {
   const user = useSelector((state: RootState) => state.user)
   const weather = useSelector((state: RootState) => state.weather)
 
-  const { position, language } = useSelector((state: RootState) => {
-    return {
-      position: state.position,
-      language: state.config.language,
+  const { position, language, weatherData } = useSelector(
+    (state: RootState) => {
+      return {
+        position: state.position,
+        language: state.config.language,
+        weatherData: state.weather.weatherData,
+      }
     }
-  })
+  )
+  const { cities } = weatherData
 
   const [updateTime, setUpdateTime] = useState(new Date().getTime())
   const [loadStatus, setLoadStatus] = useState('loaded')
   const [isInitWData, setIsInitWData] = useState(false)
 
-  const [loadWeather, setLoadWeather] = useState(false)
+  const [citiesListType, setCitiesListType] = useState(
+    'List' as 'List' | 'Grid'
+  )
+
+  // const [loadWeather, setLoadWeather] = useState(false)
 
   const isSunMonAnima = useRef(true)
 
@@ -190,6 +222,10 @@ const WeatherPage = () => {
 
     dispatch(layoutSlice.actions.setLayoutHeader(true))
     ;(async () => {
+      const wData = await storage.global.get('CitiesListType')
+
+      setCitiesListType(wData || 'List')
+
       // const wData: typeof cities = await storage.global.get('citiesWeather')
 
       // console.log('wData', wData)
@@ -213,10 +249,20 @@ const WeatherPage = () => {
       //   }) || []
       // )
 
-      await dispatch(methods.config.initConnectionOpenMeteo()).unwrap()
+      // await dispatch(methods.config.initConnectionOpenMeteo()).unwrap()
+
+      // const res = await R.request({
+      //   // headers: {
+      //   // 'X-QW-Api-Key': 'C45F5D2MH2',
+      //   // },
+      //   url: 'https://mc4y3j6emb.re.qweatherapi.com/v7/warning/now?location=116.4074,39.9042&lang=zh&key=C45F5D2MH2',
+      // })
+
+      // console.log('X-QW-Apires', res)
+
       setIsInitWData(true)
-      await dispatch(methods.config.initConnectionAirQualityAPI()).unwrap()
-      await dispatch(methods.config.initConnectionOSM()).unwrap()
+      // await dispatch(methods.config.initConnectionAirQualityAPI()).unwrap()
+      // await dispatch(methods.config.initConnectionOSM()).unwrap()
     })()
 
     // dispatch(
@@ -239,23 +285,46 @@ const WeatherPage = () => {
           watch: false,
         })
       )
-    }, 15 * 60 * 1000)
+    }, 16 * 60 * 1000)
 
     return () => {
       clearInterval(timer)
     }
   }, [])
 
+  const { themeColor, themeColors } = useMemo(() => {
+    let themeColor: 'Dark' | 'Light' =
+      config.deviceType === 'Mobile' ? 'Dark' : 'Light'
+
+    dispatch(layoutSlice.actions.setHeaderColor(themeColor))
+
+    return {
+      themeColor,
+      themeColors: getThemeColors(themeColor),
+    }
+  }, [config.deviceType])
+
   useEffect(() => {
     dispatch(layoutSlice.actions.setLayoutHeaderLogoText(t('pageTitle')))
+    // dispatch(
+    //   layoutSlice.actions.setLayoutHeaderLogo('/weather-icons/128x128.png')
+    // )
 
     if (location.search.includes('sakiAppPortal=')) {
       const wAny = window as any
 
-      wAny?.sakiui?.appPortal?.setAppTitle?.(t('pageTitle'))
+      wAny?.sakiui?.appPortal?.setAppInfo?.({
+        title: t('pageTitle'),
+        logoText: 'Weather',
+        url: location.origin + '/weather',
+      })
 
       wAny.loadSakiUI = () => {
-        wAny?.sakiui?.appPortal?.setAppTitle?.(t('pageTitle'))
+        wAny?.sakiui?.appPortal?.setAppInfo?.({
+          title: t('pageTitle'),
+          logoText: 'Weather',
+          url: location.origin + '/weather',
+        })
       }
     }
   }, [i18n.language])
@@ -265,6 +334,8 @@ const WeatherPage = () => {
     // getWeather(29.873281, 106.381818)
 
     if (isInitWData && position?.position?.timestamp) {
+      const { weather } = store.getState()
+      const cities = weather.weatherData.cities
       let tempCities = [...cities]
       if (tempCities.filter((v) => v.curPopsition)?.length) {
         tempCities = tempCities.map((v) => {
@@ -278,19 +349,22 @@ const WeatherPage = () => {
             //     position?.coords.longitude
             //   )
             // )
+
+            const nLat = position?.position?.coords.latitude || 0
+            const nLng = position?.position?.coords.longitude || 0
+
             return {
               ...v,
-              lat: position?.position?.coords.latitude || 0,
-              lng: position?.position?.coords.longitude || 0,
+              lat: nLat,
+              lng: nLng,
               curPopsition: true,
-              updateTime:
-                getDistance(
-                  v.lat,
-                  v.lng,
-                  position?.position?.coords.latitude || 0,
-                  position?.position?.coords.longitude || 0
-                ) <= 1000
-                  ? v.updateTime
+              updateAllTime:
+                getDistance(v.lat, v.lng, nLat, nLng) <= 2000
+                  ? v.updateAllTime
+                  : 0,
+              updateCurTime:
+                getDistance(v.lat, v.lng, nLat, nLng) <= 2000
+                  ? v.updateCurTime
                   : 0,
               sort: 0,
             }
@@ -303,7 +377,8 @@ const WeatherPage = () => {
           lat: position?.position?.coords.latitude,
           lng: position?.position?.coords.longitude,
           curPopsition: true,
-          updateTime: 0,
+          updateCurTime: 0,
+          updateAllTime: 0,
           default: false,
           sort: 0,
         })
@@ -312,13 +387,163 @@ const WeatherPage = () => {
         return a.sort - b.sort
       })
 
-      setCities(tempCities)
+      // setCities(tempCities)
+
+      // setWeatherData()
+
+      dispatch(
+        weatherSlice.actions.setWeatherData({
+          cities: tempCities,
+        })
+      )
 
       !isSetPosition && setIsSetPosition(true)
     }
   }, [position, isInitWData])
 
-  const [cities, setCities] = useState<WeatherSyncData['cities'][0][]>([])
+  // const [cities, setCities] = useState<WeatherSyncData['cities'][0][]>([])
+
+  const getWeatherData = async () => {
+    try {
+      if (loadStatus === 'loading') return
+      const nowUnix = new Date().getTime()
+
+      const promiseAll: any[] = []
+
+      // 1、先检测是否需要整体更新
+      let isUpdateAll = false
+      let isUpdateCur = false
+
+      cities.forEach((v, i) => {
+        if (
+          !isUpdateAll &&
+          (!v?.weatherInfo ||
+            (openCityDropdown && nowUnix - v.updateAllTime > 30 * 60 * 1000))
+        ) {
+          console.log('getWeatherData 开始获取 all item', v)
+
+          isUpdateAll = true
+        }
+
+        if (
+          // !v?.cityInfo ||
+          curCityIndex === i &&
+          (!v.updateCurTime ||
+            !v?.weatherInfo ||
+            !v?.weatherInfo?.daily?.time?.length ||
+            nowUnix - v.updateCurTime > 15 * 60 * 1000)
+        ) {
+          isUpdateCur = true
+
+          console.log(
+            'getWeatherData 开始获取 item',
+            v,
+            !v.updateCurTime,
+            nowUnix - v.updateCurTime
+          )
+
+          // if (ttttt.current >= 1) {
+          //   return
+          // }
+
+          // getWeather(v.lat, v.lng)
+
+          // ttttt.current += 1
+
+          // promiseAll.push(
+          //   new Promise(async (res, rej) => {
+          //     const cityInfo = await getCityInfo(v.lat, v.lng)
+          //     const weatherInfo = await getWeather(v.lat, v.lng)
+          //     // console.log('getCityInfo', cityInfo, weatherInfo)
+
+          //     res({
+          //       cityInfo,
+          //       weatherInfo,
+          //       lat: v.lat,
+          //       lng: v.lng,
+          //     })
+          //   })
+          // )
+        }
+      })
+
+      console.log(
+        'getWeatherData isUpdateAll',
+        curCityIndex,
+        isUpdateAll,
+        isUpdateCur
+      )
+
+      let tempCities: typeof cities = deepCopy(cities)
+
+      let isSetCities = false
+
+      if (isUpdateAll || isUpdateCur) {
+        setLoadStatus('loading')
+      }
+
+      if (isUpdateAll) {
+        const res = await getAllWeather(
+          cities.map((v) => {
+            return {
+              lat: v.lat,
+              lng: v.lng,
+            }
+          }) || []
+        )
+        console.log('getWeatherData getWeather all', res)
+        if (res?.length) {
+          tempCities.map((v, i) => {
+            tempCities[i] = {
+              ...tempCities[i],
+              weatherInfo: {
+                ...deepCopy(defaultWeatherInfo),
+                ...(v.weatherInfo || {}),
+                current: {
+                  ...v.weatherInfo?.current,
+                  ...res[i].current,
+                },
+                current_units: {
+                  ...v.weatherInfo?.current_units,
+                  ...res[i].current_units,
+                },
+              },
+              updateAllTime: new Date().getTime(),
+            }
+          })
+          isSetCities = true
+        }
+      }
+      if (isUpdateCur) {
+        const cityItem = tempCities[curCityIndex]
+        const gw = await getWeather(cityItem.lat, cityItem.lng)
+        const gc = await getCityInfo(cityItem.lat, cityItem.lng)
+
+        if (gw || gc) {
+          tempCities[curCityIndex] = {
+            ...tempCities[curCityIndex],
+            cityInfo: gc || tempCities[curCityIndex].cityInfo,
+            weatherInfo: gw || tempCities[curCityIndex].weatherInfo,
+            updateCurTime: new Date().getTime(),
+          }
+        }
+
+        isSetCities = true
+      }
+
+      if (isSetCities) {
+        dispatch(
+          weatherSlice.actions.setWeatherData({
+            cities: tempCities,
+          })
+        )
+      }
+
+      setLoadStatus('loaded')
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const getCityInfo = async (lat: number, lng: number) => {
     const res = await httpApi.v1.Geo.regeo({
@@ -347,137 +572,10 @@ const WeatherPage = () => {
     return res
   }
 
-  function getMaxMinTempWeatherCodes(data: typeof weatherInfo): {
-    maxTempWeatherCodes: number[]
-    minTempWeatherCodes: number[]
-  } {
-    const maxTempWeatherCodes: number[] = []
-    const minTempWeatherCodes: number[] = []
-    const hoursPerDay = 24
-    const dayStartHour = 6 // 白天开始时间（06:00）
-    const dayEndHour = 18 // 白天结束时间（18:00）
-
-    // 遍历每天的日期
-    data.daily.time.forEach((day, dayIndex) => {
-      // 获取当天的每小时数据
-      const startIndex = dayIndex * hoursPerDay
-      const endIndex = startIndex + hoursPerDay
-      const dailyHourlyTemps = data.hourly.temperature_2m.slice(
-        startIndex,
-        endIndex
-      )
-      const dailyHourlyCodes = data.hourly.weathercode.slice(
-        startIndex,
-        endIndex
-      )
-      const dailyHourlyTimes = data.hourly.time.slice(startIndex, endIndex)
-
-      // 获取当天的最高和最低温度
-      const maxTemp = data.daily.temperature_2m_max[dayIndex]
-      const minTemp = data.daily.temperature_2m_min[dayIndex]
-
-      // 找出最高温度的所有小时索引
-      const maxTempIndices = dailyHourlyTemps
-        .map((temp, index) => (temp === maxTemp ? index : -1))
-        .filter((index) => index !== -1)
-
-      // 找出最低温度的所有小时索引
-      const minTempIndices = dailyHourlyTemps
-        .map((temp, index) => (temp === minTemp ? index : -1))
-        .filter((index) => index !== -1)
-
-      // 获取白天时段（06:00-18:00）的索引
-      const dayIndices = dailyHourlyTimes
-        .map((time, index) => {
-          const hour = new Date(time).getHours()
-          return hour >= dayStartHour && hour < dayEndHour ? index : -1
-        })
-        .filter((index) => index !== -1)
-
-      // 获取最高温度的 weatherCode
-      const maxCode = getRepresentativeWeatherCode(
-        maxTempIndices,
-        dayIndices,
-        dailyHourlyCodes,
-        data.daily.weathercode[dayIndex]
-      )
-
-      // 获取最低温度的 weatherCode
-      const minCode = getRepresentativeWeatherCode(
-        minTempIndices,
-        dayIndices,
-        dailyHourlyCodes,
-        data.daily.weathercode[dayIndex]
-      )
-
-      maxTempWeatherCodes.push(maxCode)
-      minTempWeatherCodes.push(minCode)
-    })
-
-    return {
-      maxTempWeatherCodes,
-      minTempWeatherCodes,
-    }
-  }
-
-  // 辅助函数：选择最具代表性的 weatherCode
-  function getRepresentativeWeatherCode(
-    tempIndices: number[],
-    dayIndices: number[],
-    weatherCodes: number[],
-    dailyWeatherCode: number
-  ): number {
-    // 如果没有有效索引，返回 daily.weathercode
-    if (tempIndices.length === 0) return dailyWeatherCode
-
-    // 检查是否有温度索引在白天时段
-    const dayTempIndices = tempIndices.filter((index) =>
-      dayIndices.includes(index)
-    )
-
-    if (dayTempIndices.length > 0) {
-      // 如果最高/最低温度出现在白天，优先选择白天的 weatherCode
-      const dayTempCodes = dayTempIndices.map((index) => weatherCodes[index])
-      return getMostCommonWeatherCode(dayTempCodes, dailyWeatherCode)
-    } else {
-      // 如果温度不在白天，计算白天时段的 weatherCode 频率
-      const dayWeatherCodes = dayIndices.map((index) => weatherCodes[index])
-      return getMostCommonWeatherCode(dayWeatherCodes, dailyWeatherCode)
-    }
-  }
-
-  // 辅助函数：选择最常见的 weatherCode
-  function getMostCommonWeatherCode(
-    codes: number[],
-    dailyWeatherCode: number
-  ): number {
-    if (codes.length === 0) return dailyWeatherCode
-
-    const codeFrequency: { [key: number]: number } = {}
-    codes.forEach((code) => {
-      codeFrequency[code] = (codeFrequency[code] || 0) + 1
-    })
-
-    let selectedCode = codes[0]
-    let maxFrequency = 0
-    for (const [code, freq] of Object.entries(codeFrequency)) {
-      if (freq > maxFrequency) {
-        maxFrequency = freq
-        selectedCode = Number(code)
-      } else if (freq === maxFrequency && Number(code) === dailyWeatherCode) {
-        selectedCode = Number(code)
-      }
-    }
-
-    return selectedCode
-  }
-
   const localTimezone = useRef(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
   const getWeather = async (lat: number, lng: number) => {
-    setLoadStatus('loading')
-
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=${[
+    let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=${[
       'temperature_2m',
       'weather_code',
       'relative_humidity_2m',
@@ -526,9 +624,19 @@ const WeatherPage = () => {
     ].join(',')}&windspeed_unit=ms&forecast_days=16&past_days=1&timezone=${
       localTimezone.current
     }`
+
+    const connectionStatusOpenMeteo = await networkConnectionStatusDetection(
+      networkConnectionStatusDetectionEnum.openMeteo
+    )
+
+    // console.log(
+    //   'networkConnectionStatusDetection connectionStatusOpenMeteo',
+    //   connectionStatusOpenMeteo
+    // )
+
     const res = await R.request({
       method: 'GET',
-      url: config.connectionStatus.openMeteo
+      url: connectionStatusOpenMeteo
         ? url
         : `${
             server.url
@@ -536,12 +644,12 @@ const WeatherPage = () => {
     })
 
     let data = res?.data?.data as any
-    if (config.connectionStatus.openMeteo) {
+    if (connectionStatusOpenMeteo) {
       data = res?.data
     }
     console.log(
       'getCityInfo  getWeather res',
-      config.connectionStatus.openMeteo,
+      connectionStatusOpenMeteo,
       res.data
     )
     if (!data?.current) return
@@ -557,9 +665,9 @@ const WeatherPage = () => {
         wind_direction_10m: data?.current?.wind_direction_10m || 0,
         relative_humidity_2m: data?.current?.relative_humidity_2m || 0,
         visibility: data?.current?.visibility || 0,
-        weatherCode: data?.current?.weather_code || '',
+        weatherCode: data?.current?.weather_code || 0,
         weather: t('weather' + (data?.current?.weather_code || 0), {
-          ns: 'weather',
+          ns: 'sakiuiWeather',
         }),
         daysTemperature: [
           Math.min(...data.hourly?.temperature_2m),
@@ -580,6 +688,7 @@ const WeatherPage = () => {
       hourly: data.hourly,
       hourlyUnits: data.hourly_units,
       airQuality: await getAirQuality(lat, lng),
+      alert: await getAlerts(lat, lng),
     }
 
     // getUVIndex(lat, lng)
@@ -601,25 +710,91 @@ const WeatherPage = () => {
 
     console.log('getWeather', wi)
 
-    // setWeatherInfo(wi)
-    setLoadStatus('loaded')
+    return wi
+  }
 
-    // setTimeout(() => {
-    // }, 700)
-    // setCities(
-    //   cities.map((v) => {
-    //     if (v.lat === lat && v.lng === lng) {
-    //       return {
-    //         ...v,
-    //         weatherInfo: wi,
-    //         updateTime: new Date().getTime(),
-    //       }
-    //     }
-    //     return v
-    //   })
+  const getAllWeather = async (
+    latlngs: {
+      lat: number
+      lng: number
+    }[]
+  ) => {
+    let url = `https://api.open-meteo.com/v1/forecast?latitude=${latlngs
+      .map((v) => v.lat)
+      .join(',')}&longitude=${latlngs.map((v) => v.lng).join(',')}&current=${[
+      'temperature_2m',
+      'weather_code',
+      'relative_humidity_2m',
+      'wind_speed_10m',
+      'apparent_temperature',
+      'dew_point_2m',
+      'wind_speed_10m',
+      'wind_direction_10m',
+      'visibility',
+      'pressure_msl',
+      'surface_pressure',
+      'precipitation',
+      'precipitation_probability',
+      'wind_gusts_10m',
+    ].join(',')}&windspeed_unit=ms&forecast_days=16&past_days=1&timezone=${
+      localTimezone.current
+    }`
+
+    const connectionStatusOpenMeteo = await networkConnectionStatusDetection(
+      networkConnectionStatusDetectionEnum.openMeteo
+    )
+
+    // console.log(
+    //   'networkConnectionStatusDetection connectionStatusOpenMeteo',
+    //   connectionStatusOpenMeteo
     // )
 
-    return wi
+    const res = await R.request({
+      method: 'GET',
+      url: connectionStatusOpenMeteo
+        ? url
+        : `${
+            server.url
+          }/api/v1/net/httpProxy?method=GET&url=${encodeURIComponent(url)}`,
+    })
+
+    let data = res?.data?.data as any
+    if (connectionStatusOpenMeteo) {
+      data = res?.data
+    }
+    console.log('getWeatherData data', data)
+    if (!data?.length) return
+
+    return data.map((v: any) => {
+      return {
+        current: {
+          temperature: v?.current?.temperature_2m || -273.15,
+          apparentTemperature: v?.current?.apparent_temperature || -273.15,
+          // wind_speed_10m:
+          //   Number((v?.current?.wind_speed_10m / 3.6).toFixed(1)) || 0,
+          wind_speed_10m: v?.current?.wind_speed_10m || 0,
+          wind_direction_10m: v?.current?.wind_direction_10m || 0,
+          relative_humidity_2m: v?.current?.relative_humidity_2m || 0,
+          visibility: v?.current?.visibility || 0,
+          weatherCode: v?.current?.weather_code || 0,
+          weather: t('weather' + (v?.current?.weather_code || 0), {
+            ns: 'sakiuiWeather',
+          }),
+          altitude: v.elevation,
+          precipitationHours: v.precipitation_hours,
+          pressureMsl: v?.current?.pressure_msl,
+          surfacePressure: v?.current?.surface_pressure || 0,
+          precipitation: v?.current?.precipitation || 0,
+          precipitationProbability: v?.current?.precipitation_probability || 0,
+          dew_point_2m: v?.current?.dew_point_2m || 0,
+          wind_gusts_10m: v?.current?.wind_gusts_10m || 0,
+        },
+        current_units: v.current_units,
+      }
+    }) as {
+      current: (typeof weatherInfo)['current']
+      current_units: (typeof weatherInfo)['current_units']
+    }[]
   }
 
   const getAirQuality = async (lat: number, lng: number) => {
@@ -652,9 +827,12 @@ const WeatherPage = () => {
       'us_aqi',
     ].join(',')}&forecast_days=7&past_days=1&timezone=${localTimezone.current}`
 
+    const connectionAirQualityAPI = await networkConnectionStatusDetection(
+      networkConnectionStatusDetectionEnum.airQualityAPI
+    )
     const res = await R.request({
       method: 'GET',
-      url: config.connectionStatus.airQualityAPI
+      url: connectionAirQualityAPI
         ? url
         : `${
             server.url
@@ -663,7 +841,7 @@ const WeatherPage = () => {
 
     let data = res?.data?.data as any
     console.log('getWeather airq res', res.data)
-    if (config.connectionStatus.airQualityAPI) {
+    if (connectionAirQualityAPI) {
       data = res?.data
     }
     if (!data?.current) return weatherInfo.airQuality
@@ -681,32 +859,42 @@ const WeatherPage = () => {
     return airQuality
   }
 
-  const getUVIndex = async (lat: number, lng: number) => {
+  const getAlerts = async (lat: number, lng: number) => {
+    const url = `https://mc4y3j6emb.re.qweatherapi.com/v7/warning/now?location=${
+      lng + ',' + lat
+    }&lang=${
+      config.lang === 'zh-CN'
+        ? 'zh'
+        : config.lang === 'zh-TW'
+        ? 'zh-hant'
+        : 'en'
+    }&key=4984df9138e04b67a3cb104a96ae0384`
+
     const res = await R.request({
       method: 'GET',
-      url: `https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lng}`,
+      url: url,
     })
 
-    const data = res?.data?.data as any
-    console.log('getUVIndex airq res', res.data)
+    let data = res?.data as any
 
-    // if (res?.data?.code !== 200 || !data) return weatherInfo.airQuality
-    // const airQuality: typeof weatherInfo.airQuality = {
-    //   ...weatherInfo.airQuality,
-    //   current: data.current,
-    //   current_units: data.current_units,
-    //   hourly: data.hourly,
-    //   hourly_units: data.hourly_units,
-    //   daily: convertHourlyToDaily(data.hourly, false),
-    //   daily_units: data.hourly_units,
-    // }
+    console.log('getAlerts', res)
 
-    // return airQuality
+    if (data?.code !== '200') return defaultWeatherInfo.alert
+
+    const wi: (typeof defaultWeatherInfo)['alert'] = {
+      ...defaultWeatherInfo.alert,
+      warning: data?.warning || [],
+      refer: data?.refer || [],
+    }
+
+    return wi
   }
 
   const ttttt = useRef(0)
 
   const [openCityDropdown, setOpenCityDropdown] = useState(false)
+  const [openCityExImPortDropdown, setOpenCityExImPortDropdown] =
+    useState(false)
   const [openAirQualityDropdown, setOpenAirQualityDropdown] = useState(false)
   const [open15dayForecastDropdown, setOpen15dayForecastDropdown] =
     useState(false)
@@ -716,19 +904,19 @@ const WeatherPage = () => {
     {
       val: 'Today',
       text: t('today', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     },
     {
       val: '24Hours',
       text: t('24Hours', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     },
     {
       val: '8Days',
       text: t('8Days', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     },
   ]
@@ -750,13 +938,13 @@ const WeatherPage = () => {
     {
       val: 'Today',
       text: t('today', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     },
     {
       val: '45Days',
       text: t('45Days', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     },
   ]
@@ -767,7 +955,12 @@ const WeatherPage = () => {
   useEffect(() => {
     // storage.global.get('citiesWeather', cities)
 
-    console.log('curCityIndex', position.allowWatchPosition)
+    console.log(
+      'curCityIndex init',
+      cities,
+      curCityIndex,
+      position.allowWatchPosition
+    )
 
     if (curCityIndex === -1) {
       if (!position.allowWatchPosition) {
@@ -782,16 +975,25 @@ const WeatherPage = () => {
         })
         return
       }
-      curCityIndexDeb.current.increase(() => {
-        console.log('curCityIndex get', curCityIndex, curCityIndex === -1)
-        storage.global.get('curCityIndex').then((val) => {
-          cities.some((v, i) => {
-            if (v.lat + ';' + v.lng === val) {
-              setCurCityIndex(i)
-              return true
-            }
-          })
+      curCityIndexDeb.current.increase(async () => {
+        const val = await storage.global.get('curCityIndex')
+        let curI = -1
+        cities.some((v, i) => {
+          console.log(
+            'curCityIndex get',
+            v.lat + ';' + v.lng === val,
+            v.lat + ';' + v.lng,
+            val,
+            curCityIndex,
+            curCityIndex === -1
+          )
+
+          if (v.lat + ';' + v.lng === val) {
+            curI = i
+            return true
+          }
         })
+        setCurCityIndex(curI === -1 ? 0 : curI)
       }, 50)
     }
   }, [cities, position.allowWatchPosition, curCityIndex])
@@ -802,92 +1004,17 @@ const WeatherPage = () => {
 
   useEffect(() => {
     if (isInitWData && position?.position?.timestamp && cities.length) {
-      const nowUnix = new Date().getTime()
-
-      const promiseAll: any[] = []
-
-      let tempCities: typeof cities = deepCopy(cities)
-
       getWeatherDeb.current.increase(() => {
-        console.log('getCityInfo 开始获取', tempCities)
-        tempCities.forEach((v, i) => {
-          if (
-            !v.updateTime ||
-            !v?.weatherInfo ||
-            // !v?.cityInfo ||
-            (curCityIndex === i
-              ? nowUnix - v.updateTime > 15 * 60 * 1000
-              : openCityDropdown
-              ? nowUnix - v.updateTime > 12 * 60 * 60 * 1000
-              : false)
-          ) {
-            console.log(
-              'getCityInfo 开始获取 item',
-              v,
-              !v.updateTime,
-              nowUnix - v.updateTime
-            )
-
-            // if (ttttt.current >= 1) {
-            //   return
-            // }
-
-            // getWeather(v.lat, v.lng)
-
-            ttttt.current += 1
-
-            promiseAll.push(
-              new Promise(async (res, rej) => {
-                const cityInfo = await getCityInfo(v.lat, v.lng)
-                const weatherInfo = await getWeather(v.lat, v.lng)
-                // console.log('getCityInfo', cityInfo, weatherInfo)
-
-                res({
-                  cityInfo,
-                  weatherInfo,
-                  i,
-                })
-              })
-            )
-          }
-        })
-
-        // console.log('getCityInfo', promiseAll.length)
-
-        if (promiseAll.length) {
-          setLoadWeather(true)
-          Promise.all(promiseAll)
-            .then((res) => {
-              res.forEach((val) => {
-                console.log('getCityInfo 开始获取 ppppp', val)
-
-                tempCities[val.i] = {
-                  ...tempCities[val.i],
-                  cityInfo: val?.cityInfo || tempCities[val.i].cityInfo,
-                  weatherInfo:
-                    val?.weatherInfo || tempCities[val.i].weatherInfo,
-                  updateTime: new Date().getTime(),
-                }
-              })
-              setCities(tempCities)
-
-              storage.global.getAndSet('WeatherSyncData', async (val) => {
-                return {
-                  cities: tempCities,
-                  lastUpdateTime: val.lastUpdateTime,
-                }
-              })
-              // storage.global.setSync('citiesWeather', tempCities)
-              // console.log('getCityInfo 结束获取', tempCities)
-              setLoadWeather(false)
-            })
-            .catch(() => {
-              setLoadWeather(false)
-            })
-        }
-      }, 700)
+        getWeatherData()
+      }, 500)
     }
-  }, [position?.position?.timestamp, isInitWData, openCityDropdown, cities])
+  }, [
+    position?.position?.timestamp,
+    isInitWData,
+    openCityDropdown,
+    cities,
+    curCityIndex,
+  ])
 
   const { weatherInfo, cityInfo, cityItem } = useMemo(() => {
     // let tempCurCityIndex = curCityIndex
@@ -905,24 +1032,27 @@ const WeatherPage = () => {
     // }
     const cityItem = cities?.[curCityIndex === -1 ? 0 : curCityIndex]
 
-    const wi: typeof defaultWeatherInfo = deepCopy(cityItem?.weatherInfo)
-
-    if (wi) {
-      wi.current_units.wind_gusts_10m = 'km/h'
-      wi.current_units.wind_speed_10m = 'km/h'
-      wi.current.wind_gusts_10m *= 3.6
-      wi.current.wind_speed_10m *= 3.6
-
-      wi.hourlyUnits.wind_gusts_10m = 'km/h'
-      wi.hourlyUnits.wind_speed_10m = 'km/h'
-      wi.hourly.wind_gusts_10m.map((v) => v * 3.6)
-      wi.hourly.wind_speed_10m.map((v) => v * 3.6)
-
-      wi.dailyUnits.wind_gusts_10m_max = 'km/h'
-      wi.dailyUnits.wind_gusts_10m_max = 'km/h'
-      wi.daily.wind_gusts_10m_max.map((v) => v * 3.6)
-      wi.daily.wind_speed_10m_max.map((v) => v * 3.6)
+    const wi = {
+      ...deepCopy(defaultWeatherInfo),
+      ...deepCopy(cityItem?.weatherInfo),
     }
+
+    // if (wi) {
+    //   wi.current_units.wind_gusts_10m = 'km/h'
+    //   wi.current_units.wind_speed_10m = 'km/h'
+    //   wi.current.wind_gusts_10m *= 3.6
+    //   wi.current.wind_speed_10m *= 3.6
+
+    //   wi.hourlyUnits.wind_gusts_10m = 'km/h'
+    //   wi.hourlyUnits.wind_speed_10m = 'km/h'
+    //   wi.hourly.wind_gusts_10m.map((v) => v * 3.6)
+    //   wi.hourly.wind_speed_10m.map((v) => v * 3.6)
+
+    //   wi.dailyUnits.wind_gusts_10m_max = 'km/h'
+    //   wi.dailyUnits.wind_gusts_10m_max = 'km/h'
+    //   wi.daily.wind_gusts_10m_max.map((v) => v * 3.6)
+    //   wi.daily.wind_speed_10m_max.map((v) => v * 3.6)
+    // }
 
     return {
       weatherInfo: wi || defaultWeatherInfo,
@@ -933,11 +1063,12 @@ const WeatherPage = () => {
       },
     }
   }, [cities, isInitWData, openCityDropdown, curCityIndex])
-  useEffect(() => {
-    if (weather.weatherData.cities?.length) {
-      setCities(weather.weatherData.cities)
-    }
-  }, [weather])
+
+  // useEffect(() => {
+  //   if (weather.weatherData.cities?.length) {
+  //     setCities(weather.weatherData.cities)
+  //   }
+  // }, [weather])
 
   useEffect(() => {
     if (user.isLogin) {
@@ -962,7 +1093,11 @@ const WeatherPage = () => {
       onCancel() {},
       async onConfirm() {
         const tempCities = cities.filter((sv, si) => si !== i)
-        setCities(tempCities)
+        dispatch(
+          weatherSlice.actions.setWeatherData({
+            cities: tempCities,
+          })
+        )
         dispatch(
           methods.weather.syncData({
             data: {
@@ -1000,7 +1135,8 @@ const WeatherPage = () => {
           lat: Number(result.lat),
           lng: Number(result.lon),
           curPopsition: false,
-          updateTime: 0,
+          updateAllTime: 0,
+          updateCurTime: 0,
           default: false,
           sort: tempCities.length + 1,
         })
@@ -1012,7 +1148,11 @@ const WeatherPage = () => {
 
       console.log('addCity tempCities', deepCopy(tempCities))
 
-      setCities(tempCities)
+      dispatch(
+        weatherSlice.actions.setWeatherData({
+          cities: tempCities,
+        })
+      )
       dispatch(
         methods.weather.syncData({
           data: {
@@ -1155,19 +1295,19 @@ const WeatherPage = () => {
 
     const uvInfo = getUVInfo(uvIndex)
 
-    let visibilityVal = 0
-    let visibilityUnit = ''
-    if (weatherInfo.current.visibility < 1000) {
-      visibilityVal = Math.round(weatherInfo.current.visibility || 0)
-      visibilityUnit = 'm'
-    }
-    if (weatherInfo.current.visibility < 1000 * 10) {
-      visibilityVal =
-        Math.round((weatherInfo.current.visibility || 0) / 10) / 100
-      visibilityUnit = 'km'
-    }
-    visibilityVal = Math.round((weatherInfo.current.visibility || 0) / 100) / 10
-    visibilityUnit = 'km'
+    // let visibilityVal = weatherInfo.current.visibility
+    // let visibilityUnit = ''
+    // if (weatherInfo.current.visibility < 1000) {
+    //   visibilityVal = Math.round(weatherInfo.current.visibility || 0)
+    //   visibilityUnit = 'm'
+    // }
+    // if (weatherInfo.current.visibility < 1000 * 10) {
+    //   visibilityVal =
+    //     Math.round((weatherInfo.current.visibility || 0) / 10) / 100
+    //   visibilityUnit = 'km'
+    // }
+    // visibilityVal = Math.round((weatherInfo.current.visibility || 0) / 100) / 10
+    // visibilityUnit = 'km'
 
     const nowH = moment().format('YYYY-MM-DD HH:00')
     let nowHIndex = -1
@@ -1205,7 +1345,13 @@ const WeatherPage = () => {
       weatherInfo.current.altitude || 0
     )
 
-    const visibilityAlert = getVisibilityAlert(visibilityVal)
+    const visibilityAlert = getVisibilityAlert(
+      convertVisibility(
+        weatherInfo.current.visibility,
+        weatherInfo.current_units.visibility as any,
+        'km'
+      )
+    )
 
     return {
       uvIndex: {
@@ -1231,8 +1377,8 @@ const WeatherPage = () => {
         ),
       },
       visibility: {
-        val: visibilityVal,
-        unit: visibilityUnit,
+        val: weatherInfo.current.visibility,
+        unit: weatherInfo.current_units.visibility,
         desc: visibilityAlert.description,
         level: visibilityAlert.level,
       },
@@ -1240,8 +1386,12 @@ const WeatherPage = () => {
         val: weatherInfo.current.relative_humidity_2m,
         unit: weatherInfo.current_units.relative_humidity_2m,
         desc: t('currentDewPoint', {
-          ns: 'weather',
-          num: `${weatherInfo.current.dew_point_2m}${weatherInfo.current_units.dew_point_2m}`,
+          ns: 'sakiuiWeather',
+          num: `${convertTemperature(
+            precipitation24Next,
+            weatherInfo.current_units.dew_point_2m as any,
+            weather.weatherData.units.temperature
+          )}${weather.weatherData.units.temperature}`,
         }),
       },
       surfacePressure: {
@@ -1260,10 +1410,13 @@ const WeatherPage = () => {
 
         // last 1 hours: 0 cm
         desc: t('forecastPrecipitation24Hours', {
-          ns: 'weather',
+          ns: 'sakiuiWeather',
           num:
-            precipitation24Next.toFixed(1) +
-            weatherInfo.hourlyUnits.precipitation,
+            convertPrecipitation(
+              precipitation24Next,
+              weatherInfo.hourlyUnits.precipitation as any,
+              weather.weatherData.units.precipitation
+            ) + weather.weatherData.units.precipitation,
         }),
       },
       curAQ: {
@@ -1279,7 +1432,12 @@ const WeatherPage = () => {
         aqiDesc: getAqiDescription(tomorrowAQ.european_aqi),
       },
     }
-  }, [weatherInfo, language])
+  }, [
+    weatherInfo,
+    language,
+    config.connectionStatus.sakiuiI18n,
+    weather.weatherData.units,
+  ])
 
   const { curAQ, todayAQ, tomorrowAQ, uvIndex, windy, visibility } = curInfo
 
@@ -1312,6 +1470,7 @@ const WeatherPage = () => {
         createAQIChart({
           container: '#aqi-24Hours-chart',
           weatherInfo,
+          themeColor,
           type: 'AQI24Hours',
           width: 1680,
           height: 140,
@@ -1330,14 +1489,15 @@ const WeatherPage = () => {
                   date: '',
                 }
               }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
+
+              const curHour = moment().format(timeFormat.h)
+              const vHour = moment(v).format(timeFormat.h)
               return {
                 aqi: weatherInfo.airQuality.hourly.european_aqi[i],
                 date:
                   curHour === vHour
                     ? t('now', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       })
                     : vHour,
               }
@@ -1358,6 +1518,7 @@ const WeatherPage = () => {
           .filter((v) => v.aqi)
         createAQIChart({
           container: '#aqi-8Days-chart',
+          themeColor,
           weatherInfo,
           type: 'AQI24Hours',
           width: aqiData.length * 70,
@@ -1372,7 +1533,14 @@ const WeatherPage = () => {
         })
       }
     }
-  }, [weatherInfo, config.lang, airQualityListType])
+  }, [
+    weatherInfo,
+    config.lang,
+    airQualityListType,
+    config.connectionStatus.sakiuiI18n,
+    themeColor,
+    weather.weatherData.units,
+  ])
 
   useEffect(() => {
     if (weatherInfo?.current?.weather && curAQ.european_aqi) {
@@ -1395,6 +1563,7 @@ const WeatherPage = () => {
       createWeatherChart({
         container: '#hourly-chart',
         weatherInfo,
+        themeColor,
         type: 'Hourly',
         width: 1680,
         height: 220,
@@ -1407,8 +1576,8 @@ const WeatherPage = () => {
         data: weatherInfo.hourly.time
           .slice(0, 96)
           .map((v, i): WeatherData => {
-            const curHour = moment().format('HH:00')
-            const vHour = moment(v).format('HH:00')
+            const curHour = moment().format(timeFormat.h)
+            const vHour = moment(v).format(timeFormat.h)
             // const vHour = moment(v).format('MM-DD HH')
 
             if (i < curIndex - 1 || i > curIndex + 22) {
@@ -1434,7 +1603,7 @@ const WeatherPage = () => {
               hour:
                 curHour === vHour
                   ? t('now', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })
                   : vHour,
               high: highTemp,
@@ -1448,11 +1617,12 @@ const WeatherPage = () => {
               wind_speed_10m: weatherInfo.hourly.wind_speed_10m[i],
             }
           })
-          .filter((v) => v.date),
+          .filter((v) => v.date && v.shortDate),
       })
       createWeatherChart({
         container: '#daily-chart',
         weatherInfo,
+        themeColor,
         type: 'Daily',
         width: 1200,
         height: 350,
@@ -1462,38 +1632,49 @@ const WeatherPage = () => {
           right: 0,
           left: 0,
         },
-        data: weatherInfo.daily.time.map((v, i): WeatherData => {
-          const highTemp = weatherInfo.daily.temperature_2m_max[i]
-          const lowTemp = weatherInfo.daily.temperature_2m_min[i]
-          const weatherCode = weatherInfo.daily.weathercode[i]
+        data: weatherInfo.daily.time
+          .map((v, i): WeatherData => {
+            const highTemp = weatherInfo.daily.temperature_2m_max[i]
+            const lowTemp = weatherInfo.daily.temperature_2m_min[i]
+            const weatherCode = weatherInfo.daily.weathercode[i]
 
-          let date = formatWeatherDate(v)
-          return {
-            week: date.week,
-            shortDate: date?.date || '',
-            date: v,
-            hour: '0',
-            high: highTemp,
-            low: lowTemp,
-            weatherCode: weatherCode,
-            maxTempWeatherCode: weatherInfo.daily.maxTempWeatherCodes[i],
-            minTempWeatherCode: weatherInfo.daily.minTempWeatherCodes[i],
-            precipitationProbabilityMax:
-              weatherInfo.daily.precipitation_probability_max[i],
-            precipitationProbabilityMin:
-              weatherInfo.daily.precipitation_probability_min[i],
-            wind_direction_10m:
-              weatherInfo.daily.wind_direction_10m_dominant[i],
-            wind_speed_10m: weatherInfo.daily.wind_speed_10m_max[i],
-          }
-        }),
+            let date = formatWeatherDate(v)
+            return {
+              week: date.week,
+              shortDate: date?.date || '',
+              date: v,
+              hour: '0',
+              high: highTemp,
+              low: lowTemp,
+              weatherCode: weatherCode,
+              maxTempWeatherCode: weatherInfo.daily.maxTempWeatherCodes[i],
+              minTempWeatherCode: weatherInfo.daily.minTempWeatherCodes[i],
+              precipitationProbabilityMax:
+                weatherInfo.daily.precipitation_probability_max[i],
+              precipitationProbabilityMin:
+                weatherInfo.daily.precipitation_probability_min[i],
+              wind_direction_10m:
+                weatherInfo.daily.wind_direction_10m_dominant[i],
+              wind_speed_10m: weatherInfo.daily.wind_speed_10m_max[i],
+            }
+          })
+          .filter((v) => v.date && v.shortDate),
       })
     }
     // weatherInfo?.weather && initDailyWeatherChart()
-  }, [weatherInfo, curAQ.european_aqi, config.lang, dayForecastListType])
+  }, [
+    weatherInfo,
+    curAQ.european_aqi,
+    config.lang,
+    dayForecastListType,
+    config.connectionStatus.sakiuiI18n,
+    themeColor,
+    weather.weatherData.units,
+  ])
 
   const [renderSunmoon, setRenderSunmoon] = useState(false)
   const [fixedHeader, setFixedHeader] = useState(false)
+  const [bgBlur, setBgBlur] = useState(false)
 
   useEffect(() => {
     const sunMoonEl = document.body.querySelector('#chart-sunmoon')
@@ -1517,168 +1698,27 @@ const WeatherPage = () => {
     sunMoonEl && observer.observe(sunMoonEl)
 
     const scrollEvent = () => {
-      // console.log('scrollEvent', document.body.scrollTop)
-      setFixedHeader(document.body.scrollTop >= 60)
+      const scrollTop =
+        document.documentElement.scrollTop || document.body.scrollTop
+      console.log(
+        'ocument.body wpHeaderEl scrollEvent',
+        document.body.scrollTop
+      )
+      setFixedHeader(scrollTop >= 60)
+      setBgBlur(scrollTop >= 100)
     }
 
-    document.body.addEventListener('scroll', scrollEvent)
+    console.log('ocument.body', document.body)
+    window.addEventListener('scroll', scrollEvent)
 
     return () => {
       sunMoonEl && observer.unobserve(sunMoonEl)
       observer.disconnect()
-      document.body.removeEventListener('scroll', scrollEvent)
+      window.removeEventListener('scroll', scrollEvent)
     }
-  }, [])
+  }, [mounted])
 
   const sunMoon = useMemo(() => {
-    // console.log('weatherInfo?.current?.weather', weatherInfo?.current)
-
-    // const { Body, Horizon, Equator, SearchHourAngle, SearchRiseSet, Observer } =
-    //   Astronomy
-
-    // let date = new Date() // 指定日期
-
-    // // date = new Date('2025-05-29 02:00:00')
-    // // date = new Date('2025-05-29 08:00:00')
-    // // date = new Date('2025-05-29 12:00:00')
-    // // date = new Date('2025-05-29 18:00:00')
-    // // date = new Date('2025-05-29 21:00:00')
-    // // date = new Date('2025-05-29 22:00:00')
-
-    // const observer = new Observer(
-    //   position?.coords.latitude || 0,
-    //   position?.coords.longitude || 0,
-    //   position?.coords.altitude || 0
-    // )
-
-    // const tempDate = new Date(moment().format('YYYY-MM-DD 00:00:00'))
-
-    // // 计算日出和日落
-    // let sunrise = SearchRiseSet(Body.Sun, observer, +1, date, -1) // +1 表示升起
-    // let sunset = SearchRiseSet(Body.Sun, observer, -1, date, -1) // -1 表示落下
-
-    // console.log(
-    //   'tempDate',
-    //   moment(sunrise?.date).unix() < moment(tempDate).unix(),
-    //   moment(sunset?.date).unix() < moment(tempDate).unix()
-    // )
-    // if (
-    //   moment(sunrise?.date).unix() < moment(tempDate).unix() &&
-    //   moment(sunset?.date).unix() < moment(tempDate).unix()
-    // ) {
-    //   const prevDate = new Date(date)
-    //   prevDate.setDate(date.getDate() + 1)
-    //   // 如果是，则改用前一天的日落时间
-    //   sunrise = SearchRiseSet(Body.Sun, observer, +1, prevDate, -1) // +1 表示升起
-    // }
-    // console.log(
-    //   'SearchRiseSet',
-    //   moment().format('YYYY-MM-DD HH:mm:ss'),
-    //   moment('2025-05-27T21:53:51+00:00').format('YYYY-MM-DD HH:mm:ss'),
-    //   moment(sunrise?.date).format('YYYY-MM-DD HH:mm:ss'),
-    //   moment(sunrise?.date).format('YYYY-MM-DD') !==
-    //     moment().format('YYYY-MM-DD')
-    // )
-    // console.log('SearchRiseSet 0000', sunrise?.date)
-
-    // console.log(
-    //   'tempDate',
-    //   moment(sunset?.date).format('YYYY-MM-DD HH:mm:ss'),
-    //   moment(sunset?.date).unix() < moment(tempDate).unix()
-    // )
-    // if (
-    //   (sunset?.date.getTime() || 0) - (sunrise?.date.getTime() || 0) >
-    //     12 * 60 * 60 * 1000 ||
-    //   moment(sunset?.date).unix() < moment(tempDate).unix()
-    //   // ||moment(sunset?.date).format('YYYY-MM-DD') !==
-    //   //   moment().format('YYYY-MM-DD')
-    // ) {
-    //   const prevDate = new Date(date)
-    //   prevDate.setDate(
-    //     date.getDate() -
-    //       1 +
-    //       (moment(sunset?.date).unix() < moment(tempDate).unix() ? 1 : 0)
-    //   )
-    //   // 如果是，则改用前一天的日落时间
-    //   sunset = SearchRiseSet(Astronomy.Body.Sun, observer, -1, prevDate, +1)
-    // }
-
-    // // console.log('sunrise', moment(sunrise?.date).format('YYYY-MM-DD HH:mm:ss'))
-    // // console.log(
-    // //   'sunrise sunset',
-    // //   moment(sunset?.date).format('YYYY-MM-DD HH:mm:ss')
-    // // )
-
-    // // 计算月出和月落
-    // let moonrise = SearchRiseSet(Body.Moon, observer, +1, date, -1)
-    // const prevDate = new Date(date)
-    // prevDate.setDate(date.getDate() + 1)
-    // let moonset = SearchRiseSet(Body.Moon, observer, -1, prevDate, -1)
-
-    // console.log(
-    //   'tempDate',
-    //   moment(moonrise?.date).format('YYYY-MM-DD HH:mm:ss'),
-    //   moment(moonrise?.date).unix() < moment(tempDate).unix(),
-    //   moment(moonset?.date).unix() < moment(tempDate).unix()
-    // )
-    // if (
-    //   moment(moonrise?.date).unix() < moment(tempDate).unix() &&
-    //   moment(moonset?.date).unix() < moment(tempDate).unix()
-    // ) {
-    //   const prevDate = new Date(date)
-    //   prevDate.setDate(date.getDate() + 1)
-    //   // 如果是，则改用前一天的日落时间
-    //   moonrise = SearchRiseSet(Body.Moon, observer, +1, prevDate, -1) // +1 表示升起
-    // }
-
-    // console.log(
-    //   'tempDate moonset',
-    //   moment(moonset?.date).format('YYYY-MM-DD HH:mm:ss'),
-
-    //   (moonset?.date.getTime() || 0) - (moonrise?.date.getTime() || 0) >
-    //     12 * 60 * 60 * 1000,
-    //   moment(moonset?.date).unix() < moment(tempDate).unix()
-    // )
-    // if (
-    //   (moonset?.date.getTime() || 0) - (moonrise?.date.getTime() || 0) >
-    //     12 * 60 * 60 * 1000 ||
-    //   moment(moonset?.date).unix() < moment(tempDate).unix()
-    //   // ||  moment(moonset?.date).format('YYYY-MM-DD') !==
-    //   // moment().format('YYYY-MM-DD')
-    // ) {
-    //   const prevDate = new Date(date)
-    //   prevDate.setDate(
-    //     date.getDate() -
-    //       1 +
-    //       (moment(moonset?.date).unix() < moment(tempDate).unix() ? 1 : 0)
-    //   )
-    //   // 如果是，则改用前一天的日落时间
-    //   moonset = SearchRiseSet(Body.Moon, observer, -1, prevDate, +1)
-    // }
-    // console.log(
-    //   'tempDate moonset',
-    //   moment(moonset?.date).format('YYYY-MM-DD HH:mm:ss')
-    // )
-    // const astroDawn = Astronomy.SearchAltitude(
-    //   Body.Sun,
-    //   observer,
-    //   -18,
-    //   date,
-    //   +1,
-    //   position?.coords.altitude || 0
-    // )
-    // // console.log('Astronomical Twilight Begin:', astroDawn?.date.toISOString())
-
-    // const solarNoon = Astronomy.SearchHourAngle(
-    //   Astronomy.Body.Sun, // 太阳
-    //   observer, // 观测者
-    //   0, // 时角 = 0（正午）
-    //   date, // 起始搜索时间
-    //   -1 // 搜索天数（默认 1 天）
-    // )
-    // // console.log('Solar Noon (UTC):', solarNoon.time.date.toISOString())
-    // // console.log('Solar Noon (Local):', solarNoon.time.date.toLocaleString())
-
     const celestialTimes = getCelestialTimesRange(
       cityItem?.lat || 0,
       cityItem?.lng || 0,
@@ -1693,25 +1733,6 @@ const WeatherPage = () => {
     const sunTimes = getSunTimes(nowDate, celestialTimes)
 
     const moonTimes = getMoonTimes(nowDate, celestialTimes)
-
-    // console.log(
-    //   '177',
-    //   celestialTimes,
-    //   celestialTimes.map((v) => {
-    //     return {
-    //       date: v.date,
-    //       moonrise: v.moonrise,
-    //       moonset: v.moonset,
-    //     }
-    //   }),
-    //   sunTimes,
-    //   getSunTimes(new Date('2025-05-29 23:01:00'), celestialTimes),
-    //   getSunTimes(new Date('2025-05-29 24:0:00'), celestialTimes),
-    //   moonTimes,
-    //   getMoonTimes(new Date('2025-06-15 21:01:00'), celestialTimes),
-    //   getMoonTimes(new Date('2025-06-15 23:54:00'), celestialTimes),
-    //   getMoonTimes(new Date('2025-06-15 24:0:00'), celestialTimes)
-    // )
 
     const twilightTimes = calculateTwilightTimes(
       new Date(),
@@ -1731,7 +1752,7 @@ const WeatherPage = () => {
       twilightTimes,
     }
     // weatherInfo?.weather && initDailyWeatherChart()
-  }, [cityItem, renderSunmoon])
+  }, [cityItem, renderSunmoon, weather.weatherData.units])
 
   useEffect(() => {
     if (
@@ -1743,6 +1764,7 @@ const WeatherPage = () => {
       createSunMoonChart({
         selector: '#chart-sunmoon',
         nowDate: nowDate,
+        themeColor,
         // solarNoon: solarNoon.time.date,
         solarNoon: sunMoon.solarNoon,
         events: [
@@ -1751,10 +1773,10 @@ const WeatherPage = () => {
             time: '06:00',
             date: sunMoon.sunrise,
             text: t('sunrise', {
-              ns: 'weather',
+              ns: 'sakiuiWeather',
             }),
             radius: 0,
-            startX: 32,
+            startX: 28,
             startY: 0,
           },
           {
@@ -1762,10 +1784,10 @@ const WeatherPage = () => {
             time: '18:00',
             date: sunMoon.sunset,
             text: t('sunset', {
-              ns: 'weather',
+              ns: 'sakiuiWeather',
             }),
             radius: 0,
-            startX: 314,
+            startX: 310,
             startY: 0,
           },
           {
@@ -1773,7 +1795,7 @@ const WeatherPage = () => {
             time: '06:00',
             date: sunMoon.moonrise,
             text: t('moonrise', {
-              ns: 'weather',
+              ns: 'sakiuiWeather',
             }),
             radius: 0,
             startX: 75,
@@ -1784,16 +1806,22 @@ const WeatherPage = () => {
             time: '18:00',
             date: sunMoon.moonset,
             text: t('moonset', {
-              ns: 'weather',
+              ns: 'sakiuiWeather',
             }),
             radius: 0,
-            startX: 268,
+            startX: 265,
             startY: 0,
           },
         ],
       })
     }
-  }, [weatherInfo, renderSunmoon, config.lang, sunMoonListType])
+  }, [
+    weatherInfo,
+    renderSunmoon,
+    config.lang,
+    sunMoonListType,
+    config.connectionStatus.sakiuiI18n,
+  ])
 
   const [openEditCity, setOpenEditCity] = useState(false)
   const [openAddCityPage, setOpenAddCityPage] = useState(false)
@@ -1858,10 +1886,21 @@ const WeatherPage = () => {
 
   const getDisplayName = (cityItem: (typeof cities)[0]) => {
     return cityItem?.displayName
-      ? cityItem?.displayName.split(',')?.[0].trim()
-      : cityItem?.cityInfo?.address?.split('·').filter((v, i, arr) => {
-          return i === arr.length - 1
-        })?.[0]
+      ? cityItem?.displayName
+          .split(',')
+          .reverse()
+          .reduce((t, v, i, arr) => {
+            if (i >= arr.length - 1) {
+              t += v.trim()
+            }
+            return t
+          }, '')
+      : cityItem?.cityInfo?.address
+          ?.split('·')
+          .filter((v, i, arr) => {
+            return i >= arr.length - 1
+          })
+          .join('')
   }
 
   const [openWeatherDetailModalType, setOpenWeatherDetailModalType] = useState<
@@ -1871,8 +1910,69 @@ const WeatherPage = () => {
     | 'visibility'
     | 'precipitation'
     | 'humidity'
+    | 'warning'
     | ''
   >('')
+
+  const { weatherVideoUrl, isDusk, isNight, isDawn, timeFormat } =
+    useMemo(() => {
+      const timeFormat = covertTimeFormat(
+        weather.weatherData.units.timeFormat,
+        config.lang
+      )
+
+      let now = moment()
+
+      // const nextSunMoon = sunMoon.celestialTimes.filter((v) => {
+      //   return v.date === moment().add(1, 'days').format('YYYY-MM-DD')
+      // })?.[0]
+
+      // console.log(
+      //   'getWeatherVideoUrl',
+      //   // weatherInfo,
+      //   // cities,
+      //   // sunMoon,
+      //   // nextSunMoon,
+      //   now.format('YYYY-MM-DD HH:mm:ss')
+      // )
+
+      const twilightStartTime = moment(sunMoon.sunset).unix() - 60 * 60
+      const sunsetTime = moment(sunMoon.sunset).unix()
+      const sunriseTime = moment(sunMoon.sunrise).unix()
+
+      let isDusk =
+        now.unix() > twilightStartTime && now.unix() < sunsetTime + 15 * 60
+
+      let isNight =
+        now.unix() >= sunsetTime + 15 * 60 || now.unix() < sunriseTime - 60 * 60
+
+      let isDawn =
+        now.unix() >= sunriseTime - 60 * 60 &&
+        now.unix() < sunriseTime + 60 * 60
+
+      const weatherVideoUrl = getWeatherVideoUrl(
+        weatherInfo?.current?.weatherCode,
+        {
+          dusk: isDusk,
+          night: isNight,
+          dawn: isDawn,
+          latlng:
+            cityItem.cityInfo?.address || cityItem?.lat + cityItem?.lng + '',
+        }
+      )
+
+      return {
+        weatherVideoUrl,
+        isDusk,
+        isNight,
+        isDawn,
+        timeFormat,
+      }
+    }, [cityItem, sunMoon, config.lang])
+
+  const getUpdateTime = (cItem: typeof cityItem) => {
+    return Math.max(cItem.updateCurTime || 0, cItem.updateAllTime || 0, 0)
+  }
 
   return (
     <>
@@ -1886,400 +1986,589 @@ const WeatherPage = () => {
         </title>
         <meta name="description" content={t('subtitle')} />
         <script src="/js/d3.v7.min.js"></script>
+        <link
+          href="https://cdn.jsdelivr.net/npm/qweather-icons@1.7.0/font/qweather-icons.css"
+          rel="stylesheet"
+        ></link>
         {/* <script src="https://d3js.org/d3.v7.min.js"></script> */}
       </Head>
       <div
-        style={{} as any}
-        className={'weather-page ' + (fixedHeader ? 'fixedHeader' : '')}
+        style={
+          {
+            '--wp-w': config.deviceWH.w + 'px',
+            '--wp-h': config.deviceWH.h + 'px',
+          } as any
+        }
+        className={
+          'weather-page ' +
+          config.deviceType +
+          ' ' +
+          themeColor +
+          ' ' +
+          (fixedHeader ? 'fixedHeader ' : ' ') +
+          (bgBlur ? 'bgBlur' : '')
+        }
       >
         <div className="wp-main">
-          <div className="wp-header">
-            <div className="wp-h-left">
-              {/* <span className="wp-h-l-cityName">
+          <div className="wp-m-top"></div>
+
+          <div
+            style={{
+              height:
+                (config.deviceType === 'Mobile'
+                  ? Math.max(500, Math.min(600, config.deviceWH.h - 50))
+                  : Math.max(500, Math.min(600, config.deviceWH.h - 210))) +
+                'px',
+            }}
+            className="wp-top"
+          >
+            {weatherVideoUrl?.url && mounted ? (
+              <video
+                ref={(e) => {
+                  if (e?.playbackRate) {
+                    // e.playbackRate = 0.5
+                  }
+                }}
+                // width={Math.min(700, config.deviceWH.w)}
+                // height={Math.min(500, config.deviceWH.h)}
+                src={weatherVideoUrl.url}
+                autoPlay
+                controls={false}
+                loop
+                muted
+                className={config.deviceType}
+              ></video>
+            ) : (
+              ''
+            )}
+
+            <div className="wp-t-top">
+              <div className="wp-header">
+                <div className="wp-h-left">
+                  {/* <span className="wp-h-l-cityName">
                 {getDisplayName(cityItem)}
               </span> */}
-              <NoSSR>
-                <SakiDropdown
-                  ref={
-                    bindEvent({
-                      close: () => {
-                        setOpenCityDropdown(false)
-                      },
-                    }) as any
-                  }
-                  visible={openCityDropdown}
-                  floating-direction="Left"
-                  z-index="1001"
-                  offsetX={config.deviceType === 'Mobile' ? -10 : 0}
-                  offsetY={config.deviceType === 'Mobile' ? -10 : 0}
-                >
-                  <SakiButton
-                    onTap={() => {
-                      // onSettings?.('Account')
-                      setOpenCityDropdown(!openCityDropdown)
-                      setOpenEditCity(false)
-                    }}
-                    type="Normal"
-                    border="none"
-                  >
-                    {cityItem?.curPopsition ? (
-                      <saki-icon
-                        width="22px"
-                        height="22px"
-                        color="#999"
-                        margin="0 2px 0 0"
-                        type="PositionFill"
-                      ></saki-icon>
-                    ) : (
-                      ''
-                    )}
-                    <span className="wp-h-l-city">
-                      {getDisplayName(cityItem)}
-                    </span>
-                    <saki-icon
-                      width="24px"
-                      height="24px"
-                      color="#999"
-                      type="BottomTriangle"
-                    ></saki-icon>
-                  </SakiButton>
-                  <div slot="main">
-                    {mounted ? (
-                      <div
-                        style={
-                          {
-                            '--deviceWH-w': config.deviceWH.w + 'px',
-                            '--deviceWH-h': config.deviceWH.h + 'px',
-                            '--dp-w': Math.min(350, config.deviceWH.w) + 'px',
-                          } as any
+                  <NoSSR>
+                    <SakiDropdown
+                      ref={
+                        bindEvent({
+                          close: (e) => {
+                            console.log('headerdp close', e.target)
+                            setOpenCityDropdown(false)
+                          },
+                        }) as any
+                      }
+                      visible={openCityDropdown}
+                      floating-direction="Left"
+                      z-index="1001"
+                      offsetX={config.deviceType === 'Mobile' ? -10 : 0}
+                      offsetY={config.deviceType === 'Mobile' ? -10 : 0}
+                    >
+                      <SakiButton
+                        onTap={() => {
+                          // onSettings?.('Account')
+                          setOpenCityDropdown(!openCityDropdown)
+                          setOpenEditCity(false)
+                        }}
+                        type="Normal"
+                        border="none"
+                        bgColor={
+                          !fixedHeader
+                            ? 'rgba(0,0,0,0)'
+                            : themeColors['--button-bg-color']
                         }
-                        className="wp-h-l-cities"
+                        bgHoverColor={
+                          !fixedHeader
+                            ? 'rgba(0,0,0,0.3)'
+                            : themeColors['--button-bg-hover-color']
+                        }
+                        bgActiveColor={
+                          !fixedHeader
+                            ? 'rgba(0,0,0,0.5)'
+                            : themeColors['--button-bg-active-color']
+                        }
                       >
-                        <div className="cities-header">
-                          <div className="c-h-left">
-                            {config.deviceType === 'Mobile' ? (
-                              <SakiButton
-                                onTap={() => {
-                                  setOpenCityDropdown(false)
-                                }}
-                                type="CircleIconGrayHover"
-                                border="none"
-                                margin="0 4px 0 0"
-                              >
-                                <SakiIcon
-                                  width="14px"
-                                  height="14px"
-                                  color="#666"
-                                  type="Left"
-                                ></SakiIcon>
-                              </SakiButton>
-                            ) : (
-                              ''
-                            )}
-                            <span>
-                              {t('citiesList', {
-                                ns: 'weatherPage',
-                              })}
-                            </span>
-                          </div>
-                          <div className="c-h-right">
-                            {loadWeather && openCityDropdown ? (
-                              <>
-                                <SakiRow alignItems="center">
-                                  <SakiAnimationLoading />
-                                  <span
-                                    style={{
-                                      margin: '0 6px 0 6px',
-                                      color: '#999',
-                                      fontSize: '12px',
-                                      textAlign: 'right',
+                        {cityItem?.curPopsition ? (
+                          <saki-icon
+                            width="22px"
+                            height="22px"
+                            color={
+                              !fixedHeader ? '#fff' : themeColors['--c3-color']
+                            }
+                            margin="0 2px 0 0"
+                            type="PositionFill"
+                          ></saki-icon>
+                        ) : (
+                          ''
+                        )}
+                        <span className="wp-h-l-city text-elipsis">
+                          {getDisplayName(cityItem)}
+                        </span>
+                        <saki-icon
+                          width="24px"
+                          height="24px"
+                          color={
+                            !fixedHeader ? '#fff' : themeColors['--c3-color']
+                          }
+                          type="BottomTriangle"
+                        ></saki-icon>
+                      </SakiButton>
+                      <div slot="main">
+                        {mounted ? (
+                          <div
+                            style={
+                              {
+                                '--deviceWH-w': config.deviceWH.w + 'px',
+                                '--deviceWH-h': config.deviceWH.h + 'px',
+                                '--dp-w':
+                                  Math.min(360, config.deviceWH.w) + 'px',
+                              } as any
+                            }
+                            className="wp-h-l-cities"
+                          >
+                            <div className="cities-header">
+                              <div className="c-h-left">
+                                {config.deviceType === 'Mobile' ? (
+                                  <SakiButton
+                                    onTap={() => {
+                                      setOpenCityDropdown(false)
                                     }}
+                                    type="CircleIconGrayHover"
+                                    border="none"
+                                    margin="0 4px 0 0"
                                   >
-                                    {t('loadWeather', {
-                                      ns: 'weatherPage',
-                                    })}
-                                  </span>
-                                </SakiRow>
-                              </>
-                            ) : (
-                              <></>
-                            )}
-
-                            {!openEditCity ? (
-                              <SakiButton
-                                onTap={() => {
-                                  // onSettings?.('Account')
-                                  setOpenAddCityPage(true)
-                                  setSearchResult([])
-                                  setAddCityName('')
-                                }}
-                                type="CircleIconGrayHover"
-                                border="none"
-                              >
-                                <saki-icon
-                                  width="16px"
-                                  height="16px"
-                                  color="#666"
-                                  type="Add"
-                                ></saki-icon>
-                              </SakiButton>
-                            ) : (
-                              ''
-                            )}
-
-                            {openEditCity ? (
-                              <saki-button
-                                ref={bindEvent({
-                                  tap: () => {
-                                    setOpenEditCity(!openEditCity)
-                                  },
-                                })}
-                                type="Normal"
-                                border="none"
-                              >
+                                    <SakiIcon
+                                      width="14px"
+                                      height="14px"
+                                      color="#666"
+                                      type="Left"
+                                    ></SakiIcon>
+                                  </SakiButton>
+                                ) : (
+                                  ''
+                                )}
                                 <span>
-                                  {t('confirm', {
-                                    ns: 'prompt',
+                                  {t('citiesList', {
+                                    ns: 'weatherPage',
                                   })}
                                 </span>
-                              </saki-button>
-                            ) : (
-                              <SakiButton
-                                onTap={() => {
-                                  // onSettings?.('Account')
-                                  setOpenEditCity(!openEditCity)
-                                }}
-                                type="CircleIconGrayHover"
-                                border="none"
-                              >
-                                <SakiIcon
-                                  width="13px"
-                                  height="13px"
-                                  color={
-                                    openEditCity
-                                      ? 'var(--saki-default-color)'
-                                      : '#666'
-                                  }
-                                  type="Pen"
-                                ></SakiIcon>
-                              </SakiButton>
-                            )}
-                          </div>
-                        </div>
-                        <div className="cities-list scrollBarDefault">
-                          {cities.map((v, i) => {
-                            const distance = getDistance(
-                              v.lat,
-                              v.lng,
-                              position?.position?.coords.latitude || 0,
-                              position?.position?.coords.longitude || 0
-                            )
-                            return (
-                              <div
-                                ref={
-                                  bindEvent({
-                                    click: async (e: any) => {
-                                      setCities(
-                                        cities.map((sv, si) => {
-                                          return {
-                                            ...sv,
-                                            default: si === i,
-                                          }
-                                        })
-                                      )
+                              </div>
+                              <div className="c-h-right">
+                                {loadStatus === 'loading' &&
+                                openCityDropdown ? (
+                                  <>
+                                    <SakiRow alignItems="center">
+                                      <SakiAnimationLoading />
+                                      <span
+                                        style={{
+                                          margin: '0 6px 0 6px',
+                                          color: '#999',
+                                          fontSize: '12px',
+                                          textAlign: 'right',
+                                        }}
+                                      >
+                                        {t('loadWeather', {
+                                          ns: 'sakiuiWeather',
+                                        })}
+                                      </span>
+                                    </SakiRow>
+                                  </>
+                                ) : (
+                                  <></>
+                                )}
 
-                                      setCurCityIndex(i)
-                                      await storage.global.set(
-                                        'curCityIndex',
-                                        v.lat + ';' + v.lng
-                                      )
+                                {!openEditCity ? (
+                                  <SakiButton
+                                    onTap={() => {
+                                      // onSettings?.('Account')
+                                      setOpenAddCityPage(true)
+                                      setSearchResult([])
+                                      setAddCityName('')
+                                    }}
+                                    type="CircleIconGrayHover"
+                                    border="none"
+                                  >
+                                    <saki-icon
+                                      width="16px"
+                                      height="16px"
+                                      color="#666"
+                                      type="Add"
+                                    ></saki-icon>
+                                  </SakiButton>
+                                ) : (
+                                  ''
+                                )}
 
-                                      setOpenCityDropdown(false)
-                                    },
-                                  }) as any
-                                }
-                                className={
-                                  'cities-item ' +
-                                  (curCityIndex === i ? 'active' : '')
-                                }
-                                key={i}
-                              >
-                                {openEditCity && !v.curPopsition ? (
-                                  <div className="c-i-icon">
-                                    <SakiButton
+                                {openEditCity ? (
+                                  <saki-button
+                                    ref={bindEvent({
+                                      tap: () => {
+                                        setOpenEditCity(!openEditCity)
+                                      },
+                                    })}
+                                    type="Normal"
+                                    border="none"
+                                  >
+                                    <span>
+                                      {t('confirm', {
+                                        ns: 'prompt',
+                                      })}
+                                    </span>
+                                  </saki-button>
+                                ) : (
+                                  <SakiButton
+                                    onTap={() => {
+                                      // onSettings?.('Account')
+                                      setOpenEditCity(!openEditCity)
+                                    }}
+                                    type="CircleIconGrayHover"
+                                    border="none"
+                                  >
+                                    <SakiIcon
+                                      width="13px"
+                                      height="13px"
+                                      color={
+                                        openEditCity
+                                          ? 'var(--saki-default-color)'
+                                          : '#666'
+                                      }
+                                      type="Pen"
+                                    ></SakiIcon>
+                                  </SakiButton>
+                                )}
+
+                                {!openEditCity ? (
+                                  <>
+                                    {/* <SakiButton
                                       onTap={() => {
-                                        deleteCityItem(i)
+                                        setCitiesListType(
+                                          citiesListType === 'List'
+                                            ? 'Grid'
+                                            : 'List'
+                                        )
+
+                                        storage.global.setSync(
+                                          'CitiesListType',
+                                          citiesListType === 'List'
+                                            ? 'Grid'
+                                            : 'List'
+                                        )
                                       }}
                                       type="CircleIconGrayHover"
                                       border="none"
-                                      margin="0 8px 0 0"
-                                      bgColor="transparent"
-                                      bgHoverColor="transparent"
-                                      bgActiveColor="transparent"
+                                    >
+                                      <saki-icon
+                                        width="16px"
+                                        height="16px"
+                                        color="#666"
+                                        type={
+                                          citiesListType === 'List'
+                                            ? 'DeviceList'
+                                            : 'Grid'
+                                        }
+                                      ></saki-icon>
+                                    </SakiButton> */}
+
+                                    {/* <SakiDropdown
+                                      ref={
+                                        bindEvent({
+                                          close: (e) => {
+                                            console.log(
+                                              'headerdp sub close',
+                                              e.target
+                                            )
+                                            e.stopPropagation()
+
+                                            e.preventDefault()
+                                            setOpenCityExImPortDropdown(false)
+                                          },
+                                        }) as any
+                                      }
+                                      className="openCityExImPortDropdown"
+                                      visible={openCityExImPortDropdown}
+                                      floating-direction="Left"
+                                    >
+                                      <SakiButton
+                                        onTap={() => {
+                                          setOpenCityExImPortDropdown(true)
+                                        }}
+                                        type="CircleIconGrayHover"
+                                        border="none"
+                                      >
+                                        <saki-icon
+                                          width="16px"
+                                          height="16px"
+                                          color={'#666'}
+                                          type="Download"
+                                        ></saki-icon>
+                                      </SakiButton>
+                                      <div slot="main">
+                                        <SakiMenu
+                                          onSelectvalue={(e) => {
+                                            console.log(
+                                              'headerdp ',
+                                              e.detail.value
+                                            )
+                                            switch (e.detail.value) {
+                                              case 'import':
+                                                break
+                                              case 'export':
+                                                break
+
+                                              default:
+                                                break
+                                            }
+
+                                            setOpenCityExImPortDropdown(false)
+                                          }}
+                                        >
+                                          {['import', 'export'].map((v, i) => {
+                                            return (
+                                              <SakiMenuItem value={v} key={i}>
+                                                <span
+                                                  style={{
+                                                    color: '#666',
+                                                  }}
+                                                >
+                                                  {t(v, {
+                                                    ns: 'prompt',
+                                                  })}
+                                                </span>
+                                              </SakiMenuItem>
+                                            )
+                                          })}
+                                        </SakiMenu>
+                                      </div>
+                                    </SakiDropdown> */}
+                                  </>
+                                ) : (
+                                  ''
+                                )}
+                              </div>
+                            </div>
+                            <div
+                              className={`cities-list ${
+                                openEditCity ? 'List' : citiesListType
+                              } scrollBarDefault`}
+                            >
+                              {cities.map((v, i) => {
+                                const distance = getDistance(
+                                  v.lat,
+                                  v.lng,
+                                  position?.position?.coords.latitude || 0,
+                                  position?.position?.coords.longitude || 0
+                                )
+                                return (
+                                  <div
+                                    ref={
+                                      bindEvent({
+                                        click: async (e: any) => {
+                                          dispatch(
+                                            weatherSlice.actions.setWeatherData(
+                                              {
+                                                cities: cities.map((sv, si) => {
+                                                  return {
+                                                    ...sv,
+                                                    default: si === i,
+                                                  }
+                                                }),
+                                              }
+                                            )
+                                          )
+
+                                          setCurCityIndex(i)
+                                          await storage.global.set(
+                                            'curCityIndex',
+                                            v.lat + ';' + v.lng
+                                          )
+
+                                          setOpenCityDropdown(false)
+                                        },
+                                      }) as any
+                                    }
+                                    className={
+                                      'cities-item ' +
+                                      (curCityIndex === i ? 'active' : '')
+                                    }
+                                    key={i}
+                                  >
+                                    {openEditCity && !v.curPopsition ? (
+                                      <div className="c-i-icon">
+                                        <SakiButton
+                                          onTap={() => {
+                                            deleteCityItem(i)
+                                          }}
+                                          type="CircleIconGrayHover"
+                                          border="none"
+                                          margin="0 8px 0 0"
+                                          bgColor="transparent"
+                                          bgHoverColor="transparent"
+                                          bgActiveColor="transparent"
+                                        >
+                                          <SakiIcon
+                                            width="14px"
+                                            height="14px"
+                                            color="#666"
+                                            type="Trash"
+                                          ></SakiIcon>
+                                        </SakiButton>
+                                      </div>
+                                    ) : (
+                                      ''
+                                    )}
+
+                                    <div className="c-i-main">
+                                      <div className="c-i-left">
+                                        <span>
+                                          {v?.curPopsition ? (
+                                            <saki-icon
+                                              width="18px"
+                                              height="18px"
+                                              color="#999"
+                                              margin="0 2px 0 0"
+                                              type="PositionFill"
+                                            ></saki-icon>
+                                          ) : (
+                                            ''
+                                          )}
+
+                                          <span>{getDisplayName(v)}</span>
+                                          {distance ? (
+                                            <span className="distance">
+                                              {formatDistance(distance)}
+                                            </span>
+                                          ) : (
+                                            ''
+                                          )}
+                                        </span>
+                                        <span>
+                                          {v.cityInfo?.address
+                                            .split('·')
+                                            .filter((v, i) => i > 0)
+                                            .join('·')}
+                                        </span>
+                                      </div>
+                                      <div className="c-i-right">
+                                        <span>
+                                          {v?.weatherInfo?.current?.temperature}
+                                          ℃
+                                        </span>
+                                        <span>
+                                          {v?.weatherInfo?.current?.weather}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+
+                            <saki-transition
+                              class-name={'w-addcity'}
+                              animation-duration="300"
+                              data-refresh={config.deviceType}
+                              in={openAddCityPage}
+                            >
+                              <div className={'wp-h-l-addCity '}>
+                                <div className="wa-header">
+                                  <div className="wa-h-left">
+                                    <SakiButton
+                                      onTap={() => {
+                                        // onSettings?.('Account')
+                                        setOpenAddCityPage(false)
+                                      }}
+                                      type="CircleIconGrayHover"
+                                      border="none"
                                     >
                                       <SakiIcon
                                         width="14px"
                                         height="14px"
                                         color="#666"
-                                        type="Trash"
+                                        type="Left"
                                       ></SakiIcon>
                                     </SakiButton>
                                   </div>
-                                ) : (
-                                  ''
-                                )}
-
-                                <div className="c-i-main">
-                                  <div className="c-i-left">
-                                    <span>
-                                      {v?.curPopsition ? (
-                                        <saki-icon
-                                          width="18px"
-                                          height="18px"
-                                          color="#999"
-                                          margin="0 2px 0 0"
-                                          type="PositionFill"
-                                        ></saki-icon>
-                                      ) : (
-                                        ''
-                                      )}
-
-                                      <span>{getDisplayName(v)}</span>
-                                      {distance ? (
-                                        <span className="distance">
-                                          {formatDistance(distance)}
-                                        </span>
-                                      ) : (
-                                        ''
-                                      )}
-                                    </span>
-                                    <span>
-                                      {v.cityInfo?.address
-                                        .split('·')
-                                        .filter((v, i) => i > 0)
-                                        .join('·')}
-                                    </span>
-                                  </div>
-                                  <div className="c-i-right">
-                                    <span>
-                                      {v?.weatherInfo?.current?.temperature}℃
-                                    </span>
-                                    <span>
-                                      {v?.weatherInfo?.current?.weather}
-                                    </span>
+                                  <div className="wa-h-right">
+                                    <SakiInput
+                                      onChangevalue={(e) => {
+                                        // console.log("Dom发生了变化", e)
+                                        console.log(
+                                          'getCityInfo',
+                                          e,
+                                          moment(e.detail.date).format(
+                                            'YYYY-MM-DD HH:mm:ss'
+                                          )
+                                        )
+                                        setAddCityName(e.detail)
+                                        // if (!e.detail) {
+                                        //   setStartDate?.('')
+                                        //   return
+                                        // }
+                                        // setStartDate?.(
+                                        //   moment(e.detail).format(
+                                        //     'YYYY-MM-DD HH:mm:ss'
+                                        //   )
+                                        // )
+                                      }}
+                                      onFocusfunc={() => {
+                                        console.log('focus')
+                                        // setOpenStartDateDatePicker(true)
+                                      }}
+                                      height="40px"
+                                      padding="0 4px 0 28px"
+                                      value={addCityName}
+                                      border-radius="20px"
+                                      font-size="14px"
+                                      margin="0 0 0 4px"
+                                      placeholder={t('enterCityName', {
+                                        ns: 'weatherPage',
+                                      })}
+                                      type={'Search'}
+                                      closeIcon={!!addCityName}
+                                      color={'#222'}
+                                      border="1px solid #eee"
+                                      text-align="left"
+                                    ></SakiInput>
                                   </div>
                                 </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-
-                        <saki-transition
-                          class-name={'w-addcity'}
-                          animation-duration="300"
-                          data-refresh={config.deviceType}
-                          in={openAddCityPage}
-                        >
-                          <div className={'wp-h-l-addCity '}>
-                            <div className="wa-header">
-                              <div className="wa-h-left">
-                                <SakiButton
-                                  onTap={() => {
-                                    // onSettings?.('Account')
-                                    setOpenAddCityPage(false)
-                                  }}
-                                  type="CircleIconGrayHover"
-                                  border="none"
-                                >
-                                  <SakiIcon
-                                    width="14px"
-                                    height="14px"
-                                    color="#666"
-                                    type="Left"
-                                  ></SakiIcon>
-                                </SakiButton>
-                              </div>
-                              <div className="wa-h-right">
-                                <SakiInput
-                                  onChangevalue={(e) => {
-                                    // console.log("Dom发生了变化", e)
-                                    console.log(
-                                      'getCityInfo',
-                                      e,
-                                      moment(e.detail.date).format(
-                                        'YYYY-MM-DD HH:mm:ss'
-                                      )
-                                    )
-                                    setAddCityName(e.detail)
-                                    // if (!e.detail) {
-                                    //   setStartDate?.('')
-                                    //   return
-                                    // }
-                                    // setStartDate?.(
-                                    //   moment(e.detail).format(
-                                    //     'YYYY-MM-DD HH:mm:ss'
-                                    //   )
-                                    // )
-                                  }}
-                                  onFocusfunc={() => {
-                                    console.log('focus')
-                                    // setOpenStartDateDatePicker(true)
-                                  }}
-                                  height="40px"
-                                  padding="0 4px 0 28px"
-                                  value={addCityName}
-                                  border-radius="20px"
-                                  font-size="14px"
-                                  margin="0 0 0 4px"
-                                  placeholder={t('enterCityName', {
-                                    ns: 'weatherPage',
-                                  })}
-                                  type={'Search'}
-                                  closeIcon={!!addCityName}
-                                  color="#444"
-                                  border="1px solid #eee"
-                                  text-align="left"
-                                ></SakiInput>
-                              </div>
-                            </div>
-                            <div className="wa-main scrollBarDefault">
-                              {searchResultLoading === 'loading' ? (
-                                <div className="wa-loading">
-                                  <saki-animation-loading
-                                    type="rotateEaseInOut"
-                                    width="20px"
-                                    height="20px"
-                                    border="3px"
-                                    border-color="var(--default-color)"
-                                  />
-                                  <span>
-                                    {t('searching', {
-                                      ns: 'prompt',
-                                    })}
-                                  </span>
-                                </div>
-                              ) : (
-                                ''
-                              )}
-                              {searchResult.map((v, i) => {
-                                return (
-                                  <div
-                                    ref={
-                                      bindEvent({
-                                        click: () => {
-                                          addCity(v)
-                                        },
-                                      }) as any
-                                    }
-                                    className={'wa-m-item'}
-                                    key={i}
-                                  >
-                                    <div className="wa-m-i-left">
-                                      <span>{v.name}</span>
-                                      <span>{v.display_name}</span>
+                                <div className="wa-main scrollBarDefault">
+                                  {searchResultLoading === 'loading' ? (
+                                    <div className="wa-loading">
+                                      <saki-animation-loading
+                                        type="rotateEaseInOut"
+                                        width="20px"
+                                        height="20px"
+                                        border="3px"
+                                        border-color="var(--default-color)"
+                                      />
+                                      <span>
+                                        {t('searching', {
+                                          ns: 'prompt',
+                                        })}
+                                      </span>
                                     </div>
-                                    <div className="wa-m-i-right">
-                                      {/* <SakiButton
+                                  ) : (
+                                    ''
+                                  )}
+                                  {searchResult.map((v, i) => {
+                                    return (
+                                      <div
+                                        ref={
+                                          bindEvent({
+                                            click: () => {
+                                              addCity(v)
+                                            },
+                                          }) as any
+                                        }
+                                        className={'wa-m-item'}
+                                        key={i}
+                                      >
+                                        <div className="wa-m-i-left">
+                                          <span>{v.name}</span>
+                                          <span>{v.display_name}</span>
+                                        </div>
+                                        <div className="wa-m-i-right">
+                                          {/* <SakiButton
                                       onTap={() => {
                                         // onSettings?.('Account')
                                         addCity(v)
@@ -2297,87 +2586,124 @@ const WeatherPage = () => {
                                         type="Add"
                                       ></saki-icon>
                                     </SakiButton> */}
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            </saki-transition>
                           </div>
-                        </saki-transition>
+                        ) : (
+                          ''
+                        )}
                       </div>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                </SakiDropdown>
-              </NoSSR>
+                    </SakiDropdown>
+                  </NoSSR>
 
-              {/* <div className="wp-h-l-dots">
+                  {/* <div className="wp-h-l-dots">
                 {new Array(6).fill(0).map((v, i) => {
                   return <div className="dot-item" key={i}></div>
                 })}
               </div> */}
-            </div>
-            <div className="wp-h-right">
-              {loadWeather ? (
-                <>
-                  <SakiRow alignItems="center">
-                    <SakiAnimationLoading />
-                    <span
-                      style={{
-                        margin: '0 6px 0 6px',
-                        color: '#999',
-                        fontSize: '12px',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {t('loadWeather', {
-                        ns: 'weatherPage',
+                </div>
+                <div className="wp-h-right">
+                  {loadStatus === 'loading' ? (
+                    <>
+                      <SakiRow alignItems="center">
+                        <SakiAnimationLoading />
+                        <span
+                          style={{
+                            margin: '0 6px 0 6px',
+                            color: 'var(--c1-f-color)',
+                            fontSize: '12px',
+                            textAlign: 'right',
+                          }}
+                        >
+                          {t('loadWeather', {
+                            ns: 'sakiuiWeather',
+                          })}
+                        </span>
+                      </SakiRow>
+                    </>
+                  ) : getUpdateTime(cityItem) ? (
+                    <div className="wp-c-updateTime">
+                      {t('updatedTime', {
+                        ns: 'sakiuiWeather',
+                        time:
+                          formatDurationI18n(
+                            (new Date().getTime() - getUpdateTime(cityItem)) /
+                              1000,
+                            false
+                          ) ||
+                          0 +
+                            t('secondTime', {
+                              ns: 'prompt',
+                            }),
                       })}
-                    </span>
-                  </SakiRow>
-                </>
-              ) : cityItem?.updateTime ? (
-                <div className="wp-c-updateTime">
-                  {t('updatedTime', {
-                    ns: 'weather',
-                    time:
-                      formatDurationI18n(
-                        (new Date().getTime() - cityItem?.updateTime) / 1000,
-                        false
-                      ) ||
-                      0 +
-                        t('secondTime', {
-                          ns: 'prompt',
-                        }),
-                  })}
+                    </div>
+                  ) : (
+                    ''
+                  )}
                 </div>
-              ) : (
-                ''
-              )}
-            </div>
-          </div>
+              </div>
 
-          <div className="wp-cur">
-            <div className="wp-c-top">
-              <div className="wp-c-temp">
-                <div className="wp-data-temp">
-                  <span>{weatherInfo?.current?.temperature}</span>
-                  <span>
-                    <span>℃</span>
-                    {/* <span>{weatherInfo?.current?.weather}</span> */}
-                  </span>
+              <div className="wp-header2">
+                <div className="wp-h-left">
+                  {weatherInfo?.alert?.warning?.length ? (
+                    <div
+                      onClick={() => {
+                        setOpenWeatherDetailModalType('warning')
+                      }}
+                      className="wp-w-button"
+                    >
+                      <span className="wp-w-text">
+                        {t('warning', {
+                          ns: 'sakiuiWeather',
+                        })}
+                        :
+                      </span>
+                      <div className="wp-w-list">
+                        {weatherInfo?.alert?.warning?.map((v, i) => {
+                          return (
+                            <div className="wp-w-item" key={i}>
+                              <WarningIcon
+                                width={32}
+                                type={v.type}
+                                typeName={v.typeName}
+                                color={
+                                  v.severityColor || getWarningColor(v.severity)
+                                }
+                                lang={config.lang}
+                              ></WarningIcon>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    ''
+                  )}
                 </div>
-                <div className="wp-data-weather">
-                  <span>
-                    {t('weather' + (weatherInfo?.current?.weatherCode || 0), {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </div>
+                <div className="wp-h-right">
+                  <div
+                    onClick={() => {
+                      // setOpenWeatherDetailModalType('')
 
-                {config.deviceType !== 'Mobile' ? (
-                  <div className={'wp-data-item '}>
+                      // console.log("document.body.querySelector('.wp-aq')")
+
+                      const y =
+                        (document.body
+                          .querySelector('.wp-aq')
+                          ?.getBoundingClientRect?.()?.top || 0) - 60 || 0
+
+                      window.scrollTo({
+                        top: y,
+                        behavior: 'smooth',
+                      })
+                    }}
+                    className={'wp-data-aq '}
+                  >
                     <span
                       style={{
                         backgroundColor: curAQ.aqiDesc.color,
@@ -2387,9 +2713,9 @@ const WeatherPage = () => {
                       <div className="icon">
                         <NoSSR>
                           <saki-icon
-                            width="14px"
-                            height="14px"
-                            margin="0 0 0 2px"
+                            width="18px"
+                            height="18px"
+                            margin="0 0 0 0px"
                             type="Leaf"
                             color={curAQ.aqiDesc.color}
                           ></saki-icon>
@@ -2397,260 +2723,365 @@ const WeatherPage = () => {
                       </div>
 
                       <span>
-                        {curAQ.european_aqi + ' ' + curAQ.aqiDesc.aqiDesc}
+                        {(curAQ.european_aqi || 0) +
+                          ' ' +
+                          curAQ.aqiDesc.aqiDesc}
                       </span>
                     </span>
                   </div>
-                ) : (
-                  ''
-                )}
-              </div>
-              <div className="wp-c-emoji">
-                <span>
-                  {openWeatherWMOToEmoji(
-                    Number(weatherInfo?.current?.weatherCode)
-                  )?.value || ''}
-                </span>
-
-                <span className="wp-c-e-weather">
-                  {t('weather' + (weatherInfo?.current?.weatherCode || 0), {
-                    ns: 'weather',
-                  })}
-                </span>
+                </div>
               </div>
             </div>
-            <div className="wp-c-bottom">
-              {/* <div className="wp-c-b-left">
-                <span>{weatherInfo?.current?.weather}</span>
-              </div> */}
-              {weatherInfo?.current?.weather ? (
-                <div className="wp-c-data">
-                  <div className="wp-data-item">
-                    <saki-icon color="#444" type="Thermometer"></saki-icon>
+
+            <div className="wp-t-bottom">
+              <div className="wp-cur">
+                <div className="wp-c-top">
+                  <div className="wp-c-temp">
+                    <div className="wp-data-temp">
+                      <span>
+                        {convertTemperature(
+                          weatherInfo?.current?.temperature,
+                          (weatherInfo?.current_units?.temperature_2m as any) ||
+                            '°C',
+                          weather.weatherData.units.temperature
+                        )}
+                      </span>
+                      <span>
+                        <span>{weather.weatherData.units.temperature}</span>
+                        {/* <span>{weatherInfo?.current?.weather}</span> */}
+                      </span>
+                    </div>
+                    <div className="wp-data-weather">
+                      <span>
+                        {t(
+                          'weather' + (weatherInfo?.current?.weatherCode || 0),
+                          {
+                            ns: 'sakiuiWeather',
+                          }
+                        )}
+                      </span>
+                    </div>
+
+                    {/* {config.deviceType !== 'Mobile' ? (
+                      <div className={'wp-data-item '}>
+                        <span
+                          style={{
+                            backgroundColor: curAQ.aqiDesc.color,
+                          }}
+                          className={'aqi-icon ' + curAQ.aqiDesc.className}
+                        >
+                          <div className="icon">
+                            <NoSSR>
+                              <saki-icon
+                                width="14px"
+                                height="14px"
+                                margin="0 0 0 2px"
+                                type="Leaf"
+                                color={curAQ.aqiDesc.color}
+                              ></saki-icon>
+                            </NoSSR>
+                          </div>
+
+                          <span>
+                            {curAQ.european_aqi + ' ' + curAQ.aqiDesc.aqiDesc}
+                          </span>
+                        </span>
+                      </div>
+                    ) : (
+                      ''
+                    )} */}
+                  </div>
+                  <div className="wp-c-emoji">
                     <span>
-                      {t('apparentTemperature', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        (weatherInfo?.current?.apparentTemperature + '℃')}
+                      {getWeatherIcon(
+                        Number(weatherInfo?.current?.weatherCode),
+                        {
+                          dusk: isDusk,
+                          dawn: isDawn,
+                          night: isNight,
+                        }
+                      ) || ''}
+                      {/* {openWeatherWMOToEmoji(ntextWcode)?.value || ''} */}
+                    </span>
+
+                    <span className="wp-c-e-weather">
+                      {t('weather' + (weatherInfo?.current?.weatherCode || 0), {
+                        ns: 'sakiuiWeather',
+                      })}
                     </span>
                   </div>
+                </div>
+                <div className="wp-c-bottom">
+                  {/* <div className="wp-c-b-left">
+                <span>{weatherInfo?.current?.weather}</span>
+              </div> */}
 
-                  {config.deviceType === 'Mobile' ? (
-                    <div className={'wp-data-item '}>
-                      <saki-icon color="#444" type="Leaf"></saki-icon>{' '}
-                      <span>
-                        {t('air', {
-                          ns: 'weather',
-                        })}
-                      </span>
-                      <span
-                        style={{
-                          // backgroundColor: '#fff',
-                          backgroundColor: curAQ.aqiDesc.color,
-                          height: '20px',
-                          borderRadius: '10px',
-                          padding: '1px 6px 2px 6px',
-                        }}
-                        className={'aqi-icon ' + curAQ.aqiDesc.className}
-                      >
+                  {weatherInfo?.current?.weather ? (
+                    <div className="wp-c-data">
+                      <div className="wp-data-item">
+                        <saki-icon color="#fff" type="Thermometer"></saki-icon>
                         <span>
-                          {curAQ.european_aqi + ' ' + curAQ.aqiDesc.aqiDesc}
+                          {t('apparentTemperature', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (convertTemperature(
+                              weatherInfo?.current?.apparentTemperature,
+                              (weatherInfo?.current_units
+                                .apparent_temperature as any) || '°C',
+                              weather.weatherData.units.temperature
+                            ) +
+                              weather.weatherData.units.temperature)}
                         </span>
-                      </span>
+                      </div>
+                      {/* 
+                      {config.deviceType === 'Mobile' ? (
+                        <div className={'wp-data-item '}>
+                          <saki-icon color="#fff" type="Leaf"></saki-icon>{' '}
+                          <span>
+                            {t('air', {
+                              ns: 'sakiuiWeather',
+                            })}
+                          </span>
+                          <span
+                            style={{
+                              // backgroundColor: '#fff',
+                              backgroundColor: curAQ.aqiDesc.color,
+                              height: '20px',
+                              borderRadius: '10px',
+                              padding: '1px 6px 2px 6px',
+                            }}
+                            className={'aqi-icon ' + curAQ.aqiDesc.className}
+                          >
+                            <span>
+                              {curAQ.european_aqi + ' ' + curAQ.aqiDesc.aqiDesc}
+                            </span>
+                          </span>
+                        </div>
+                      ) : (
+                        ''
+                      )} */}
+
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('precipitation')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon color="#fff" type="Umbrella"></saki-icon>
+                        <span>
+                          {t('precipitation_probability', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (weatherInfo?.current?.precipitationProbability +
+                              weatherInfo?.current_units
+                                ?.precipitation_probability)}
+                        </span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('precipitation')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon color="#fff" type="Rainfall"></saki-icon>
+                        <span>
+                          {t('precipitation', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (convertPrecipitation(
+                              weatherInfo?.current?.temperature,
+                              (weatherInfo?.current_units
+                                ?.precipitation as any) || 'mm',
+                              weather.weatherData.units.precipitation
+                            ) +
+                              weather.weatherData.units.precipitation)}
+                        </span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('surfacePressure')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon
+                          color="#fff"
+                          type="PressureGauge"
+                        ></saki-icon>
+                        <span>
+                          {t('surfacePressure', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (convertPressure(
+                              weatherInfo?.current?.surfacePressure,
+                              (weatherInfo?.current_units
+                                ?.surface_pressure as any) || 'hPa',
+                              weather.weatherData.units.pressure
+                            ) +
+                              weather.weatherData.units.pressure)}
+                        </span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('humidity')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon color="#fff" type="Humidity"></saki-icon>
+                        <span>
+                          {t('humidity', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (curInfo.humidity.val + curInfo.humidity.unit)}
+                        </span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('windLevel')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon color="#fff" type="Windmill"></saki-icon>
+                        <span>
+                          {
+                            //   t('windLevel', {
+                            //   ns: 'sakiuiWeather',
+                            // }) +
+                            //   ' ' +
+                            windy.direction +
+                              ' ' +
+                              t('windLevelNum', {
+                                ns: 'sakiuiWeather',
+                                num: windy.level,
+                              })
+                          }
+                        </span>
+                      </div>
+                      <div
+                        onClick={() => {
+                          setOpenWeatherDetailModalType('windLevel')
+                        }}
+                        className="wp-data-item"
+                      >
+                        <saki-icon color="#fff" type="Wind"></saki-icon>
+                        <span>
+                          {t('windSpeed', {
+                            ns: 'sakiuiWeather',
+                          }) +
+                            ' ' +
+                            (convertWindSpeed(
+                              Number(windy.val),
+                              (windy.unit as any) || 'km/h',
+                              weather.weatherData.units.windSpeed
+                            ) +
+                              weather.weatherData.units.windSpeed)}
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     ''
                   )}
-
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('precipitation')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="Umbrella"></saki-icon>
-                    <span>
-                      {t('precipitation_probability', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        (weatherInfo?.current?.precipitationProbability +
-                          weatherInfo?.current_units
-                            ?.precipitation_probability)}
-                    </span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('precipitation')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="Rainfall"></saki-icon>
-                    <span>
-                      {t('precipitation', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        (weatherInfo?.current?.precipitation +
-                          weatherInfo?.current_units?.precipitation)}
-                    </span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('surfacePressure')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="PressureGauge"></saki-icon>
-                    <span>
-                      {t('surfacePressure', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        (weatherInfo?.current?.surfacePressure +
-                          weatherInfo?.current_units?.surface_pressure)}
-                    </span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('humidity')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="Humidity"></saki-icon>
-                    <span>
-                      {t('humidity', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        (curInfo.humidity.val + curInfo.humidity.unit)}
-                    </span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('windLevel')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="Windmill"></saki-icon>
-                    <span>
-                      {
-                        //   t('windLevel', {
-                        //   ns: 'weather',
-                        // }) +
-                        //   ' ' +
-                        windy.direction +
-                          ' ' +
-                          t('windLevelNum', {
-                            ns: 'weather',
-                            num: windy.level,
-                          })
-                      }
-                    </span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setOpenWeatherDetailModalType('windLevel')
-                    }}
-                    className="wp-data-item"
-                  >
-                    <saki-icon color="#444" type="Wind"></saki-icon>
-                    <span>
-                      {t('windSpeed', {
-                        ns: 'weather',
-                      }) +
-                        ' ' +
-                        windy.val +
-                        windy.unit}
-                    </span>
-                  </div>
                 </div>
-              ) : (
-                ''
-              )}
-            </div>
-          </div>
+              </div>
 
-          <div className="wp-today">
-            {weatherInfo.daily?.time?.map((v, i) => {
-              if (i === 0 || i > 2) {
-                return ''
-              }
-              const weathercode = weatherInfo.daily?.weathercode[i]
-              const temperature_2m_max =
-                weatherInfo.daily?.temperature_2m_max[i]
-              const temperature_2m_min =
-                weatherInfo.daily?.temperature_2m_min[i]
+              <div className="wp-today">
+                {weatherInfo.daily?.time?.map((v, i) => {
+                  if (i === 0 || i > 2) {
+                    return ''
+                  }
+                  const weathercode = weatherInfo.daily?.weathercode[i]
+                  const temperature_2m_max =
+                    weatherInfo.daily?.temperature_2m_max[i]
+                  const temperature_2m_min =
+                    weatherInfo.daily?.temperature_2m_min[i]
 
-              const maxTempWeatherCode =
-                weatherInfo.daily.maxTempWeatherCodes[i]
-              const minTempWeatherCode =
-                weatherInfo.daily.minTempWeatherCodes[i]
+                  const maxTempWeatherCode =
+                    weatherInfo.daily.maxTempWeatherCodes[i]
+                  const minTempWeatherCode =
+                    weatherInfo.daily.minTempWeatherCodes[i]
 
-              return (
-                <div className="wp-t-item" key={i}>
-                  <span className="wp-t-i-icon">
-                    {openWeatherWMOToEmoji(Number(weathercode))?.value || ''}
-                  </span>
-                  <div className="wp-t-i-data">
-                    <span className="wp-t-i-d-date">
-                      {moment(v).isSame(moment(), 'day')
-                        ? t('today', {
-                            ns: 'weather',
-                          })
-                        : t('tomorrow', {
-                            ns: 'weather',
-                          })}
-                    </span>
-                    <span className="wp-t-i-d-temp">{`${temperature_2m_min}~${temperature_2m_max}${weatherInfo.dailyUnits.temperature_2m_max}`}</span>
-                    <span className="wp-t-i-d-weather">
-                      <span>
-                        {maxTempWeatherCode === minTempWeatherCode
-                          ? t('weather' + (weathercode || 0), {
-                              ns: 'weather',
-                            })
-                          : t('weatherToWeather', {
-                              ns: 'weather',
-                              waether1: t(
-                                'weather' + (maxTempWeatherCode || 0),
-                                {
-                                  ns: 'weather',
-                                }
-                              ),
-                              weather2: t(
-                                'weather' + (minTempWeatherCode || 0),
-                                {
-                                  ns: 'weather',
-                                }
-                              ),
-                            })}
+                  return (
+                    <div className="wp-t-item" key={i}>
+                      <span className="wp-t-i-icon">
+                        {getWeatherIcon(Number(weathercode)) || ''}
                       </span>
-                      <span
-                        style={{
-                          backgroundColor: (i === 2 ? tomorrowAQ : todayAQ)
-                            .aqiDesc.color,
-                        }}
-                        className={'aqi-icon '}
-                      >
-                        <span>
-                          {(i === 2 ? tomorrowAQ : todayAQ).european_aqi +
-                            ' ' +
-                            (i === 2 ? tomorrowAQ : todayAQ).aqiDesc.aqiDesc}
+                      <div className="wp-t-i-data">
+                        <span className="wp-t-i-d-date">
+                          {moment(v).isSame(moment(), 'day')
+                            ? t('today', {
+                                ns: 'sakiuiWeather',
+                              })
+                            : t('tomorrow', {
+                                ns: 'sakiuiWeather',
+                              })}
                         </span>
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
+                        <span className="wp-t-i-d-temp">
+                          {`${convertTemperature(
+                            temperature_2m_min,
+                            (weatherInfo.dailyUnits
+                              .temperature_2m_min as any) || '°C',
+                            weather.weatherData.units.temperature
+                          )}~${convertTemperature(
+                            temperature_2m_max,
+                            (weatherInfo.dailyUnits
+                              .temperature_2m_max as any) || '°C',
+                            weather.weatherData.units.temperature
+                          )}${weather.weatherData.units.temperature}`}
+                        </span>
+                        <span className="wp-t-i-d-weather">
+                          <span>
+                            {maxTempWeatherCode === minTempWeatherCode
+                              ? t('weather' + (weathercode || 0), {
+                                  ns: 'sakiuiWeather',
+                                })
+                              : t('weatherToWeather', {
+                                  ns: 'sakiuiWeather',
+                                  waether1: t(
+                                    'weather' + (maxTempWeatherCode || 0),
+                                    {
+                                      ns: 'sakiuiWeather',
+                                    }
+                                  ),
+                                  weather2: t(
+                                    'weather' + (minTempWeatherCode || 0),
+                                    {
+                                      ns: 'sakiuiWeather',
+                                    }
+                                  ),
+                                })}
+                          </span>
+                          <span
+                            style={{
+                              backgroundColor: (i === 2 ? tomorrowAQ : todayAQ)
+                                .aqiDesc.color,
+                            }}
+                            className={'aqi-icon '}
+                          >
+                            <span>
+                              {(i === 2 ? tomorrowAQ : todayAQ).european_aqi +
+                                ' ' +
+                                (i === 2 ? tomorrowAQ : todayAQ).aqiDesc
+                                  .aqiDesc}
+                            </span>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="wp-hourly">
             <div className="wp-title">
               <span>
                 {t('24hourForecast', {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 })}
               </span>
             </div>
@@ -2662,7 +3093,7 @@ const WeatherPage = () => {
             <div className="wp-title">
               <span>
                 {t('15dayForecast', {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 })}
               </span>
               <div className="wt-right">
@@ -2685,10 +3116,14 @@ const WeatherPage = () => {
                         }}
                         type="Normal"
                         border="none"
+                        padding="4px 0px 4px 6px"
+                        bgColor={themeColors['--button-bg-color']}
+                        bgHoverColor={themeColors['--button-bg-hover-color']}
+                        bgActiveColor={themeColors['--button-bg-active-color']}
                       >
                         <span
                           style={{
-                            color: '#666',
+                            color: themeColors['--c2-color'],
                           }}
                         >
                           {a15dayForecastDPList.filter(
@@ -2698,7 +3133,7 @@ const WeatherPage = () => {
                         <saki-icon
                           width="24px"
                           height="24px"
-                          color="#999"
+                          color={themeColors['--c3-color']}
                           type="BottomTriangle"
                         ></saki-icon>
                       </SakiButton>
@@ -2759,7 +3194,7 @@ const WeatherPage = () => {
               >
                 <span>
                   {t('40dayForecast', {
-                    ns: 'weather',
+                    ns: 'sakiuiWeather',
                   })}
                 </span>
               </SakiButton>
@@ -2770,7 +3205,7 @@ const WeatherPage = () => {
             <div className="wp-title">
               <span>
                 {t('airQuality', {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 })}
               </span>
               <div className="wt-right">
@@ -2793,10 +3228,14 @@ const WeatherPage = () => {
                         }}
                         type="Normal"
                         border="none"
+                        padding="4px 0px 4px 6px"
+                        bgColor={themeColors['--button-bg-color']}
+                        bgHoverColor={themeColors['--button-bg-hover-color']}
+                        bgActiveColor={themeColors['--button-bg-active-color']}
                       >
                         <span
                           style={{
-                            color: '#666',
+                            color: themeColors['--c2-color'],
                           }}
                         >
                           {airQualityDPList.filter(
@@ -2806,7 +3245,7 @@ const WeatherPage = () => {
                         <saki-icon
                           width="24px"
                           height="24px"
-                          color="#999"
+                          color={themeColors['--c3-color']}
                           type="BottomTriangle"
                         ></saki-icon>
                       </SakiButton>
@@ -2870,7 +3309,7 @@ const WeatherPage = () => {
                           className="item-text"
                         >
                           {t(v, {
-                            ns: 'weather',
+                            ns: 'sakiuiWeather',
                           })}
                         </span>
                         <div
@@ -2909,7 +3348,7 @@ const WeatherPage = () => {
             <div className="wp-title">
               <span>
                 {t('sunMoonTimes', {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 })}
               </span>
               <div className="wt-right">
@@ -2932,10 +3371,14 @@ const WeatherPage = () => {
                         }}
                         type="Normal"
                         border="none"
+                        padding="4px 0px 4px 6px"
+                        bgColor={themeColors['--button-bg-color']}
+                        bgHoverColor={themeColors['--button-bg-hover-color']}
+                        bgActiveColor={themeColors['--button-bg-active-color']}
                       >
                         <span
                           style={{
-                            color: '#666',
+                            color: themeColors['--c2-color'],
                           }}
                         >
                           {sunMoonDPList.filter(
@@ -2945,7 +3388,7 @@ const WeatherPage = () => {
                         <saki-icon
                           width="24px"
                           height="24px"
-                          color="#999"
+                          color={themeColors['--c3-color']}
                           type="BottomTriangle"
                         ></saki-icon>
                       </SakiButton>
@@ -2988,7 +3431,7 @@ const WeatherPage = () => {
                   {[
                     {
                       text: t('daylight', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: formatDurationI18n(
                         moment(sunMoon.sunset).unix() -
@@ -2997,7 +3440,7 @@ const WeatherPage = () => {
                     },
                     {
                       text: t('moonshine', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: formatDurationI18n(
                         moment(sunMoon.moonset).unix() -
@@ -3006,50 +3449,50 @@ const WeatherPage = () => {
                     },
                     {
                       text: t('astronomicalStart', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(
                         sunMoon.twilightTimes.astronomical.start
-                      ).format('HH:mm:ss'),
+                      ).format(timeFormat.hms),
                     },
                     {
                       text: t('astronomicalEnd', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(
                         sunMoon.twilightTimes.astronomical.end
-                      ).format('HH:mm:ss'),
+                      ).format(timeFormat.hms),
                     },
                     {
                       text: t('nauticalStart', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(sunMoon.twilightTimes.nautical.start).format(
-                        ' HH:mm:ss'
+                        timeFormat.hms
                       ),
                     },
                     {
                       text: t('nauticalEnd', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(sunMoon.twilightTimes.nautical.end).format(
-                        'HH:mm:ss'
+                        timeFormat.hms
                       ),
                     },
                     {
                       text: t('civilStart', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(sunMoon.twilightTimes.civil.start).format(
-                        'HH:mm:ss'
+                        timeFormat.hms
                       ),
                     },
                     {
                       text: t('civilEnd', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       }),
                       time: moment(sunMoon.twilightTimes.civil.end).format(
-                        'HH:mm:ss'
+                        timeFormat.hms
                       ),
                     },
                     // {
@@ -3083,7 +3526,7 @@ const WeatherPage = () => {
             <div className="wp-title">
               <span>
                 {t('weatherDetails', {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 })}
               </span>
             </div>
@@ -3100,7 +3543,7 @@ const WeatherPage = () => {
                     <NoSSR>
                       <saki-icon
                         margin="0 4px 0 0"
-                        color="#444"
+                        color={themeColors['--c1-color']}
                         width="14px"
                         height="14px"
                         type="PressureGauge"
@@ -3108,14 +3551,14 @@ const WeatherPage = () => {
                     </NoSSR>
                     <span>
                       {t('surfacePressure', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       })}
                     </span>
                   </div>
                   <div className="i-t-right">
                     <span>
                       {/* {t('more', {
-                        ns: 'weather',
+                        ns: 'sakiuiWeather',
                       })} */}
                     </span>
                   </div>
@@ -3126,13 +3569,18 @@ const WeatherPage = () => {
                       margin: '-10px 0 0',
                     }}
                   >
-                    <span>{curInfo.surfacePressure.val}</span>
-                    <span>{curInfo.surfacePressure.unit}</span>
+                    <span>
+                      {convertPressure(
+                        curInfo.surfacePressure.val,
+                        curInfo.surfacePressure.unit as any,
+                        weather.weatherData.units.pressure
+                      )}
+                    </span>
+                    <span>{weather.weatherData.units.pressure}</span>
                   </span>
                   <span
                     style={{
                       fontSize: '16px',
-                      color: '#444',
                     }}
                   >
                     {curInfo.surfacePressure.level}
@@ -3153,7 +3601,7 @@ const WeatherPage = () => {
                   <NoSSR>
                     <saki-icon
                       margin="0 4px 0 0"
-                      color="#444"
+                      color={themeColors['--c1-color']}
                       width="14px"
                       height="14px"
                       type="Windmill"
@@ -3161,7 +3609,7 @@ const WeatherPage = () => {
                   </NoSSR>
                   <span>
                     {t('windLevel', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
@@ -3171,17 +3619,22 @@ const WeatherPage = () => {
                       margin: '-10px 0 0',
                     }}
                   >
-                    <span>{curInfo.windy.val}</span>
-                    <span>{curInfo.windy.unit}</span>
+                    <span>
+                      {convertWindSpeed(
+                        Number(curInfo.windy.val),
+                        curInfo.windy.unit as any,
+                        weather.weatherData.units.windSpeed
+                      )}
+                    </span>
+                    <span>{weather.weatherData.units.windSpeed}</span>
                   </span>
                   <span
                     style={{
                       fontSize: '16px',
-                      color: '#444',
                     }}
                   >
                     {`${curInfo.windy.direction} ${t('windLevelNum', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                       num: curInfo.windy.level,
                     })}`}
                   </span>
@@ -3201,7 +3654,7 @@ const WeatherPage = () => {
                   <NoSSR>
                     <saki-icon
                       margin="0 4px 0 0"
-                      color="#444"
+                      color={themeColors['--c1-color']}
                       width="14px"
                       height="14px"
                       type="UVIndexSunFill"
@@ -3209,7 +3662,7 @@ const WeatherPage = () => {
                   </NoSSR>
                   <span>
                     {t('uvIndex', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
@@ -3254,7 +3707,7 @@ const WeatherPage = () => {
                   <NoSSR>
                     <saki-icon
                       margin="0 4px 0 0"
-                      color="#444"
+                      color={themeColors['--c1-color']}
                       width="14px"
                       height="14px"
                       type="Eye"
@@ -3262,19 +3715,24 @@ const WeatherPage = () => {
                   </NoSSR>
                   <span>
                     {t('visibility', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
                 <div className="item-val">
                   <span>
-                    <span>{curInfo.visibility.val}</span>
-                    <span>{curInfo.visibility.unit}</span>
+                    <span>
+                      {convertVisibility(
+                        Number(curInfo.visibility.val),
+                        curInfo.visibility.unit as any,
+                        weather.weatherData.units.visibility
+                      )}
+                    </span>
+                    <span>{weather.weatherData.units.visibility}</span>
                   </span>
                   <span
                     style={{
                       fontSize: '16px',
-                      color: '#444',
                     }}
                   >
                     {curInfo.visibility.level}
@@ -3294,7 +3752,7 @@ const WeatherPage = () => {
                   <NoSSR>
                     <saki-icon
                       margin="0 4px 0 0"
-                      color="#444"
+                      color={themeColors['--c1-color']}
                       width="14px"
                       height="14px"
                       type="Umbrella"
@@ -3302,7 +3760,7 @@ const WeatherPage = () => {
                   </NoSSR>
                   <span>
                     {t('precipitation', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
@@ -3312,17 +3770,22 @@ const WeatherPage = () => {
                       margin: '-10px 0 0',
                     }}
                   >
-                    <span>{curInfo.precipitation.val.toFixed(1)}</span>
-                    <span>{curInfo.precipitation.unit}</span>
+                    <span>
+                      {convertPrecipitation(
+                        curInfo.precipitation.val,
+                        curInfo.precipitation.unit as any,
+                        weather.weatherData.units.precipitation
+                      )}
+                    </span>
+                    <span>{weather.weatherData.units.precipitation}</span>
                   </span>
                   <span
                     style={{
                       fontSize: '16px',
-                      color: '#444',
                     }}
                   >
                     {t('past24Hours', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
@@ -3340,7 +3803,7 @@ const WeatherPage = () => {
                   <NoSSR>
                     <saki-icon
                       margin="0 4px 0 0"
-                      color="#444"
+                      color={themeColors['--c1-color']}
                       width="14px"
                       height="14px"
                       type="Humidity"
@@ -3348,7 +3811,7 @@ const WeatherPage = () => {
                   </NoSSR>
                   <span>
                     {t('humidity', {
-                      ns: 'weather',
+                      ns: 'sakiuiWeather',
                     })}
                   </span>
                 </div>
@@ -3378,850 +3841,10 @@ const WeatherPage = () => {
           onClose={() => {
             setOpenWeatherDetailModalType('')
           }}
+          themeColor={themeColor}
         ></WeatherDetailModal>
       </div>
     </>
-  )
-}
-
-const WeatherDetailModal = ({
-  type,
-  weatherInfo,
-  onClose,
-}: {
-  type:
-    | 'surfacePressure'
-    | 'windLevel'
-    | 'uvIndex'
-    | 'visibility'
-    | 'precipitation'
-    | 'humidity'
-    | ''
-  weatherInfo: typeof defaultWeatherInfo
-  onClose: () => void
-}) => {
-  const { t, i18n } = useTranslation('weatherPage')
-  const config = useSelector((state: RootState) => state.config)
-  const dispatch = useDispatch<AppDispatch>()
-
-  const {
-    surfacePressure,
-    uvList,
-    visibilityList,
-    last24HoursPrecipitationList,
-  } = useMemo(() => {
-    let curIndex = 0
-
-    const curHour = moment().format('YYYY-MM-DD HH:00')
-    weatherInfo.hourly.time.some((v, i) => {
-      const vHour = moment(v).format('YYYY-MM-DD HH:00')
-      // console.log('getWeather curIndex', curHour, vHour)
-      if (curHour === vHour) {
-        curIndex = i
-        return true
-      }
-
-      return curIndex
-    })
-
-    let surfacePressure: {
-      val: number
-      unit: string
-      pressureLevel: PressureLevel
-      date: string
-    }[] = []
-
-    if (type === 'surfacePressure') {
-      surfacePressure = weatherInfo.hourly.time
-        .slice(0, 96)
-        .map((v, i) => {
-          const curHour = moment().format('HH:00')
-          const vHour = moment(v).format('HH:00')
-
-          const press = getDetailedPressureLevel(
-            weatherInfo.hourly.surface_pressure[i],
-            weatherInfo.current.altitude
-          )
-          return {
-            val: weatherInfo.hourly.surface_pressure[i],
-            unit: weatherInfo.hourlyUnits.surface_pressure,
-            pressureLevel: press,
-            date:
-              curHour === vHour
-                ? t('now', {
-                    ns: 'weather',
-                  })
-                : vHour,
-          }
-        })
-        .slice(curIndex - 1, curIndex + 22)
-    }
-
-    if (type === 'windLevel') {
-      setTimeout(() => {
-        createWindChart({
-          container: '#wind-chart',
-          weatherInfo,
-          type: 'Wind24H',
-          width: 70 * 24 + 18 * 2,
-          height: 150,
-          margin: {
-            top: 50,
-            bottom: 20,
-            right: 18,
-            left: 18,
-          },
-          windData: weatherInfo.hourly.time
-            .slice(0, 96)
-            .map((v, i) => {
-              if (i < curIndex - 1 || i > curIndex + 22) {
-                return {
-                  wind_direction_10m: 0,
-                  wind_speed_10m: 0,
-                  wind_gusts_10m: 0,
-                  date: '',
-                  unit: '',
-                }
-              }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
-              return {
-                wind_direction_10m: weatherInfo.hourly.wind_direction_10m[i],
-                wind_speed_10m: weatherInfo.hourly.wind_speed_10m[i],
-                wind_gusts_10m: weatherInfo.hourly.wind_gusts_10m[i],
-                unit: weatherInfo.hourlyUnits.wind_speed_10m,
-                date:
-                  curHour === vHour
-                    ? t('now', {
-                        ns: 'weather',
-                      })
-                    : vHour,
-              }
-            })
-            .filter((v) => v.date),
-        })
-        createWindChart({
-          container: '#wind-15-chart',
-          weatherInfo,
-          type: 'Wind15D',
-          width: 70 * weatherInfo.daily.time.length + 18 * 2,
-          height: 168,
-          margin: {
-            top: 68,
-            bottom: 10,
-            right: 18,
-            left: 18,
-          },
-          windData: weatherInfo.daily.time
-            .map((v, i) => {
-              const wDate = formatWeatherDate(v)
-              return {
-                wind_direction_10m:
-                  weatherInfo.daily.wind_direction_10m_dominant[i],
-                wind_speed_10m: weatherInfo.daily.wind_speed_10m_max[i],
-                wind_gusts_10m: weatherInfo.daily.wind_gusts_10m_max[i],
-                unit: weatherInfo.dailyUnits.wind_speed_10m_max,
-                date: wDate.week + ',' + wDate.date,
-              }
-            })
-            .filter((v) => v.date),
-        })
-      }, 20)
-    }
-
-    let last24HoursPrecipitationList: {
-      hours: number
-      val: number
-    }[] = []
-
-    if (type === 'precipitation') {
-      last24HoursPrecipitationList = [1, 2, 3, 6, 9, 12, 18, 24].map((v) => {
-        return {
-          hours: v,
-          val: weatherInfo.hourly.time.reduce((t, sv, si) => {
-            if (si <= curIndex && si > curIndex - v) {
-              const vHour = moment(sv).format('YYYY-MM-DD HH:00')
-
-              t = t + weatherInfo.hourly.precipitation[si]
-            }
-            return t
-          }, 0),
-        }
-      })
-      setTimeout(() => {
-        createPrecipitationDataChart({
-          container: '#precipitation-24h-chart',
-          weatherInfo,
-          type: 'Hourly',
-          width: 70 * 24 + 18 * 2,
-          height: 190,
-          margin: {
-            top: 25,
-            bottom: 45,
-            right: 18,
-            left: 18,
-          },
-          precipitationData: weatherInfo.hourly.time
-            .slice(0, 96)
-            .map((v, i) => {
-              if (i < curIndex - 1 || i > curIndex + 22) {
-                return {
-                  precipitation: 0,
-                  precipitation_probability: 0,
-                  date: '',
-                }
-              }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
-              return {
-                precipitation: weatherInfo.hourly.precipitation[i],
-                precipitation_probability:
-                  weatherInfo.hourly.precipitation_probability[i],
-                date:
-                  curHour === vHour
-                    ? t('now', {
-                        ns: 'weather',
-                      })
-                    : vHour,
-              }
-            })
-            .filter((v) => v.date),
-        })
-        createPrecipitationDataChart({
-          container: '#precipitation-15d-chart',
-          weatherInfo,
-          type: 'Daily',
-          width: 70 * 17 + 18 * 2,
-          height: 210,
-          margin: {
-            top: 45,
-            bottom: 45,
-            right: 18,
-            left: 18,
-          },
-          precipitationData: weatherInfo.daily.time.map((v, i) => {
-            return {
-              precipitation: weatherInfo.daily.precipitation_sum?.[i] || 0,
-              precipitation_probability:
-                weatherInfo.daily.precipitation_probability_mean[i],
-              date: v,
-            }
-          }),
-        })
-      }, 20)
-    }
-
-    if (type === 'humidity') {
-      setTimeout(() => {
-        createPrecipitationDataChart({
-          container: '#humidity-24h-chart',
-          weatherInfo,
-          type: 'Humidity',
-          width: 70 * 24 + 18 * 2,
-          height: 170,
-          margin: {
-            top: 25,
-            bottom: 25,
-            right: 18,
-            left: 18,
-          },
-          precipitationData: weatherInfo.hourly.time
-            .slice(0, 96)
-            .map((v, i) => {
-              if (i < curIndex - 1 || i > curIndex + 22) {
-                return {
-                  precipitation: 0,
-                  precipitation_probability: 0,
-                  date: '',
-                }
-              }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
-              return {
-                precipitation: weatherInfo.hourly.precipitation[i],
-                precipitation_probability:
-                  weatherInfo.hourly.relative_humidity_2m[i],
-                date:
-                  curHour === vHour
-                    ? t('now', {
-                        ns: 'weather',
-                      })
-                    : vHour,
-              }
-            })
-            .filter((v) => v.date),
-        })
-
-        createDewPointChart({
-          container: '#dew-point-chart',
-          weatherInfo,
-          type: 'Humidity',
-          width: 70 * 24 + 18 * 2,
-          height: 150,
-          margin: {
-            top: 65,
-            bottom: 10,
-            right: 28,
-            left: 8,
-          },
-          valData: weatherInfo.hourly.time
-            .slice(0, 96)
-            .map((v, i) => {
-              if (i < curIndex - 1 || i > curIndex + 22) {
-                return {
-                  val: 0,
-                  unit: '',
-                  date: '',
-                }
-              }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
-              return {
-                val: weatherInfo.hourly.dew_point_2m?.[i] || 0,
-                unit: weatherInfo.hourlyUnits.dew_point_2m,
-                date:
-                  curHour === vHour
-                    ? t('now', {
-                        ns: 'weather',
-                      })
-                    : vHour,
-              }
-            })
-            .filter((v) => v.date),
-        })
-      }, 20)
-    }
-
-    let visibilityList: {
-      val: string
-      level: string
-      weatherCode: number
-      color: string
-      date: string
-    }[] = []
-    if (type === 'visibility') {
-      visibilityList = weatherInfo.hourly.time
-        .slice(0, 96)
-        .map((v, i) => {
-          const curHour = moment().format('HH:00')
-          const vHour = moment(v).format('HH:00')
-
-          const visibilityAlert = getVisibilityAlert(
-            weatherInfo.hourly.visibility?.[i] || 0
-          )
-          return {
-            val: formatDistance(visibilityAlert.visibility),
-            level: visibilityAlert.level,
-            color: visibilityAlert.color,
-            weatherCode: weatherInfo.hourly.weathercode[i],
-            date:
-              curHour === vHour
-                ? t('now', {
-                    ns: 'weather',
-                  })
-                : vHour,
-          }
-        })
-        .slice(curIndex - 1, curIndex + 22)
-    }
-
-    let uvList: {
-      val: number
-      level: string
-      weatherCode: number
-      color: string
-      date: string
-      week: string
-    }[] = []
-    if (type === 'uvIndex') {
-      uvList = weatherInfo.daily.time.map((v, i) => {
-        const curHour = moment().format('HH:00')
-        const vHour = moment(v).format('HH:00')
-
-        const uvInfo = getUVInfo(weatherInfo.daily.uv_index_max?.[i] || 0)
-
-        const d = formatWeatherDate(v)
-        return {
-          val: weatherInfo.daily.uv_index_max?.[i] || 0,
-          level: uvInfo.level,
-          color: uvInfo.color,
-          weatherCode: weatherInfo.hourly.weathercode[i],
-          date: d.date,
-          week: d.week,
-        }
-      })
-
-      setTimeout(() => {
-        createDewPointChart({
-          container: '#uvIndex-24h-chart',
-          weatherInfo,
-          type: 'UV',
-          width: 70 * 24 + 18 * 2,
-          height: 150,
-          margin: {
-            top: 65,
-            bottom: 10,
-            right: 28,
-            left: 8,
-          },
-          valData: weatherInfo.hourly.time
-            .slice(0, 96)
-            .map((v, i) => {
-              if (i < curIndex - 1 || i > curIndex + 22) {
-                return {
-                  val: 0,
-                  unit: '',
-                  date: '',
-                }
-              }
-              const curHour = moment().format('HH:00')
-              const vHour = moment(v).format('HH:00')
-              return {
-                val: weatherInfo.hourly.uv_index?.[i] || 0,
-                unit: weatherInfo.hourlyUnits.uv_index,
-                date:
-                  curHour === vHour
-                    ? t('now', {
-                        ns: 'weather',
-                      })
-                    : vHour,
-              }
-            })
-            .filter((v) => v.date),
-        })
-      }, 20)
-    }
-
-    // console.log('visibilityList', weatherInfo.hourly, visibilityList)
-
-    return {
-      surfacePressure,
-      uvList,
-      visibilityList,
-      last24HoursPrecipitationList,
-    }
-  }, [type, weatherInfo, config.lang])
-
-  return (
-    <NoSSR>
-      <SakiAsideModal
-        ref={
-          bindEvent({
-            close: () => {
-              onClose()
-            },
-          }) as any
-        }
-        onLoaded={() => {}}
-        width="100%"
-        height="100%"
-        max-width={config.deviceType === 'Mobile' ? '100%' : '500px'}
-        max-height={
-          config.deviceType === 'Mobile'
-            ? '80%'
-            : Math.min(600, config.deviceWH.h) + 'px'
-        }
-        vertical={config.deviceType === 'Mobile' ? 'Bottom' : 'Center'}
-        horizontal={'Center'}
-        offset-x={'0px'}
-        offset-y={'0px'}
-        mask
-        mask-closable={config.deviceType === 'Mobile'}
-        maskBackgroundColor={'rgba(0,0,0,0.3)'}
-        border-radius={config.deviceType === 'Mobile' ? '10px 10px 0 0' : ''}
-        border={config.deviceType === 'Mobile' ? 'none' : ''}
-        background-color="#fff"
-        visible={type !== ''}
-        overflow="hidden"
-      >
-        <div className={'weather-detail-modal ' + config.deviceType}>
-          <div className="wd-header">
-            <SakiModalHeader
-              border={false}
-              back-icon={false}
-              close-icon={true}
-              right-width={'56px'}
-              ref={
-                bindEvent({
-                  close() {
-                    onClose()
-                  },
-                }) as any
-              }
-              title={t(type, {
-                ns: 'weather',
-              })}
-            />
-          </div>
-          <div className="wd-main scrollBarHover">
-            {type === 'surfacePressure' ? (
-              <div className="wd-surfacePressure">
-                <SakiTitle level={4} margin="0 0 4px 20px" fontWeight="700">
-                  <span>
-                    {t('24Hours', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wp-sp-list">
-                  {surfacePressure.map((v, i) => {
-                    return (
-                      <div className="sp-item" key={i}>
-                        <div className="sp-dete">{v.date}</div>
-                        <div className="sp-val">
-                          <span>{v.val}</span>
-                          <span>{v.unit}</span>
-                        </div>
-                        <div className="sp-level">{v.pressureLevel.level}</div>
-                        <div className="sp-color">
-                          <div
-                            style={{
-                              backgroundColor: v.pressureLevel.color,
-                            }}
-                            className="sp-progress"
-                          ></div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                {/* <div className="wp-chart scrollBarHover">
-                  <svg id="surfacePressure-chart"></svg>
-                </div> */}
-              </div>
-            ) : type === 'windLevel' ? (
-              <div className="wd-wind">
-                <SakiTitle
-                  level={2}
-                  margin="0 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('24hourForecast', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wp-chart scrollBarHover">
-                  <svg id="wind-chart"></svg>
-                </div>
-                <div className="wd-color">
-                  <div className="wd-c-item">
-                    <span>
-                      {t('wind_gusts', {
-                        ns: 'weather',
-                      })}
-                    </span>
-                    <div
-                      style={
-                        {
-                          '--bg-color': '#f5acba',
-                        } as any
-                      }
-                      className="item-progress"
-                    ></div>
-                  </div>
-                  <div className="wd-c-item">
-                    <span>
-                      {t('wind_speed', {
-                        ns: 'weather',
-                      })}
-                    </span>
-                    <div
-                      style={
-                        {
-                          '--bg-color': '#60d0fa',
-                        } as any
-                      }
-                      className="item-progress"
-                    ></div>
-                  </div>
-                </div>
-
-                <SakiTitle
-                  level={2}
-                  margin="0 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('15dayForecast', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wp-chart scrollBarHover">
-                  <svg id="wind-15-chart"></svg>
-                </div>
-
-                <div className="wd-color">
-                  <div className="wd-c-item">
-                    <span>
-                      {t('wind_gusts', {
-                        ns: 'weather',
-                      })}
-                    </span>
-                    <div
-                      style={
-                        {
-                          '--bg-color': '#f5acba',
-                        } as any
-                      }
-                      className="item-progress"
-                    ></div>
-                  </div>
-                  <div className="wd-c-item">
-                    <span>
-                      {t('wind_speed', {
-                        ns: 'weather',
-                      })}
-                    </span>
-                    <div
-                      style={
-                        {
-                          '--bg-color': '#60d0fa',
-                        } as any
-                      }
-                      className="item-progress"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ) : type === 'precipitation' ? (
-              <div className="wd-precipitation">
-                <SakiTitle
-                  level={2}
-                  margin="0 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('precipitationSummary', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wd-precipitationSummary">
-                  {last24HoursPrecipitationList.map((v, i) => {
-                    return (
-                      <div className={'wd-ps-item'} key={i}>
-                        <span>
-                          {t('last24HoursPrecipitation', {
-                            ns: 'weather',
-                            time: v.hours,
-                            num:
-                              Math.round(v.val * 100) / 100 +
-                              weatherInfo.current_units.precipitation,
-                          })}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <SakiTitle
-                  level={2}
-                  margin="18px 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('hourlyPrecipitationProbability', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-
-                <div className="wp-chart scrollBarHover">
-                  <svg id="precipitation-24h-chart"></svg>
-                </div>
-
-                <SakiTitle
-                  level={2}
-                  margin="18px 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('dailyPrecipitationProbability', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-
-                <div className="wp-chart scrollBarHover">
-                  <svg id="precipitation-15d-chart"></svg>
-                </div>
-              </div>
-            ) : type === 'humidity' ? (
-              <div className="wd-humidity">
-                <SakiTitle
-                  level={2}
-                  margin="18px 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('hourlyHumidity', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-
-                <div className="wp-chart scrollBarHover">
-                  <svg id="humidity-24h-chart"></svg>
-                </div>
-
-                <SakiTitle
-                  level={2}
-                  margin="18px 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('dailyDewPoint', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-
-                <div className="wp-chart scrollBarHover">
-                  <svg id="dew-point-chart"></svg>
-                </div>
-              </div>
-            ) : type === 'visibility' ? (
-              <div className="wd-surfacePressure">
-                <SakiTitle level={4} margin="0 0 4px 20px" fontWeight="700">
-                  <span>
-                    {t('24Hours', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wp-sp-list visibility">
-                  {visibilityList.map((v, i) => {
-                    return (
-                      <div className="sp-item" key={i}>
-                        <div className="sp-dete">{v.date}</div>
-                        <div className="sp-weatherCode">
-                          <span>
-                            {openWeatherWMOToEmoji(v.weatherCode)?.value || ''}
-                          </span>
-                          <span>
-                            {t('weather' + (v.weatherCode || 0), {
-                              ns: 'weather',
-                            })}
-                          </span>
-                        </div>
-                        <div className="sp-val">
-                          <span>{v.val}</span>
-                        </div>
-                        {config.deviceType !== 'Mobile' ? (
-                          <div className="sp-level">{v.level}</div>
-                        ) : (
-                          ''
-                        )}
-                        <div className="sp-color">
-                          {config.deviceType === 'Mobile' ? (
-                            <div className="sp-level">{v.level}</div>
-                          ) : (
-                            ''
-                          )}
-                          <div
-                            style={{
-                              backgroundColor: v.color,
-                            }}
-                            className="sp-progress"
-                          ></div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : type === 'uvIndex' ? (
-              <div className="wd-humidity wd-surfacePressure">
-                <SakiTitle
-                  level={2}
-                  margin="0 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('24hourForecast', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-
-                <div className="wp-chart scrollBarHover">
-                  <svg id="uvIndex-24h-chart"></svg>
-                </div>
-
-                <SakiTitle
-                  level={2}
-                  margin="10px 0 18px 18px"
-                  color="#000"
-                  fontWeight="700"
-                >
-                  <span>
-                    {t('15dayForecast', {
-                      ns: 'weather',
-                    })}
-                  </span>
-                </SakiTitle>
-                <div className="wp-sp-list visibility uvIndex">
-                  {uvList.map((v, i) => {
-                    return (
-                      <div className="sp-item" key={i}>
-                        <div className="sp-dete">
-                          <span>{v.week}</span>
-                          <span className="date">{v.date}</span>
-                        </div>
-                        <div className="sp-weatherCode">
-                          <span>
-                            {openWeatherWMOToEmoji(v.weatherCode)?.value || ''}
-                          </span>
-                          <span>
-                            {t('weather' + (v.weatherCode || 0), {
-                              ns: 'weather',
-                            })}
-                          </span>
-                        </div>
-                        <div className="sp-val">
-                          <span>{v.val}</span>
-                        </div>
-                        {config.deviceType !== 'Mobile' ? (
-                          <div className="sp-level">{v.level}</div>
-                        ) : (
-                          ''
-                        )}
-                        <div className="sp-color">
-                          {config.deviceType === 'Mobile' ? (
-                            <div className="sp-level">{v.level}</div>
-                          ) : (
-                            ''
-                          )}
-                          <div
-                            style={{
-                              backgroundColor: v.color,
-                            }}
-                            className="sp-progress"
-                          ></div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : (
-              ''
-            )}
-          </div>
-        </div>
-      </SakiAsideModal>
-    </NoSSR>
   )
 }
 
@@ -4235,6 +3858,9 @@ const WeatherDayForecastListItem = ({
   weatherInfo: typeof defaultWeatherInfo
 }) => {
   const { t, i18n } = useTranslation('weatherPage')
+
+  const weather = useSelector((state: RootState) => state.weather)
+
   let i = index
   const highTemp = weatherInfo.daily.temperature_2m_max[i]
   const lowTemp = weatherInfo.daily.temperature_2m_min[i]
@@ -4262,32 +3888,40 @@ const WeatherDayForecastListItem = ({
         <span>{date.week}</span>
       </div>
       <div className="item-weatheremoji">
-        <span>{openWeatherWMOToEmoji(Number(weatherCode))?.value || ''}</span>
+        <span>{getWeatherIcon(Number(weatherCode)) || ''}</span>
       </div>
       <div className="item-weather">
         <span>
           {maxTempWeatherCode === minTempWeatherCode
             ? t('weather' + (weatherCode || 0), {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })
             : t('weatherToWeather', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
                 waether1: t('weather' + (maxTempWeatherCode || 0), {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 }),
                 weather2: t('weather' + (minTempWeatherCode || 0), {
-                  ns: 'weather',
+                  ns: 'sakiuiWeather',
                 }),
               })}
         </span>
-        <span>{`${temperature_2m_min}~${temperature_2m_max}${weatherInfo.dailyUnits.temperature_2m_max}`}</span>
+        <span>{`${convertTemperature(
+          temperature_2m_min,
+          (weatherInfo.dailyUnits.temperature_2m_min as any) || '°C',
+          weather.weatherData.units.temperature
+        )}~${convertTemperature(
+          temperature_2m_max,
+          (weatherInfo.dailyUnits.temperature_2m_max as any) || '°C',
+          weather.weatherData.units.temperature
+        )}${weatherInfo.dailyUnits.temperature_2m_max}`}</span>
       </div>
       <div className="item-aqi">
         <span>
           {getWindDirectionText(wind_direction_10m, true) +
             ' ' +
             t('windLevelNum', {
-              ns: 'weather',
+              ns: 'sakiuiWeather',
               num: getWindForceLevel(
                 wind_speed_10m || 0,
                 weatherInfo.current_units.wind_speed_10m
@@ -4332,7 +3966,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('sunrise', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>{moment(times.sunrise).format('HH:mm:ss')}</span>
@@ -4340,7 +3974,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('sunset', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>{moment(times.sunset).format('HH:mm:ss')}</span>
@@ -4349,7 +3983,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('daylight', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>
@@ -4363,7 +3997,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('moonrise', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>{moment(times.moonrise).format('HH:mm:ss')}</span>
@@ -4371,7 +4005,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('moonset', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>{moment(times.moonset).format('HH:mm:ss')}</span>
@@ -4380,7 +4014,7 @@ const SunMoonListItem = ({
           <span>
             <span>
               {t('moonshine', {
-                ns: 'weather',
+                ns: 'sakiuiWeather',
               })}
             </span>
             <span>

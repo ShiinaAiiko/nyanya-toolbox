@@ -6,28 +6,9 @@
       min-width: 200px;
       max-width: 700px;
       margin: 10px auto;
-      overflow: hidden;
+      // overflow: hidden;
     }
   }
-}
-
-.tool-box-layout-menu-list {
-  .tblml-item {
-    a {
-      font-size: 14px;
-      padding: 14px 16px;
-      display: block;
-      color: #000;
-    }
-  }
-  // width: calc(60px * 3);
-  // display: flex;
-  // flex-direction: row;
-  // flex-wrap: wrap;
-  // .tblml-item {
-  // 	width: 60px;
-  // 	height: 60px;
-  // }
 }
 
 .context-menu-item {

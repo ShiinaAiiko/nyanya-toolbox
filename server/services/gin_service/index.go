@@ -1,6 +1,8 @@
 package gin_service
 
 import (
+	"net/http"
+
 	conf "github.com/ShiinaAiiko/nyanya-toolbox/server/config"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/routers"
 	"github.com/ShiinaAiiko/nyanya-toolbox/server/services/middleware"
@@ -49,7 +51,7 @@ func InitRouter() {
 	// 	//fmt.Println(index, "\t",value)
 	// 	Router.Use(midFunc)
 	// }
-	// Router.StaticFS("/static", http.Dir("./client/out"))
+	Router.StaticFS("/s", http.Dir("./static"))
 	// Router.StaticFile("/favicon.ico", "./client/out/favicon.ico")
 	// Router.StaticFile("/", "./client/out/index.html")
 	routers.InitRouter(Router)

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import NoSSR from '../components/NoSSR'
 import { bindEvent, snackbar } from '@saki-ui/core'
+import { useRouter } from 'next/router'
 
 const LoadingPage = (): JSX.Element => {
   const { t, i18n } = useTranslation()
@@ -12,6 +13,8 @@ const LoadingPage = (): JSX.Element => {
   const [loadProgressBar, setLoadProgressBar] = useState(false)
   const [progressBar, setProgressBar] = useState(0.01)
   const [hideLoading, setHideLoading] = useState(false)
+
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -57,7 +60,15 @@ const LoadingPage = (): JSX.Element => {
         ></saki-init>
       </NoSSR>
       <div className="loading-logo">
-        <img src={'/icons/256x256.png'} alt="" crossOrigin="anonymous" />
+        <img
+          src={
+            router.pathname.includes('/weather')
+              ? '/weather-icons/256x256.png'
+              : '/icons/256x256.png'
+          }
+          alt=""
+          crossOrigin="anonymous"
+        />
       </div>
       <div className="loading-progress-bar">
         <NoSSR>

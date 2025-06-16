@@ -14,7 +14,7 @@ import {
   changeLanguage,
 } from '../plugins/i18n/i18n'
 import { storage } from './storage'
-import { NRequest, SAaSS } from '@nyanyajs/utils'
+import { NEventListener, NRequest, SAaSS } from '@nyanyajs/utils'
 import moment from 'moment'
 import 'moment/locale/zh-cn'
 import 'moment/locale/zh-tw'
@@ -25,12 +25,15 @@ export type DeviceType = 'Mobile' | 'Pad' | 'PC'
 export type LanguageType = Languages | 'system'
 export let deviceType: DeviceType | undefined
 
+export let eventListener = new NEventListener()
+
 export const R = new NRequest()
 export const saass = new SAaSS({
   baseUrl: '',
 })
 
 export const language: LanguageType = defaultLanguage as any
+
 export const configSlice = createSlice({
   name: 'config',
   initialState: {
@@ -48,30 +51,41 @@ export const configSlice = createSlice({
         [lang: string]: string
       }
       url: string
+      logo?: string
       logoText: string
     }[],
     ssoAccount: false,
     pwaApp: false,
     appearance: 'system',
     connectionStatus: {
-      openMeteo: false,
-      airQualityAPI: false,
-      openStreetMap: false,
+      // openMeteo: false,
+      // airQualityAPI: false,
+      // openStreetMap: false,
+      sakiuiI18n: false,
     },
   },
   reducers: {
-    setConnectionStatus: (
+    setSakiuiI18n: (
       state,
       params: {
-        payload: {
-          filed: keyof typeof state.connectionStatus
-          val: boolean
-        }
+        payload: boolean
         type: string
       }
     ) => {
-      state.connectionStatus[params.payload.filed] = !!params.payload.val
+      state.connectionStatus.sakiuiI18n = params.payload
     },
+    // setConnectionStatus: (
+    //   state,
+    //   params: {
+    //     payload: {
+    //       filed: keyof typeof state.connectionStatus
+    //       val: boolean
+    //     }
+    //     type: string
+    //   }
+    // ) => {
+    //   state.connectionStatus[params.payload.filed] = !!params.payload.val
+    // },
     setAppearance: (
       state,
       params: {
@@ -193,6 +207,7 @@ export const configMethods = {
       method: 'GET',
       url: appListUrl,
     })
+    console.log('appList', res?.data?.appList)
     res?.data?.appList &&
       thunkAPI.dispatch(configSlice.actions.setAppList(res.data.appList))
   }),
@@ -242,76 +257,76 @@ export const configMethods = {
     }
     thunkAPI.dispatch(configSlice.actions.setDeviceType('PC'))
   }),
-  initConnectionOSM: createAsyncThunk(
-    'config/initConnectionOSM',
-    async (_, thunkAPI) => {
-      try {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'openStreetMap',
-            val:
-              (
-                await fetch(
-                  'https://nominatim.openstreetmap.org/search?q=&format=jsonv2'
-                )
-              ).status === 200,
-          })
-        )
-      } catch (error) {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'openStreetMap',
-            val: false,
-          })
-        )
-      }
-    }
-  ),
-  initConnectionOpenMeteo: createAsyncThunk(
-    'config/initConnectionOpenMeteo',
-    async (_, thunkAPI) => {
-      try {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'openMeteo',
-            val:
-              (await fetch('https://api.open-meteo.com/v1/forecast')).status ===
-              200,
-          })
-        )
-      } catch (error) {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'openMeteo',
-            val: false,
-          })
-        )
-      }
-    }
-  ),
-  initConnectionAirQualityAPI: createAsyncThunk(
-    'config/initConnectionAirQualityAPI',
-    async (_, thunkAPI) => {
-      try {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'airQualityAPI',
-            val:
-              (
-                await fetch(
-                  'https://air-quality-api.open-meteo.com/v1/air-quality'
-                )
-              ).status === 200,
-          })
-        )
-      } catch (error) {
-        thunkAPI.dispatch(
-          configSlice.actions.setConnectionStatus({
-            filed: 'airQualityAPI',
-            val: false,
-          })
-        )
-      }
-    }
-  ),
+  // initConnectionOSM: createAsyncThunk(
+  //   'config/initConnectionOSM',
+  //   async (_, thunkAPI) => {
+  //     try {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'openStreetMap',
+  //           val:
+  //             (
+  //               await fetch(
+  //                 'https://nominatim.openstreetmap.org/search?q=&format=jsonv2'
+  //               )
+  //             ).status === 200,
+  //         })
+  //       )
+  //     } catch (error) {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'openStreetMap',
+  //           val: false,
+  //         })
+  //       )
+  //     }
+  //   }
+  // ),
+  // initConnectionOpenMeteo: createAsyncThunk(
+  //   'config/initConnectionOpenMeteo',
+  //   async (_, thunkAPI) => {
+  //     try {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'openMeteo',
+  //           val:
+  //             (await fetch('https://api.open-meteo.com/v1/forecast')).status ===
+  //             200,
+  //         })
+  //       )
+  //     } catch (error) {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'openMeteo',
+  //           val: false,
+  //         })
+  //       )
+  //     }
+  //   }
+  // ),
+  // initConnectionAirQualityAPI: createAsyncThunk(
+  //   'config/initConnectionAirQualityAPI',
+  //   async (_, thunkAPI) => {
+  //     try {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'airQualityAPI',
+  //           val:
+  //             (
+  //               await fetch(
+  //                 'https://air-quality-api.open-meteo.com/v1/air-quality'
+  //               )
+  //             ).status === 200,
+  //         })
+  //       )
+  //     } catch (error) {
+  //       thunkAPI.dispatch(
+  //         configSlice.actions.setConnectionStatus({
+  //           filed: 'airQualityAPI',
+  //           val: false,
+  //         })
+  //       )
+  //     }
+  //   }
+  // ),
 }

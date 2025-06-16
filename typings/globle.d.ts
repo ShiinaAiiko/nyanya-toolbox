@@ -60,6 +60,7 @@ declare global {
       'saki-transition': any
       'saki-animation-loading': any
       'saki-linear-progress-bar': any
+      'saki-template-header': any
     }
   }
   namespace Window {

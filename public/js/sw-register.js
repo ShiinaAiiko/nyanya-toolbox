@@ -60,7 +60,7 @@ const snackbar = (options) => {
   let el
   const api = {
     open() {
-      // console.log('state.app.status', el)
+      // console.log(' state.app.status', el)
       if (el) {
         el.open()
         return
@@ -127,13 +127,17 @@ const i18nJson = {
 }
 
 const t = (k) => {
-  let pathnameArr = (location.pathname || '').split('/')
+  let pathnameArr = (location.pathname || '')
+    .split('/')
+    ?.map((v) => v.trim())
+    .filter((v) => v)
   let lang = 'en-US'
   if (pathnameArr.length) {
-    lang = pathnameArr[1] || 'en-US'
+    lang = pathnameArr?.[0] || 'en-US'
   }
+  // console.log('pathnameArr ', pathnameArr, lang, k, i18nJson)
 
-  return i18nJson[lang][k] || ''
+  return i18nJson?.[lang]?.[k] || ''
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

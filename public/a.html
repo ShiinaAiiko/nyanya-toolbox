@@ -1,125 +1,350 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html font-size="14px" lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>D3 Line Chart with Gradient Area Fill</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>葡萄图员工看板</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-      .chart-container {
-        width: 600px;
-        height: 300px;
-        margin: 20px auto;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
-      svg {
-        background: #b71c1c9d;
+
+      body,
+      html {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+        /* min-height: 100vh; */
+        /* padding: 20px; */
+      }
+
+      .container {
+        width: 100%;
+        height: 100%;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        height: 100px;
+      }
+
+      h1 {
+        font-size: 2.8rem;
+        color: #2c3e50;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .employee-container {
+        width: 100%;
+        height: calc(100% - 100px);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .employee-container .employee-card {
+        width: calc(100% / 6 - 1em);
+        height: calc(100% / 3 - 1em);
+        margin: 0.5em;
+        display: flex;
+        flex-direction: column;
+        padding: 0.8em 0.8em;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+        border-radius: 1em;
+        transition: box-shadow 0.3s;
+      }
+
+      .employee-container .employee-card:hover {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .employee-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 0 0 0.5em 0;
+      }
+      .employee-header img {
+        width: 3em;
+        height: 3em;
+        border-radius: 50%;
+      }
+      .employee-info {
+        padding: 0 0 0 0.5em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .grape-chart {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .section-title {
+        font-size: 1em;
+        margin: 0 0 0.5em 0;
+      }
+
+      .grape-item {
+        background-color: #2c3e50;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: 50%;
+        margin: 0.1em;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
     </style>
   </head>
   <body>
-    <div class="chart-container">
-      <svg></svg>
+    <div class="container">
+      <header>
+        <h1><i class="fas fa-chart-line"></i> 葡萄图员工看板</h1>
+      </header>
+
+      <div class="employee-container" id="employeeContainer">
+        <!-- 员工卡片将通过JS动态生成 -->
+      </div>
     </div>
 
     <script>
-      const width = 600
-      const height = 300
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 }
-      const innerWidth = width - margin.left - margin.right
-      const innerHeight = height - margin.top - margin.bottom
-
-      const svg = d3
-        .select('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`)
-
-      const data = [
-        { time: '7:00', temp: 11 },
-        { time: '8:00', temp: 13 },
-        { time: '9:00', temp: 14 },
-        { time: '10:00', temp: 14 },
-        { time: '11:00', temp: 14 },
-        { time: '12:00', temp: 16 },
+      // 模拟员工数据
+      const employees = [
+        {
+          id: 'EMP2023001',
+          name: '张明',
+          photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023001',
+          name: '张明',
+          photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023002',
+          name: '李华',
+          photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023003',
+          name: '王芳',
+          photo: 'https://randomuser.me/api/portraits/women/65.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023004',
+          name: '刘伟',
+          photo: 'https://randomuser.me/api/portraits/men/22.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023005',
+          name: '陈静',
+          photo: 'https://randomuser.me/api/portraits/women/32.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023006',
+          name: '赵阳',
+          photo: 'https://randomuser.me/api/portraits/men/76.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
+        {
+          id: 'EMP2023001',
+          name: '张明',
+          photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          status: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+          ],
+        },
       ]
 
-      const xScale = d3
-        .scalePoint()
-        .domain(data.map((d) => d.time))
-        .range([0, innerWidth])
+      // 随机生成一些异常状态点
+      employees.forEach((emp) => {
+        for (let i = 0; i < emp.status.length; i++) {
+          // 10%的概率生成异常状态
+          if (Math.random() < 0.1) {
+            // 随机生成1-4的异常状态
+            emp.status[i] = Math.floor(Math.random() * 4) + 1
+          }
+        }
+      })
 
-      const yScale = d3.scaleLinear().domain([10, 17]).range([innerHeight, 0])
+      // 生成员工卡片
+      function generateEmployeeCards(filter = 'all') {
+        const container = document.getElementById('employeeContainer')
+        container.innerHTML = ''
 
-      // 定义渐变
-      const defs = svg.append('defs')
-      const gradient = defs
-        .append('linearGradient')
-        .attr('id', 'area-gradient')
-        .attr('gradientUnits', 'userSpaceOnUse')
-        .attr('x1', 0)
-        .attr('y1', innerHeight)
-        .attr('x2', 0)
-        .attr('y2', 0) // 垂直渐变，从下到上
+        employees.forEach((employee) => {
+          // 过滤逻辑
+          if (filter === 'normal' && employee.status.some((s) => s !== 0))
+            return
+          if (filter === 'warning' && !employee.status.some((s) => s === 2))
+            return
+          if (filter === 'abnormal' && !employee.status.some((s) => s === 1))
+            return
 
-      gradient
-        .append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', 'rgba(0, 119, 204, 0.1)') // 底部颜色
+          const card = document.createElement('div')
+          card.className = 'employee-card'
 
-      gradient
-        .append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', 'rgba(0, 119, 204, 0.5)') // 顶部颜色
+          // <div class="section-title"><i class="fas fa-chart-pie"></i> 工作状态葡萄图</div>
 
-      // 创建面积生成器
-      const area = d3
-        .area()
-        .x((d) => xScale(d.time))
-        .y0(innerHeight)
-        .y1((d) => yScale(d.temp))
+          card.innerHTML = `
+                    <div class="employee-header">
+                        <img src="${employee.photo}" alt="${
+            employee.name
+          }" class="employee-photo">
+                        <div class="employee-info">
+                            <div class="employee-name">${employee.name}</div>
+                            <div class="employee-id">${employee.id}</div>
+                        </div>
+                    </div>
+                    <div class="grape-chart-section">
+                        <div class="grape-chart">
+                            ${employee.status
+                              .map(
+                                (status, index) =>
+                                  `<div class="grape-item status-${status}" title="时间点 ${
+                                    index + 1
+                                  }">${index + 1}</div>`
+                              )
+                              .join('')}
+                        </div>
+                    </div>
+                `
 
-      // 创建折线生成器
-      const line = d3
-        .line()
-        .x((d) => xScale(d.time))
-        .y((d) => yScale(d.temp))
+          container.appendChild(card)
+        })
 
-      // 添加填充区域，使用渐变
-      svg
-        .append('path')
-        .datum(data)
-        .attr('fill', 'url(#area-gradient)') // 应用渐变
-        .attr('d', area)
+        if (container.innerHTML === '') {
+          container.innerHTML =
+            '<div class="loading">没有找到符合条件的员工</div>'
+        }
+      }
 
-      // 添加折线
-      svg
-        .append('path')
-        .datum(data)
-        .attr('fill', 'none')
-        .attr('stroke', 'steelblue')
-        .attr('stroke-width', 2)
-        .attr('d', line)
+      // 初始化页面
+      document.addEventListener('DOMContentLoaded', () => {
+        generateEmployeeCards()
 
-      // 添加数据点
-      svg
-        .selectAll('.dot')
-        .data(data)
-        .enter()
-        .append('circle')
-        .attr('class', 'dot')
-        .attr('cx', (d) => xScale(d.time))
-        .attr('cy', (d) => yScale(d.temp))
-        .attr('r', 4)
-        .attr('fill', 'steelblue')
-
-      // 添加X轴
-      svg
-        .append('g')
-        .attr('transform', `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(xScale))
-
-      // 添加Y轴
-      svg.append('g').call(d3.axisLeft(yScale))
+        // 添加筛选按钮事件
+        document.querySelectorAll('.filter-btn').forEach((button) => {
+          button.addEventListener('click', () => {
+            document
+              .querySelectorAll('.filter-btn')
+              .forEach((btn) => btn.classList.remove('active'))
+            button.classList.add('active')
+            generateEmployeeCards(button.dataset.filter)
+          })
+        })
+      })
     </script>
   </body>
 </html>

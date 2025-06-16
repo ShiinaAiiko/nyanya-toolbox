@@ -41,6 +41,7 @@ import { localUserMethods } from '../store/localUser'
 import moment from 'moment'
 import { byteConvert } from '@nyanyajs/utils'
 import { copyText, showSnackbar } from '../plugins/methods'
+import { eventListener } from '../store/config'
 
 const SpeedComponent = React.memo(() => {
   const { t, i18n } = useTranslation('common')
@@ -199,27 +200,48 @@ const HeaderComponent = ({
   const [openUserProfileModal, setOpenUserProfileModal] = useState(false)
 
   const [localUsers, setLocalUsers] = useState([] as LocalUser[])
+
+  const isDark = layout.headerColor === 'Dark'
   return (
-    <SakiTemplateHeader visible={visible} fixed={fixed}>
+    <saki-template-header
+      border-bottom={isDark ? '1px solid rgba(0,0,0,0)' : ''}
+      bg-color={isDark ? 'rgba(0,0,0,0.3)' : '#fff'}
+      text-color="#"
+      visible={visible}
+      fixed={fixed}
+    >
       <div slot="left">
         <SakiTemplateMenuDropdown
           ref={(e) => {
-            // console.log('routerrr', router)
+            // console.log('routerrr' , router)
 
             e?.setAppList?.(
               config.appList.map((v) => {
-                let url = v.url.replace(
-                  'tools.aiiko.club/',
-                  'tools.aiiko.club/' +
-                    (router.query.lang ? router.query.lang + '/' : '')
-                )
-                if (mounted) {
-                  url = url.replace(
-                    'https://tools.aiiko.club',
-                    location?.origin.indexOf('192.168.') >= 0
-                      ? location?.origin
-                      : 'https://tools.aiiko.club'
+                let url = v.url
+                  .replace(
+                    'tools.aiiko.club/',
+                    'tools.aiiko.club/' +
+                      (router.query.lang ? router.query.lang + '/' : '')
                   )
+                  .replace(
+                    'weather.aiiko.club/',
+                    'weather.aiiko.club/' +
+                      (router.query.lang ? router.query.lang + '/' : '')
+                  )
+                if (mounted) {
+                  url = url
+                    .replace(
+                      'https://tools.aiiko.club',
+                      location?.origin.indexOf('192.168.') >= 0
+                        ? location?.origin
+                        : 'https://tools.aiiko.club'
+                    )
+                    .replace(
+                      'https://weather.aiiko.club',
+                      location?.origin.indexOf('192.168.') >= 0
+                        ? location?.origin
+                        : 'https://weather.aiiko.club'
+                    )
                 }
                 return {
                   ...v,
@@ -230,6 +252,13 @@ const HeaderComponent = ({
           }}
           openNewPage={!config.pwaApp}
           app-text={layout.headerLogoText}
+          app-logo={
+            router.pathname.includes('/weather')
+              ? '/weather-icons/128x128.png'
+              : ''
+          }
+          text-color={isDark ? '#fff' : '#555'}
+          icon-color={isDark ? '#fff' : '#999'}
         ></SakiTemplateMenuDropdown>
       </div>
       <div slot={'center'}></div>
@@ -247,7 +276,7 @@ const HeaderComponent = ({
               <span
                 style={{
                   margin: '0 6px 0 6px',
-                  color: '#999',
+                  color: isDark ? '#fff' : '#999',
                   fontSize: '12px',
                   textAlign: 'right',
                 }}
@@ -274,33 +303,39 @@ const HeaderComponent = ({
         ) : (
           ''
         )}
-        <SakiButton
-          onTap={() => {
-            const ns =
-              router.pathname
-                .replace('/[lang]', '')
-                .split('/')
-                .filter((v) => v)?.[0] + 'Page'
-            console.log('pageTitle', router, ns)
-            copyText(`${t('pageTitle', { ns })}
+        {!layout.headerLoading.loading ? (
+          <SakiButton
+            onTap={() => {
+              const ns =
+                router.pathname
+                  .replace('/[lang]', '')
+                  .split('/')
+                  .filter((v) => v)?.[0] + 'Page'
+              console.log('pageTitle', router, ns)
+              copyText(`${t('pageTitle', { ns })}
 ${location.href}`)
-            showSnackbar(
-              t('copySuccessfully', {
-                ns: 'prompt',
-              })
-            )
-          }}
-          type="CircleIconGrayHover"
-        >
-          <saki-icon
-            margin="0 6px 0 0"
-            width="16px"
-            height="16px"
-            color="#666"
-            padding="0 0 0 5px"
-            type="ShareFill"
-          ></saki-icon>
-        </SakiButton>
+              showSnackbar(
+                t('copySuccessfully', {
+                  ns: 'prompt',
+                })
+              )
+            }}
+            bgColor={isDark ? 'rgba(0,0,0,0)' : ''}
+            type="CircleIconGrayHover"
+          >
+            <saki-icon
+              margin="0 6px 0 0"
+              width="16px"
+              height="16px"
+              color={isDark ? '#fff' : '#666'}
+              padding="0 0 0 5px"
+              type="ShareFill"
+            ></saki-icon>
+          </SakiButton>
+        ) : (
+          ''
+        )}
+
         {/* <SakiButton type='CircleIconGrayHover'>
 					<saki-icon color='#666' type='ShareFill'></saki-icon>
 				</SakiButton> */}
@@ -330,7 +365,10 @@ ${location.href}`)
             // )
           }}
           bg-color="rgba(0,0,0,0)"
-          language={config.lang}
+          menu-icon-color={isDark ? '#fff' : '#555'}
+          language={config.language}
+          enable-gps={false}
+          weather={!router.pathname.includes('/weather')}
         ></meow-apps-dropdown>
         {config.ssoAccount ? (
           <saki-dropdown
@@ -404,6 +442,13 @@ ${location.href}`)
                       case 'Account':
                         setOpenUserProfileModal(true)
                         break
+                      case 'WeatherUnits':
+                        eventListener.dispatch('OpenModal:WeatherUnitsModal', {
+                          pageTitle: t('unitModalPageTitle', {
+                            ns: 'weatherPage',
+                          }),
+                        })
+                        break
 
                       default:
                         break
@@ -458,6 +503,29 @@ ${location.href}`)
                       </SakiRow>
                     </saki-menu-item>
                   </>
+                ) : (
+                  ''
+                )}
+                {router.pathname.includes('/weather') ? (
+                  <saki-menu-item padding="10px 18px" value={'WeatherUnits'}>
+                    <SakiRow justifyContent="flex-start" alignItems="center">
+                      <SakiCol>
+                        <saki-icon
+                          width="20px"
+                          color="#666"
+                          margin="0 10px 0 0"
+                          type="List"
+                        ></saki-icon>
+                      </SakiCol>
+                      <SakiCol>
+                        <span>
+                          {t('unitModalPageTitle', {
+                            ns: 'weatherPage',
+                          })}
+                        </span>
+                      </SakiCol>
+                    </SakiRow>
+                  </saki-menu-item>
                 ) : (
                   ''
                 )}
@@ -801,7 +869,7 @@ ${location.href}`)
           </div>
         </saki-modal>
       </div>
-    </SakiTemplateHeader>
+    </saki-template-header>
   )
 }
 

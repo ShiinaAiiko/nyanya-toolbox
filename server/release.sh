@@ -49,6 +49,7 @@ start() {
   docker run \
     -v $DIR/$configFilePath:/config.json \
     --name=$name \
+    -v $DIR/static:/static \
     $(cat /etc/hosts | sed 's/^#.*//g' | grep '[0-9][0-9]' | tr "\t" " " | awk '{print "--add-host="$2":"$1 }' | tr '\n' ' ') \
     -p $port:$port \
     --restart=always \
@@ -83,6 +84,7 @@ run() {
     -v $DIR/$configFilePath:/config.json \
     -v $DIR/nyanya-toolbox:/nyanya-toolbox \
     -v $DIR/services:/services \
+    -v $DIR/static:/static \
     --name=$runName \
     -p $port:$port \
     --restart=always \
@@ -94,7 +96,7 @@ unzip() {
   mkdir -p ./services/i18n
   tar -zxvf ./build.tgz -C ./
   chmod -R 700 nyanya-toolbox
-  
+
   rm -rf build.tgz
 }
 

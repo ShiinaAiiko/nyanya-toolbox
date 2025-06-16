@@ -21,6 +21,8 @@ import '../components/Header.scss'
 import '../components/SakiSSOLogin.scss'
 import '../components/Statistics.scss'
 import '../components/LoadingPage.scss'
+import '../components/WeatherDetailModal.scss'
+import '../components/WeatherUnitsModal.scss'
 
 import { useRouter } from 'next/router'
 import { Provider } from 'react-redux'

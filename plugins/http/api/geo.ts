@@ -2,11 +2,15 @@ import * as proto from '../../../protos'
 import * as coding from '../../../protos/socketioCoding'
 import protoRoot from '../../../protos/proto'
 import store from '../../../store'
-import { RSA, AES } from '@nyanyajs/utils'
+import { RSA, AES, deepCopy } from '@nyanyajs/utils'
 import { NSocketIoClient, NRequest } from '@nyanyajs/utils'
 import { R } from '../../../store/config'
 import { RequestProtobuf, getUrl } from '.'
 import { server } from '../../../config'
+import {
+  networkConnectionStatusDetection,
+  networkConnectionStatusDetectionEnum,
+} from '@nyanyajs/utils/dist/common/common'
 // import { e2eeDecryption, e2eeEncryption } from '../common'
 
 const { ResponseDecode, ParamsEncode } = NRequest.protobuf
@@ -27,16 +31,6 @@ export const Geo = () => {
   return {
     regeo: async ({ lat, lng }: { lat: number; lng: number }) => {
       const { config } = store.getState()
-      const res = await R.request({
-        method: 'GET',
-        url:
-          // `https://restapi.amap.com/v3/geocode/regeo?output=json&location=104.978701,24.900169&key=fb7fdf3663af7a532b8bdcd1fc3e6776&radius=100&extensions=all`
-          // `https://restapi.amap.com/v3/geocode/regeo?output=json&location=${lon},${lat}&key=fb7fdf3663af7a532b8bdcd1fc3e6776&radius=100&extensions=all`
-          // `https://nominatim.aiiko.club/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=${zoom}&addressdetails=1&accept-language=zh-CN`,
-          server.url +
-          `/api/v1/geocode/regeo?latitude=${lat}&longitude=${lng}&platform=Amap`,
-        // `https://tools.aiiko.club/api/v1/geocode/regeo?latitude=${lat}&longitude=${lon}&platform=Amap`
-      })
 
       let newCi: CityInfo = {
         country: '',
@@ -50,7 +44,7 @@ export const Geo = () => {
         lng,
       }
 
-      if (res?.data?.code !== 200 || !res?.data?.data?.country) {
+      const osmAPI = async () => {
         const res: any = await R.request({
           method: 'GET',
           url: `
@@ -58,11 +52,12 @@ export const Geo = () => {
           `,
         })
         console.log('GetCity regeo osm', res.data)
+        let tempCI: typeof newCi = deepCopy(newCi)
         if (!res?.data?.name) {
-          return newCi
+          return tempCI
         }
         const data = res.data as any
-        newCi = {
+        tempCI = {
           country: data.address.country || '',
           state: data.address.state || '',
           region: data.address.state_district || data.address.region || '',
@@ -78,7 +73,7 @@ export const Geo = () => {
           lat,
           lng,
         }
-        newCi.address = (
+        tempCI.address = (
           data.display_name
             ? (data.display_name as string)
                 .split(',')
@@ -89,6 +84,34 @@ export const Geo = () => {
           .filter((v) => v)
           .join('·')
 
+        return tempCI
+      }
+
+      const connectionOpenStreetMap = await networkConnectionStatusDetection(
+        networkConnectionStatusDetectionEnum.openStreetMap
+      )
+      // console.log(
+      //   'networkConnectionStatusDetection connectionOpenStreetMap',
+      //   connectionOpenStreetMap
+      // )
+      if (connectionOpenStreetMap) {
+        newCi = await osmAPI()
+        return newCi
+      }
+
+      const res = await R.request({
+        method: 'GET',
+        url:
+          // `https://restapi.amap.com/v3/geocode/regeo?output=json&location=104.978701,24.900169&key=fb7fdf3663af7a532b8bdcd1fc3e6776&radius=100&extensions=all`
+          // `https://restapi.amap.com/v3/geocode/regeo?output=json&location=${lon},${lat}&key=fb7fdf3663af7a532b8bdcd1fc3e6776&radius=100&extensions=all`
+          // `https://nominatim.aiiko.club/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=${zoom}&addressdetails=1&accept-language=zh-CN`,
+          server.url +
+          `/api/v1/geocode/regeo?latitude=${lat}&longitude=${lng}&platform=Amap`,
+        // `https://tools.aiiko.club/api/v1/geocode/regeo?latitude=${lat}&longitude=${lon}&platform=Amap`
+      })
+
+      if (res?.data?.code !== 200 || !res?.data?.data?.country) {
+        newCi = await osmAPI()
         return newCi
       }
 
@@ -114,7 +137,14 @@ export const Geo = () => {
     search: async ({ keywords }: { keywords: string }) => {
       const { config } = store.getState()
 
-      if (config.connectionStatus.openStreetMap) {
+      const connectionOpenStreetMap = await networkConnectionStatusDetection(
+        networkConnectionStatusDetectionEnum.openStreetMap
+      )
+      // console.log(
+      //   'networkConnectionStatusDetection connectionOpenStreetMap',
+      //   connectionOpenStreetMap
+      // )
+      if (connectionOpenStreetMap) {
         const res = await R.request({
           method: 'GET',
           url: `https://nominatim.openstreetmap.org/search?q=${keywords}&format=jsonv2&addressdetails=1&accept-language=${config.lang}`,

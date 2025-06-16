@@ -4,12 +4,14 @@ import {
   combineReducers,
   configureStore,
 } from '@reduxjs/toolkit'
+import { ActionParams } from '.'
 
 export const layoutMethods = {}
 export const layoutSlice = createSlice({
   name: 'layout',
   initialState: {
     header: true,
+    headerColor: 'Light' as 'Dark' | 'Light',
     headerLoading: {
       loading: false,
       text: '',
@@ -19,8 +21,15 @@ export const layoutSlice = createSlice({
     openStatisticsModal: false,
     openLoginModal: false,
     headerLogoText: '',
+    headerLogo: '',
   },
   reducers: {
+    setHeaderColor: (
+      state,
+      params: ActionParams<(typeof state)['headerColor']>
+    ) => {
+      state.headerColor = params.payload
+    },
     setLayoutHeaderLoading: (
       state,
       params: {
@@ -60,6 +69,15 @@ export const layoutSlice = createSlice({
       }
     ) => {
       state.openStatisticsModal = params.payload
+    },
+    setLayoutHeaderLogo: (
+      state,
+      params: {
+        payload: string
+        type: string
+      }
+    ) => {
+      state.headerLogo = params.payload
     },
     setLayoutHeaderLogoText: (
       state,

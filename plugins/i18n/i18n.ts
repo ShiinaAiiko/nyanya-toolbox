@@ -24,9 +24,10 @@ export const languages: Languages[] = Object.keys(resources).map((v: any) => {
 export type Languages = keyof typeof resources
 export let defaultLanguage: Languages = process.env.DEFAULT_LANGUAGE as any
 
-
+export let i18n = i18next
+export let t = i18n.t
 export const initI18n = (res: typeof resources) => {
-  console.log("SakiI18n", defaultLanguage)
+  console.log('SakiI18n', defaultLanguage)
   i18next
     .use(initReactI18next) // passes i18n down to react-i18next
     .init({
@@ -48,12 +49,9 @@ export const initI18n = (res: typeof resources) => {
   setTimeout(() => {
     const { config } = store.getState()
     config.lang && changeLanguage(config.lang as any)
-  });
+  })
 }
 initI18n(resources)
-
-export const i18n = i18next
-export const t = i18n.t
 
 export const detectionLanguage = () => {
   if (languages.indexOf(navigator.language as any) >= 0) {
@@ -87,7 +85,7 @@ export const changeLanguage = (language: Languages) => {
   // 	i18n.language,
   // 	language
   // )
-  console.log("SakiI18n store", language)
+  console.log('SakiI18n store', language)
 
   process.env.OUTPUT === 'export' && (defaultLanguage = language)
   getI18n().changeLanguage(language)

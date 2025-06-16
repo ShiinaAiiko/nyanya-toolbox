@@ -1,0 +1,27 @@
+.weather-units-modal {
+  width: 100%;
+  .wd-header {
+    width: 100%;
+  }
+  .wu-main {
+    width: 100%;
+    .wu-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px;
+      .wu-l-item {
+        width: 100%;
+        max-width: 300px;
+        display: flex;
+        justify-content: space-between;
+        margin: 6px 0;
+        .item-left {
+        }
+        .item-right {
+        }
+      }
+    }
+  }
+}

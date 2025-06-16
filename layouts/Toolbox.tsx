@@ -40,6 +40,7 @@ import { Query, isInPwa } from '../plugins/methods'
 import { storage } from '../store/storage'
 import LoadingPage from '../components/LoadingPage'
 import NoSSR from '../components/NoSSR'
+import LoadModalsComponent from '../components/LoadModal'
 // import parserFunc from 'ua-parser-js'
 
 const keywords: string = Object.keys(resources)
@@ -195,11 +196,28 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
           )}
 
           <div className={'tb-main '}>
-            <div className="tb-main-wrap">
+            <div
+              style={{
+                overflow: !config.connectionStatus.sakiuiI18n ? 'hidden' : '',
+              }}
+              className="tb-main-wrap"
+            >
               {children}
 
               <NoSSR>
                 <SakiTemplateFooter
+                  bgColor={
+                    router.pathname.includes('weather') &&
+                    config.deviceType === 'Mobile'
+                      ? 'rgba(0,0,0,0)'
+                      : '#fff'
+                  }
+                  textColor={
+                    router.pathname.includes('weather') &&
+                    config.deviceType === 'Mobile'
+                      ? '#ccc'
+                      : '#000'
+                  }
                   onChangeLanguage={async (e) => {
                     localStorage.setItem('language', e.detail)
 
@@ -302,6 +320,9 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
                   const r = await e.target.getResources()
                   console.log('SakiI18n', r)
                   initI18n(r)
+                  setTimeout(() => {
+                    dispatch(configSlice.actions.setSakiuiI18n(true))
+                  }, 50)
                 }}
                 language={config.language}
                 lang={i18n.language}
@@ -320,6 +341,10 @@ const ToolboxLayout = ({ children, pageProps }: any): JSX.Element => {
             </>
           </NoSSR>
           <LoadingPage></LoadingPage>
+
+          <NoSSR>
+            <LoadModalsComponent />
+          </NoSSR>
         </>
       </div>
     </>

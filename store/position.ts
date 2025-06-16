@@ -29,7 +29,7 @@ const getIpPosition = async (t: number) => {
   setTimeout(async () => {
     const { position } = store.getState()
 
-    console.log('getIpPosition', position.position?.coords?.latitude)
+    console.log('watchPosition getIpPosition', position)
     if (position.position?.coords?.latitude) {
       return
     }
@@ -39,7 +39,7 @@ const getIpPosition = async (t: number) => {
       url: 'https://tools.aiiko.club/api/v1/ip/details?ip=&language=zh-CN',
     })
 
-    console.log('getIpPosition', res?.data?.data)
+    console.log('watchPosition getIpPosition', res?.data?.data)
     if (res?.data?.data?.ipv4) {
       store.dispatch(
         positionSlice.actions.setPosition({
@@ -100,7 +100,7 @@ export const positionMethods = {
       const { position } = store.getState()
 
       console.log(
-        'curCityIndex router?.query allowWatchPosition',
+        'watchPosition curCityIndex router?.query allowWatchPosition',
         location.search.includes('lat='),
         position,
         !position.allowWatchPosition,
@@ -112,9 +112,11 @@ export const positionMethods = {
       ) {
         return
       }
+      console.log('watchPosition position.position', position.position)
 
       if (!position.position) {
         const curPosition = await storage.global.get('curPosition')
+        console.log('watchPosition position.position', curPosition)
 
         if (curPosition?.timestamp && curPosition?.accuracy) {
           thunkAPI.dispatch(positionSlice.actions.setPosition(curPosition))

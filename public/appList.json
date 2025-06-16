@@ -2,6 +2,16 @@
   "appList": [
     {
       "title": {
+        "zh-CN": "喵天气",
+        "zh-TW": "喵天氣",
+        "en-US": "Meow Weather"
+      },
+      "logoText": "Weather",
+      "logo": "https://weather.aiiko.club/icons/128x128.png",
+      "url": "https://weather.aiiko.club"
+    },
+    {
+      "title": {
         "zh-CN": "将 Windows 路径转换为 Posix 路径",
         "zh-TW": "將 Windows 路徑轉換為 Posix 路徑",
         "en-US": "Convert Windows Path to Posix Path"
@@ -116,15 +126,6 @@
       },
       "logoText": "WebScreenRecording",
       "url": "https://tools.aiiko.club/webScreenRecording"
-    },
-    {
-      "title": {
-        "zh-CN": "喵天气",
-        "zh-TW": "喵天氣",
-        "en-US": "Meow Weather"
-      },
-      "logoText": "WebScreenRecording",
-      "url": "https://tools.aiiko.club/weather"
     }
   ]
 }

@@ -22,7 +22,7 @@ const withPWA = require('next-pwa')({
   fallbacks: false,
   cacheStartUrl: true,
   dynamicStartUrl: true,
-  disable: process.env.NODE_ENV === 'development',
+  disable: process.env.CLIENT_ENV === 'development',
 })
 module.exports = withPWA({
   ...(process.env.OUTPUT === 'export'

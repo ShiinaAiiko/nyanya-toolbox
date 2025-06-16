@@ -1,8 +1,8 @@
 import moment from 'moment'
-import { t } from '../plugins/i18n/i18n'
+import i18n, { t } from '../plugins/i18n/i18n'
 
 import * as Astronomy from 'astronomy-engine'
-import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji'
+// import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import store, { ActionParams, layoutSlice } from '.'
 import { Debounce, deepCopy } from '@nyanyajs/utils'
@@ -11,8 +11,112 @@ import { protoRoot } from '../protos'
 import { getHash } from '@nyanyajs/utils/dist/file'
 import { httpApi } from '../plugins/http/api'
 import { saass } from './config'
-import { showSnackbar } from '../plugins/methods'
+import { random, showSnackbar } from '../plugins/methods'
 import { storage } from './storage'
+import { server } from '../config'
+
+import {
+  convertTemperature,
+  convertPrecipitation,
+  convertWindSpeed,
+  convertPressure,
+  convertVisibility,
+  PrecipitationEnum,
+  PressureEnum,
+  TemperatureEnum,
+  VisibilityEnum,
+  WindSpeedEnum,
+} from '@nyanyajs/utils/dist/units/weather'
+import {
+  covertTimeFormat,
+  TimeFormatEmum,
+} from '@nyanyajs/utils/dist/units/time'
+
+const openMeteoWeatherIconMap = {
+  0: '\u{2600}\u{FE0F}',
+  1: '\u{1F324}\u{FE0F}',
+  2: '\u{1F325}\u{FE0F}', // ☁️ 多云 (Partly cloudy)
+  3: '\u{2601}\u{FE0F}',
+  45: '\u{1F32B}\u{FE0F}', // 🌫️ 雾 (Fog)
+  48: '\u{1F32B}\u{FE0F}', // 🌫️❄️ 霾 (Depositing rime fog)
+  51: '\u{1F327}\u{FE0F}', // 🌧️ 轻度毛毛雨 (Drizzle: Light)
+  53: '\u{1F327}\u{FE0F}', // 🌧️ 中度毛毛雨 (Drizzle: Moderate)
+  55: '\u{1F327}\u{FE0F}', // 🌧️ 重度毛毛雨 (Drizzle: Dense intensity)
+  56: '\u{1F328}\u{FE0F}', // 🌨️ 轻度冻雨 (Freezing Drizzle: Light)
+  57: '\u{1F328}\u{FE0F}', // 🌨️ 重度冻雨 (Freezing Drizzle: Dense intensity)
+  61: '\u{1F326}\u{FE0F}', // 🌦️ 小雨 (Rain: Slight)
+  63: '\u{1F327}\u{FE0F}', // 🌧️ 中雨 (Rain: Moderate)
+  65: '\u{1F327}\u{FE0F}', // 🌧️ 大雨 (Rain: Heavy intensity)
+  66: '\u{1F327}\u{FE0F}', // 🌧️ 轻度冻雨 (Freezing Rain: Light)
+  67: '\u{1F327}\u{FE0F}', // 🌧️ 重度冻雨 (Freezing Rain: Heavy intensity)
+  71: '\u{1F328}\u{FE0F}', // 🌨️ 小雪 (Snow fall: Slight)
+  73: '\u{1F328}\u{FE0F}', // 🌨️ 中雪 (Snow fall: Moderate)
+  75: '\u{1F328}\u{FE0F}', // 🌨️ 大雪 (Snow fall: Heavy intensity)
+  77: '\u{1F328}\u{FE0F}', // 🌨️ 雪粒 (Snow grains)
+  80: '\u{1F326}\u{FE0F}', // 🌦️ 阵雨 (Rain showers: Slight)
+  81: '\u{1F327}\u{FE0F}', // 🌧️🌧️ 中度阵雨 (Rain showers: Moderate)
+  82: '\u{1F327}\u{FE0F}', // 🌧️🌧️🌧️ 强阵雨 (Rain showers: Violent)
+  85: '\u{1F328}\u{FE0F}', // 🌨️ 小阵雪 (Snow showers slight)
+  86: '\u{1F328}\u{FE0F}', // 🌨️🌨️ 大阵雪 (Snow showers heavy)
+  95: '\u{1F329}\u{FE0F}', // 🌩️ 雷阵雨 (Thunderstorm: Slight or moderate)
+  96: '\u{26C8}\u{FE0F}', // ⛈️ 雷阵雨带小冰雹 (Thunderstorm with slight hail)
+  99: '\u{26C8}\u{FE0F}', // ⛈️🌨️ 雷阵雨带大冰雹 (Thunderstorm with heavy hail)
+  // 用户指定天气
+  dusk: '\u{1F305}', // 🌅 黄昏
+  dawn: '\u{1F304}', // 🌄 清晨
+  cloudy: '\u{26C5}', // ⛅ 多云
+  night: '\u{1F319}', // 🌙 晚上
+  starry: '\u{1F30C}', // 🌌 星空
+}
+
+// Object.keys(openMeteoWeatherIconMap).forEach((k) => {
+//   console.log(
+//     'openMeteoWeatherIconMap',
+//     (openMeteoWeatherIconMap as any)[k as any]
+//   )
+// })
+
+export let ntextWcode = 96
+
+export function getWeatherIcon(
+  wcode: number,
+  options?: {
+    night: boolean
+    dusk: boolean
+    dawn: boolean
+  }
+) {
+  // wcode = ntextWcode
+  // console.log(
+  //   'openMeteoWeatherIconMap',
+  //   wcode,
+  //   (openMeteoWeatherIconMap as any)[wcode]
+  // )
+
+  if ([0, 1, 2, 3].includes(wcode) && options?.night) {
+    return openMeteoWeatherIconMap['night']
+  }
+  if ([0, 1, 2].includes(wcode) && options?.dusk) {
+    return openMeteoWeatherIconMap['dusk']
+  }
+  if ([0, 1, 2].includes(wcode) && options?.dawn) {
+    return openMeteoWeatherIconMap['dawn']
+  }
+
+  return (openMeteoWeatherIconMap as any)[wcode] || '\u{2753}' // 默认图标: ❓
+}
+
+export const alertWarningSeverity = [
+  'Cancel',
+  'None',
+  'Unknown',
+  'Standard',
+  'Minor',
+  'Moderate',
+  'Major',
+  'Severe',
+  'Extreme',
+]
 
 export const defaultWeatherInfo = {
   ipv4: '',
@@ -27,7 +131,7 @@ export const defaultWeatherInfo = {
     apparentTemperature: -273.15,
     visibility: 0,
     relative_humidity_2m: 0,
-    weatherCode: '',
+    weatherCode: 0,
     weather: '',
     altitude: 0,
     daysTemperature: [-273.15, -273.15] as number[],
@@ -197,9 +301,83 @@ export const defaultWeatherInfo = {
       us_aqi: 'USAQI',
     },
   },
+  alert: {
+    warning: [] as {
+      id: string
+      sender: string
+      pubTime: string
+      title: string
+      startTime: string
+      endTime: string
+      status: string
+      level: string
+      severity:
+        | 'Cancel'
+        | 'None'
+        | 'Unknown'
+        | 'Standard'
+        | 'Minor'
+        | 'Moderate'
+        | 'Major'
+        | 'Severe'
+        | 'Extreme'
+      severityColor:
+        | 'White'
+        | 'Blue'
+        | 'Green'
+        | 'Yellow'
+        | 'Orange'
+        | 'Red'
+        | 'Black'
+      type: string
+      typeName: string
+      urgency: 'Immediate' | 'Expected' | 'Future' | 'Past' | 'Unknown'
+      certainty: 'Observed' | 'Likely' | 'Possible' | 'Unlikely' | 'Unknown'
+      text: string
+      related: string
+    }[],
+    refer: {
+      sources: [],
+      license: [],
+    } as {
+      sources: string[]
+      license: string[]
+    },
+  },
 }
 
 let weatherLineColor = 'var(--saki-default-color)'
+
+export const getThemeColors = (themeColor: 'Dark' | 'Light') => {
+  if (themeColor === 'Dark') {
+    return {
+      lineTopText: '#fff',
+      labelText: '#ddd',
+
+      '--c0-color': '#fff',
+      '--c1-color': '#ddd',
+      '--c2-color': '#ccc',
+      '--c3-color': '#aaa',
+
+      '--button-bg-color': 'rgba(0,0,0,0)',
+      '--button-bg-hover-color': 'rgba(0,0,0,0.3)',
+      '--button-bg-active-color': 'rgba(0,0,0,0.5)',
+    }
+  }
+  return {
+    lineTopText: '#444',
+    labelText: '#666',
+
+    '--c0-color': '#000',
+    '--c1-color': '#444',
+    '--c2-color': '#666',
+    '--c3-color': '#999',
+
+    '--button-bg-color': '#fff',
+    '--button-bg-hover-color': '#eee',
+    '--button-bg-active-color': '#ddd',
+  }
+}
 
 const { Body, Horizon, Equator, SearchHourAngle, SearchRiseSet } = Astronomy
 type Observer = Astronomy.Observer
@@ -396,24 +574,26 @@ export function getVisibilityAlert(visibilityKm: number) {
   let level, description, color
 
   if (visibilityKm > 10) {
-    level = t('visibilityExcellent', { ns: 'weather' })
-    description = t('visibilityExcellentClearView', { ns: 'weather' })
+    level = t('visibilityExcellent', { ns: 'sakiuiWeather' })
+    description = t('visibilityExcellentClearView', { ns: 'sakiuiWeather' })
     color = '#00CC00' // 绿色，表示极佳能见度
   } else if (visibilityKm >= 4) {
-    level = t('visibilityGood', { ns: 'weather' })
-    description = t('visibilityGoodClearVision', { ns: 'weather' })
+    level = t('visibilityGood', { ns: 'sakiuiWeather' })
+    description = t('visibilityGoodClearVision', { ns: 'sakiuiWeather' })
     color = '#66CC33' // 浅绿色，表示良好能见度
   } else if (visibilityKm >= 1) {
-    level = t('visibilityModerate', { ns: 'weather' })
-    description = t('visibilityModerateLimitedView', { ns: 'weather' })
+    level = t('visibilityModerate', { ns: 'sakiuiWeather' })
+    description = t('visibilityModerateLimitedView', { ns: 'sakiuiWeather' })
     color = '#FFA500' // 橙色，表示中等能见度
   } else if (visibilityKm >= 0.5) {
-    level = t('visibilityPoor', { ns: 'weather' })
-    description = t('visibilityPoorReducedVision', { ns: 'weather' })
+    level = t('visibilityPoor', { ns: 'sakiuiWeather' })
+    description = t('visibilityPoorReducedVision', { ns: 'sakiuiWeather' })
     color = '#FF4500' // 橙红色，表示较差能见度
   } else {
-    level = t('visibilityVeryPoor', { ns: 'weather' })
-    description = t('visibilityVeryPoorSeverelyLimited', { ns: 'weather' })
+    level = t('visibilityVeryPoor', { ns: 'sakiuiWeather' })
+    description = t('visibilityVeryPoorSeverelyLimited', {
+      ns: 'sakiuiWeather',
+    })
     color = '#FF0000' // 红色，表示极差能见度
   }
 
@@ -436,77 +616,84 @@ export function getDetailedPressureLevel(
   pressure: number,
   altitude: number = 0
 ): PressureLevel {
-  const adjustedStandardPressure = 1013.25 - (altitude / 100) * 12
-  const difference = pressure - adjustedStandardPressure
-
   const levels = [
     {
       threshold: 35,
-      level: t('pressureExtremeHigh', { ns: 'weather' }),
-      description: t('pressureAbnormallyHigh', { ns: 'weather' }),
+      level: t('pressureExtremeHigh', { ns: 'sakiuiWeather' }),
+      description: t('pressureAbnormallyHigh', { ns: 'sakiuiWeather' }),
       color: '#D50000',
       icon: '☀️',
     },
     {
       threshold: 25,
-      level: t('pressureVeryHigh', { ns: 'weather' }),
-      description: t('pressureSignificantlyHigh', { ns: 'weather' }),
+      level: t('pressureVeryHigh', { ns: 'sakiuiWeather' }),
+      description: t('pressureSignificantlyHigh', { ns: 'sakiuiWeather' }),
       color: '#FF5252',
       icon: '☀️',
     },
     {
       threshold: 15,
-      level: t('pressureAboveAverage', { ns: 'weather' }),
-      description: t('pressureHigherThanNormal', { ns: 'weather' }),
+      level: t('pressureAboveAverage', { ns: 'sakiuiWeather' }),
+      description: t('pressureHigherThanNormal', { ns: 'sakiuiWeather' }),
       color: '#FF9800',
       icon: '🌤',
     },
     {
       threshold: 5,
-      level: t('pressureSlightlyHigh', { ns: 'weather' }),
-      description: t('pressureSlightlyAboveNormal', { ns: 'weather' }),
+      level: t('pressureSlightlyHigh', { ns: 'sakiuiWeather' }),
+      description: t('pressureSlightlyAboveNormal', { ns: 'sakiuiWeather' }),
       color: '#FFEB3B',
       icon: '⛅',
     },
     {
       threshold: -5,
-      level: t('pressureNormal', { ns: 'weather' }),
-      description: t('pressureWithinNormalRange', { ns: 'weather' }),
+      level: t('pressureNormal', { ns: 'sakiuiWeather' }),
+      description: t('pressureWithinNormalRange', { ns: 'sakiuiWeather' }),
       color: '#4CAF50',
       icon: '🌥',
     },
     {
       threshold: -15,
-      level: t('pressureSlightlyLow', { ns: 'weather' }),
-      description: t('pressureSlightlyBelowNormal', { ns: 'weather' }),
+      level: t('pressureSlightlyLow', { ns: 'sakiuiWeather' }),
+      description: t('pressureSlightlyBelowNormal', { ns: 'sakiuiWeather' }),
       color: '#2196F3',
       icon: '🌧',
     },
     {
       threshold: -25,
-      level: t('pressureBelowAverage', { ns: 'weather' }),
-      description: t('pressureSignificantlyLow', { ns: 'weather' }),
+      level: t('pressureBelowAverage', { ns: 'sakiuiWeather' }),
+      description: t('pressureSignificantlyLow', { ns: 'sakiuiWeather' }),
       color: '#3F51B5',
       icon: '🌧',
     },
     {
       threshold: -35,
-      level: t('pressureVeryLow', { ns: 'weather' }),
-      description: t('pressureMarkedlyLow', { ns: 'weather' }),
+      level: t('pressureVeryLow', { ns: 'sakiuiWeather' }),
+      description: t('pressureMarkedlyLow', { ns: 'sakiuiWeather' }),
       color: '#673AB7',
       icon: '⛈',
     },
     {
       threshold: -Infinity,
-      level: t('pressureExtremeLow', { ns: 'weather' }),
-      description: t('pressureAbnormallyLow', { ns: 'weather' }),
+      level: t('pressureExtremeLow', { ns: 'sakiuiWeather' }),
+      description: t('pressureAbnormallyLow', { ns: 'sakiuiWeather' }),
       color: '#9C27B0',
       icon: '🌀',
     },
   ]
 
+  // 约束海拔范围
+  const clampedAltitude = Math.min(Math.max(altitude, -500), 12000)
+  const adjustedStandardPressure =
+    1013.25 * Math.pow(1 - (0.0065 * clampedAltitude) / 288.15, 5.255)
+
+  // 动态阈值缩放（可进一步优化）
+  const thresholdScale = altitude > 2000 ? 0.7 : 1.0
+  const difference = (pressure - adjustedStandardPressure) * thresholdScale
+
+  // 查找匹配等级
   const matchedLevel =
-    levels.find((level) => difference > level.threshold) ||
+    levels.find((level) => difference >= level.threshold) ||
     levels[levels.length - 1]
 
   // 返回时确保只包含需要的属性
@@ -522,52 +709,52 @@ export const getWindDirectionText = (wd: number, short: boolean) => {
   let windDirection = ''
   if (wd >= 337.5 || wd < 22.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection1', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 22.5 && wd < 67.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection2', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 67.5 && wd < 112.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection3', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 112.5 && wd < 157.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection4', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 157.5 && wd < 202.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection5', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 202.5 && wd < 247.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection6', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 247.5 && wd < 292.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection7', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd >= 292.5 && wd < 337.5) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection8', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd === -999) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection9', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
   if (wd === -1) {
     windDirection = t((short ? 'shortW' : 'w') + 'indDirection10', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     })
   }
 
@@ -653,50 +840,50 @@ export function getUVInfo(uv: number): {
   if (uv >= 0 && uv <= 2) {
     return {
       level: t('uvIndexLow', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       text: t('uvIndexNoSpecialProtection', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       color: '#4CAF50',
     } // 绿色，低风险
   } else if (uv <= 5) {
     return {
       level: t('uvIndexMedium', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       text: t('uvIndexSuggestHatOrSunscreen', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       color: '#FFC107',
     } // 黄色，中等
   } else if (uv <= 7) {
     return {
       level: t('uvIndexHigh', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       text: t('uvIndexTakeProtectiveMeasures', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       color: '#FF5722',
     } // 橙色，高
   } else if (uv <= 10) {
     return {
       level: t('uvIndexVeryHigh', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       text: t('uvIndexAvoidOutdoorActivities', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       color: '#D81B60',
     } // 红色，很高
   } else {
     return {
       level: t('uvIndexExtreme', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       text: t('uvIndexStronglyAvoidDirectSunlight', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       color: '#B71C1C',
     } // 深红色，极高
@@ -709,83 +896,83 @@ export function getAqiDescription(aqi: number) {
     return {
       aqi,
       aqiDesc: t('excellent', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#2bad2f',
       desc: t('excellentDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   if (aqi <= 50)
     return {
       aqi,
       aqiDesc: t('good', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#37d43c',
       desc: t('goodDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   if (aqi <= 100)
     return {
       aqi,
       aqiDesc: t('fair', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#ffb000',
       desc: t('fairDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   if (aqi <= 150)
     return {
       aqi,
       aqiDesc: t('mild', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#ff4d00',
       desc: t('mildDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   if (aqi <= 200)
     return {
       aqi,
       aqiDesc: t('moderate', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#f0000c',
       desc: t('moderateDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   if (aqi <= 300)
     return {
       aqi,
       aqiDesc: t('severe', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
       className: 'aqi1',
       color: '#9f0047',
       desc: t('severeDesc', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       }),
     }
   return {
     aqi,
     aqiDesc: t('verySevere', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     }),
     className: 'aqi1',
     color: '#84002c',
     desc: t('verySevereDesc', {
-      ns: 'weather',
+      ns: 'sakiuiWeather',
     }),
   }
 }
@@ -808,16 +995,20 @@ export const createSunMoonChart = ({
   solarNoon,
   events,
   isSunMonAnima = true,
+  themeColor,
 }: {
   selector: string
   nowDate: Date
   solarNoon: Date
   events: SunMoonEvent[]
   isSunMonAnima?: boolean
+  themeColor: 'Dark' | 'Light'
 }) => {
   const svg = d3.select(selector)
 
   if (!svg) return
+
+  const themeColors = getThemeColors(themeColor)
 
   // console.log('SearchRiseSet ', 5555, events)
   svg.selectAll('*').remove()
@@ -896,6 +1087,7 @@ export const createSunMoonChart = ({
         .attr('text-anchor', 'middle')
         .attr('font-size', textFontSize)
         .attr('dy', '0.35em')
+        .attr('fill', themeColors.labelText)
       // .text(startEvent.text)
 
       // 获取文本宽度并调整 x 坐标
@@ -925,6 +1117,7 @@ export const createSunMoonChart = ({
         .attr('text-anchor', 'middle')
         .attr('font-size', textFontSize)
         .attr('dy', '0.35em')
+        .attr('fill', themeColors.labelText)
       // .text(endEvent.text)
 
       // 获取文本宽度并调整 x 坐标
@@ -1142,10 +1335,12 @@ export const createSunMoonChart = ({
     .attr('text-anchor', 'middle')
     .attr('font-size', textFontSize)
     .attr('dy', '0.35em')
+    .attr('fill', themeColors.labelText)
+
     .html((d) => {
       return `
               <tspan x="${width / 2}" dy="0">${t('noon', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       })}</tspan>
               <tspan x="${width / 2}" dy="1.4em">${moment(solarNoon).format(
         'HH:mm:ss'
@@ -1166,17 +1361,17 @@ export function formatWeatherDate(date: string) {
   switch (diffDays) {
     case -1:
       week = t('yesterday', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       })
       break
     case 0:
       week = t('today', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       })
       break
     case 1:
       week = t('tomorrow', {
-        ns: 'weather',
+        ns: 'sakiuiWeather',
       })
       break
     default:
@@ -1235,6 +1430,7 @@ export interface WeatherValData {
 interface ChartOptions {
   container: string | HTMLElement
   weatherInfo: typeof defaultWeatherInfo
+  themeColor: 'Dark' | 'Light'
   type:
     | 'Hourly'
     | 'Daily'
@@ -1288,6 +1484,7 @@ export function createAQIChart(options: WeatherChartOptions) {
 
   // 合并配置
   const config = { ...defaultOptions, ...options }
+  const themeColors = getThemeColors(config.themeColor)
 
   // 设置图表尺寸和边距
   const margin = config.margin
@@ -1324,7 +1521,7 @@ export function createAQIChart(options: WeatherChartOptions) {
   // 创建比例尺
   const xScale = d3
     .scaleBand()
-    .domain(aqiData.map((d) => d.date + '\n' + d.date))
+    .domain(aqiData.map((d) => d?.date + '\n' + d?.date))
     .range([0, width])
     .padding(0.1)
 
@@ -1373,7 +1570,7 @@ export function createAQIChart(options: WeatherChartOptions) {
   // 创建折线生成器
   const lineHigh = d3
     .line<WeatherAQIData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => yScale(d.aqi))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
@@ -1405,7 +1602,10 @@ export function createAQIChart(options: WeatherChartOptions) {
     .enter()
     .append('circle')
     .attr('class', 'dot-high')
-    .attr('cx', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'cx',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('cy', (d) => yScale(d.aqi))
     .attr('r', 3)
     .attr('stroke', '#ccc')
@@ -1418,12 +1618,12 @@ export function createAQIChart(options: WeatherChartOptions) {
   //   .enter()
   //   .append('text')
   //   .attr('class', 'high-text')
-  //   .attr('x', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+  //   .attr('x', (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
   //   .attr('y', (d) => yScale(d.aqi) - 10)
   //   .attr('text-anchor', 'middle')
   //   // .attr('fill', (d) => aqiColorScale(d.aqi)) // 文字也用AQI颜色
   //   .html((d) => {
-  //     const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+  //     const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
   //     const aqiDesc = getAqiDescription(d.aqi)
   //     return `
@@ -1438,13 +1638,13 @@ export function createAQIChart(options: WeatherChartOptions) {
     .attr('class', 'day-top-label')
     .attr('text-anchor', 'middle')
     .attr('font-size', '14px')
-    .attr('fill', '#666')
+    .attr('fill', themeColors['--c1-color'])
     .html((d) => {
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
       const aqiDesc = getAqiDescription(d.aqi)
       return `
-        <tspan x="${x}" dy="7.7em">${d.date}</tspan>
+        <tspan x="${x}" dy="7.7em">${d?.date}</tspan>
         `
     })
   svg
@@ -1455,7 +1655,7 @@ export function createAQIChart(options: WeatherChartOptions) {
     .attr('class', 'day-top-label-group')
     .each(function (d) {
       const group = d3.select(this)
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
       const aqiDesc = getAqiDescription(d.aqi)
       const textContent = `${aqiDesc.aqi} ${aqiDesc.aqiDesc}`
 
@@ -1575,7 +1775,7 @@ export function createValDataChart(options: WeatherChartOptions) {
   // 创建比例尺
   const xScale = d3
     .scaleBand()
-    .domain(valData.map((d) => d.date + '\n' + d.date))
+    .domain(valData.map((d) => d?.date + '\n' + d?.date))
     .range([0, width])
     .padding(0.1)
 
@@ -1625,7 +1825,7 @@ export function createValDataChart(options: WeatherChartOptions) {
   // 创建折线生成器
   const lineHigh = d3
     .line<WeatherValData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => yScale(d.val))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
@@ -1657,7 +1857,10 @@ export function createValDataChart(options: WeatherChartOptions) {
     .enter()
     .append('circle')
     .attr('class', 'dot-high')
-    .attr('cx', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'cx',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('cy', (d) => yScale(d.val))
     .attr('r', 3)
     .attr('stroke', '#ccc')
@@ -1673,11 +1876,11 @@ export function createValDataChart(options: WeatherChartOptions) {
     .attr('font-size', '14px')
     .attr('fill', '#666')
     .html((d) => {
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
       const aqiDesc = getAqiDescription(d.val)
       return `
-        <tspan x="${x}" dy="7.7em">${d.date}</tspan>
+        <tspan x="${x}" dy="7.7em">${d?.date}</tspan>
         `
     })
   svg
@@ -1688,7 +1891,7 @@ export function createValDataChart(options: WeatherChartOptions) {
     .attr('class', 'day-top-label-group')
     .each(function (d) {
       const group = d3.select(this)
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
       const press = getDetailedPressureLevel(
         d.val,
         weatherInfo.current.altitude
@@ -1734,7 +1937,7 @@ export function createValDataChart(options: WeatherChartOptions) {
         .attr('x', x)
         .attr('y', () => yScale(d.val) - 12)
         .html(() => {
-          const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+          const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
           return `
         <tspan x="${x}" y="${yScale(d.val) - 18}">${`${d.val}`}</tspan>
@@ -1777,6 +1980,8 @@ export function createWindChart(options: WeatherChartOptions) {
 
   let weatherInfo = options.weatherInfo
 
+  const { weather } = store.getState()
+
   // 合并配置
   const chartConfig = { ...defaultOptions, ...options }
 
@@ -1815,7 +2020,7 @@ export function createWindChart(options: WeatherChartOptions) {
   // 创建比例尺
   const xScale = d3
     .scaleBand()
-    .domain(windData.map((d) => d.date + '\n' + d.date))
+    .domain(windData.map((d) => d?.date + '\n' + d?.date))
     .range([0, width])
     .padding(0.1)
 
@@ -1830,7 +2035,7 @@ export function createWindChart(options: WeatherChartOptions) {
   // 创建折线生成器
   const lineHigh = d3
     .line<WeatherWindData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => yScale(d.wind_gusts_10m))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
@@ -1862,7 +2067,10 @@ export function createWindChart(options: WeatherChartOptions) {
     .enter()
     .append('circle')
     .attr('class', 'dot-high')
-    .attr('cx', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'cx',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('cy', (d) => yScale(d.wind_gusts_10m))
     .attr('r', 3)
     .attr('stroke', '#f29cb2')
@@ -1874,16 +2082,26 @@ export function createWindChart(options: WeatherChartOptions) {
     .enter()
     .append('text')
     .attr('class', 'high-text')
-    .attr('x', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'x',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('y', (d) => yScale(d.wind_gusts_10m) - 10)
     .attr('text-anchor', 'middle')
     .attr('font-size', '12px')
     .attr('fill', '#666')
-    .text((d) => `${d.wind_gusts_10m + ' ' + d.unit}`)
+    .text((d) => {
+      let wsNum = convertWindSpeed(
+        d.wind_gusts_10m,
+        d.unit as any,
+        weather.weatherData.units.windSpeed
+      )
+      return `${wsNum + ' ' + weather.weatherData.units.windSpeed}`
+    })
 
   const speedLineHigh = d3
     .line<WeatherWindData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => yScale(d.wind_speed_10m))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
@@ -1915,7 +2133,10 @@ export function createWindChart(options: WeatherChartOptions) {
     .enter()
     .append('circle')
     .attr('class', 'dot-high')
-    .attr('cx', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'cx',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('cy', (d) => yScale(d.wind_speed_10m))
     .attr('r', 3)
     .attr('stroke', '#60d0fa')
@@ -1927,12 +2148,23 @@ export function createWindChart(options: WeatherChartOptions) {
     .enter()
     .append('text')
     .attr('class', 'low-text')
-    .attr('x', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'x',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('y', (d) => yScale(d.wind_speed_10m) + 20)
     .attr('text-anchor', 'middle')
     .attr('font-size', '12px')
     .attr('fill', '#666')
-    .text((d) => `${d.wind_speed_10m + ' ' + d.unit}`)
+    .text((d) => {
+      let wsNum = convertWindSpeed(
+        d.wind_speed_10m,
+        d.unit as any,
+        weather.weatherData.units.windSpeed
+      )
+
+      return `${wsNum + ' ' + weather.weatherData.units.windSpeed}`
+    })
 
   if (chartConfig.type === 'Wind24H') {
     svg
@@ -1941,7 +2173,7 @@ export function createWindChart(options: WeatherChartOptions) {
       .enter()
       .append('text')
       // .attr('x', (d) => {
-      //   return xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+      //   return xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
       // })
       // .attr('y', 0)
       .attr('class', 'day-top-label')
@@ -1949,10 +2181,10 @@ export function createWindChart(options: WeatherChartOptions) {
       .attr('font-size', '14px')
       .attr('fill', '#666')
       .html((d) => {
-        const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+        const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
         return `
-        <tspan x="${x}" dy="-36">${d.date}</tspan>
+        <tspan x="${x}" dy="-36">${d?.date}</tspan>
 
         <tspan x="${x}" dy="${'9.5em'}">${getWindDirectionText(
           d.wind_direction_10m || 0,
@@ -1969,7 +2201,7 @@ export function createWindChart(options: WeatherChartOptions) {
       .enter()
       .append('text')
       // .attr('x', (d) => {
-      //   return xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+      //   return xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
       // })
       // .attr('y', 0)
       .attr('class', 'day-top-label')
@@ -1977,9 +2209,9 @@ export function createWindChart(options: WeatherChartOptions) {
       .attr('font-size', '14px')
       .attr('fill', '#666')
       .html((d) => {
-        const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+        const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
-        const dateArr = d.date.split(',')
+        const dateArr = d?.date.split(',')
 
         return `
         <tspan x="${x}" dy="-56">${dateArr[0]}</tspan>
@@ -2011,6 +2243,8 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
   }
 
   let weatherInfo = options.weatherInfo
+
+  const { weather } = store.getState()
 
   // 合并配置
   const chartConfig = { ...defaultOptions, ...options }
@@ -2050,7 +2284,7 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
   // 创建比例尺
   const xScale = d3
     .scaleBand()
-    .domain(precipitationData.map((d) => d.date + '\n' + d.date))
+    .domain(precipitationData.map((d) => d?.date + '\n' + d?.date))
     .range([0, width])
     .padding(0.1)
 
@@ -2071,7 +2305,7 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
     .each(function (d) {
       const group = d3.select(this)
 
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
       // console.log('height', height, d)
 
@@ -2085,10 +2319,10 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
           .append('tspan')
           .attr('x', x - 12)
           .attr('y', -10)
-          .text(`${d.date}`)
+          .text(`${d?.date}`)
       }
       if (chartConfig.type === 'Daily') {
-        const wd = formatWeatherDate(d.date)
+        const wd = formatWeatherDate(d?.date)
         const text = group
           .append('text')
           .attr('class', 'aqi-label')
@@ -2108,7 +2342,7 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
           .append('tspan')
           .attr('x', x - 12)
           .attr('y', -12)
-          .text(`${wd.date}`)
+          .text(`${wd?.date}`)
       }
 
       const text1 = group
@@ -2134,7 +2368,13 @@ export function createPrecipitationDataChart(options: WeatherChartOptions) {
           .append('tspan')
           .attr('x', x - 9)
           .attr('y', 158)
-          .text(`${d.precipitation}${weatherInfo.hourlyUnits.precipitation}`)
+          .text(
+            `${convertPrecipitation(
+              d.precipitation,
+              weatherInfo.hourlyUnits.precipitation as any,
+              weather.weatherData.units.precipitation
+            )}${weather.weatherData.units.precipitation}`
+          )
       }
 
       // 添加背景矩形
@@ -2221,7 +2461,7 @@ export function createDewPointChart(options: WeatherChartOptions) {
   // 创建比例尺
   const xScale = d3
     .scaleBand()
-    .domain(valData.map((d) => d.date + '\n' + d.date))
+    .domain(valData.map((d) => d?.date + '\n' + d?.date))
     .range([0, width])
     .padding(0.1)
 
@@ -2244,7 +2484,7 @@ export function createDewPointChart(options: WeatherChartOptions) {
   // 创建折线生成器
   const lineHigh = d3
     .line<WeatherValData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => yScale(d.val))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
@@ -2293,7 +2533,7 @@ export function createDewPointChart(options: WeatherChartOptions) {
   // 创建面积生成器
   const area = d3
     .area<WeatherValData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y0(height)
     .y1((d) => yScale(d.val))
 
@@ -2332,7 +2572,10 @@ export function createDewPointChart(options: WeatherChartOptions) {
     .enter()
     .append('circle')
     .attr('class', 'dot')
-    .attr('cx', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'cx',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('cy', (d) => yScale(d.val) || 0)
     .attr('r', 4)
     .attr('stroke', '#f29cb2')
@@ -2344,7 +2587,10 @@ export function createDewPointChart(options: WeatherChartOptions) {
     .enter()
     .append('text')
     .attr('class', 'high-text')
-    .attr('x', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .attr(
+      'x',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    )
     .attr('y', (d) => yScale(d.val) - 10)
     .attr('text-anchor', 'middle')
     .attr('font-size', '12px')
@@ -2361,16 +2607,16 @@ export function createDewPointChart(options: WeatherChartOptions) {
     .attr('font-size', '14px')
     .attr('fill', '#666')
     .html((d) => {
-      const x = xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2
+      const x = xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
 
       return `
-        <tspan x="${x}" dy="-45">${d.date}</tspan>
+        <tspan x="${x}" dy="-45">${d?.date}</tspan>
         `
     })
 
   const lineHigh1 = d3
     .line<WeatherValData>()
-    .x((d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2)
+    .x((d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2)
     .y((d) => height)
   svg
     .append('path')
@@ -2388,8 +2634,14 @@ export function createDewPointChart(options: WeatherChartOptions) {
     .enter()
     .append('line')
     .attr('class', 'vertical-line')
-    .attr('x1', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2) // X 坐标居中
-    .attr('x2', (d) => xScale(d.date + '\n' + d.date)! + xScale.bandwidth() / 2) // X 坐标居中
+    .attr(
+      'x1',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    ) // X 坐标居中
+    .attr(
+      'x2',
+      (d) => xScale(d?.date + '\n' + d?.date)! + xScale.bandwidth() / 2
+    ) // X 坐标居中
     .attr('y1', height)
     .attr('y2', (d) => yScale(d.val))
     .attr('stroke', 'rgba(242, 173, 190, 0.3)')
@@ -2407,261 +2659,288 @@ export function createDewPointChart(options: WeatherChartOptions) {
 }
 
 export function createWeatherChart(options: WeatherChartOptions) {
-  // 默认配置
-  const defaultOptions = {
-    width: 800,
-    height: 180,
-  }
+  try {
+    // 默认配置
+    const defaultOptions = {
+      width: 800,
+      height: 180,
+    }
 
-  const state = store.getState()
+    const state = store.getState()
 
-  let weatherInfo = options.weatherInfo
+    const { weather } = state
 
-  // 合并配置
-  const config = { ...defaultOptions, ...options }
+    let weatherInfo = options.weatherInfo
 
-  // 设置图表尺寸和边距
-  const margin = config.margin
-  const width = config.width - margin.left - margin.right
-  const height = config.height - margin.top - margin.bottom
+    // 合并配置
+    const config = { ...defaultOptions, ...options }
 
-  const data = config?.data || []
+    const themeColors = getThemeColors(config.themeColor)
 
-  console.log(
-    'getWeather createWeatherChart',
-    config.weatherInfo,
-    data,
-    width,
-    config
-  )
+    // 设置图表尺寸和边距
+    const margin = config.margin
+    const width = config.width - margin.left - margin.right
+    const height = config.height - margin.top - margin.bottom
 
-  // 选择或创建容器
-  const container =
-    typeof config.container === 'string'
-      ? (d3.select(config.container).node() as HTMLElement)
-      : config.container
+    const data = config?.data || []
 
-  if (!container && !data?.length) return
-
-  container.style.width = config.width + 'px'
-  container.style.height = config.height + 'px'
-
-  // 清空容器
-  container.innerHTML = ''
-
-  // 创建SVG元素
-  const svg = d3
-    .select(container)
-    .append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`)
-
-  // 创建比例尺
-  const xScale = d3
-    .scaleBand()
-    .domain(data.map((d) => d.shortDate + '\n' + d.date))
-    .range([0, width])
-    .padding(0.1)
-
-  let arr = [
-    (d3.min(data, (d) => d.low) || 0) - 2,
-    (d3.max(data, (d) => d.high) || 0) + 2,
-  ]
-
-  if (options.type === 'Hourly') {
-    let min = d3.min(data, (d) => d.high) || 0
-    let max = d3.max(data, (d) => d.high) || 0
-    const tempRange = max - min
-    const buffer = tempRange * 0.1 // 如果温差<10°C，上下各加5°C缓冲
-    arr = [min - tempRange, max + buffer]
-    // arr = [
-    //   (d3.min(config.data, (d) => d.high) || 0) - (max + min) / 2 - 2,
-    //   (d3.max(config.data, (d) => d.high) || 0) + 1,
-    // ]
     // console.log(
-    //   'yScale',
-    //   config.data.map((v) => {
-    //     return {
-    //       low: v.low,
-    //       hight: v.high,
-    //     }
-    //   }),
-    //   arr,
-    //   min,
-    //   max,
-    //   (max - min) / 5
+    //   'getWeather createWeatherChart',
+    //   config.weatherInfo,
+    //   data,
+    //   width,
+    //   config
     // )
-  }
-  const yScale = d3.scaleLinear().domain(arr).range([height, 0])
 
-  if (config.type === 'Daily' || config.type === 'Hourly') {
-    // 创建折线生成器
-    const lineHigh = d3
-      .line<WeatherData>()
-      .x((d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2)
-      .y((d) => yScale(d.high))
-      .curve(d3.curveCatmullRom.alpha(0.5))
+    // 选择或创建容器
+    const container =
+      typeof config.container === 'string'
+        ? (d3.select(config.container).node() as HTMLElement)
+        : config.container
 
-    // 绘制高温折线 - 第一段虚线
-    svg
-      .append('path')
-      .datum([data[0], data[1]])
-      .attr('class', 'line-high')
-      .attr('d', lineHigh)
-      .attr('fill', 'none')
-      .attr('stroke', weatherLineColor)
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '3,3')
+    if (!container || data?.length <= 2) return
 
-    // 绘制高温折线 - 其余部分实线
-    svg
-      .append('path')
-      .datum(data.slice(1))
-      .attr('class', 'line-high')
-      .attr('d', lineHigh)
-      .attr('fill', 'none')
-      .attr('stroke', weatherLineColor)
-      .attr('stroke-width', 2)
+    container.style.width = config.width + 'px'
+    container.style.height = config.height + 'px'
 
-    // 添加高温数据点
-    svg
-      .selectAll('.dot-high')
-      .data(data)
-      .enter()
-      .append('circle')
-      .attr('class', 'dot-high')
-      .attr(
-        'cx',
-        (d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-      )
-      .attr('cy', (d) => yScale(d.high))
-      .attr('r', 3)
-      .attr('stroke', '#ccc')
-      .attr('fill', '#fff')
+    // 清空容器
+    container.innerHTML = ''
 
-    // 在高温点上方添加温度文字
-    svg
-      .selectAll('.high-text')
-      .data(data)
-      .enter()
-      .append('text')
-      .attr('class', 'high-text')
-      .attr(
-        'x',
-        (d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-      )
-      .attr('y', (d) => yScale(d.high) - 10)
-      .attr('text-anchor', 'middle')
-      //     .attr('font-size', '14px')
-      //     .attr('fill', '#444')
-      .text((d) => `${d.high}°`)
+    // 创建SVG元素
+    const svg = d3
+      .select(container)
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
-    if (config.type === 'Daily') {
-      const lineLow = d3
+    // 创建比例尺
+    const xScale = d3
+      .scaleBand()
+      .domain(data.map((d) => d?.shortDate + '\n' + d?.date))
+      .range([0, width])
+      .padding(0.1)
+
+    let arr = [
+      (d3.min(data, (d) => d.low) || 0) - 2,
+      (d3.max(data, (d) => d.high) || 0) + 2,
+    ]
+
+    if (options.type === 'Hourly') {
+      let min = d3.min(data, (d) => d.high) || 0
+      let max = d3.max(data, (d) => d.high) || 0
+      const tempRange = max - min
+      const buffer = tempRange * 0.1 // 如果温差<10°C，上下各加5°C缓冲
+      arr = [min - tempRange, max + buffer]
+      // arr = [
+      //   (d3.min(config.data, (d) => d.high) || 0) - (max + min) / 2 - 2,
+      //   (d3.max(config.data, (d) => d.high) || 0) + 1,
+      // ]
+      // console.log(
+      //   'yScale',
+      //   config.data.map((v) => {
+      //     return {
+      //       low: v.low,
+      //       hight: v.high,
+      //     }
+      //   }),
+      //   arr,
+      //   min,
+      //   max,
+      //   (max - min) / 5
+      // )
+    }
+    const yScale = d3.scaleLinear().domain(arr).range([height, 0])
+
+    if (config.type === 'Daily' || config.type === 'Hourly') {
+      // 创建折线生成器
+      const lineHigh = d3
         .line<WeatherData>()
-        .x((d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2)
-        .y((d) => yScale(d.low))
+        .x(
+          (d) => xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+        )
+        .y((d) => yScale(d.high))
         .curve(d3.curveCatmullRom.alpha(0.5))
 
-      // 绘制低温折线 - 第一段虚线
+      // 绘制高温折线 - 第一段虚线
       svg
         .append('path')
         .datum([data[0], data[1]])
-        .attr('class', 'line-low')
-        .attr('d', lineLow)
+        .attr('class', 'line-high')
+        .attr('d', lineHigh)
         .attr('fill', 'none')
         .attr('stroke', weatherLineColor)
         .attr('stroke-width', 2)
         .attr('stroke-dasharray', '3,3')
 
-      // 绘制低温折线 - 其余部分实线
+      // 绘制高温折线 - 其余部分实线
       svg
         .append('path')
         .datum(data.slice(1))
-        .attr('class', 'line-low')
-        .attr('d', lineLow)
+        .attr('class', 'line-high')
+        .attr('d', lineHigh)
         .attr('fill', 'none')
         .attr('stroke', weatherLineColor)
         .attr('stroke-width', 2)
-      // 添加低温数据点
+
+      // 添加高温数据点
       svg
-        .selectAll('.dot-low')
+        .selectAll('.dot-high')
         .data(data)
         .enter()
         .append('circle')
-        .attr('class', 'dot-low')
+        .attr('class', 'dot-high')
         .attr(
           'cx',
-          (d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+          (d) => xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
         )
-        .attr('cy', (d) => yScale(d.low))
+        .attr('cy', (d) => yScale(d.high))
         .attr('r', 3)
         .attr('stroke', '#ccc')
         .attr('fill', '#fff')
 
-      // 在低温点下方添加温度文字
+      // 在高温点上方添加温度文字
       svg
-        .selectAll('.low-text')
+        .selectAll('.high-text')
         .data(data)
         .enter()
         .append('text')
-        .attr('class', 'low-text')
+        .attr('class', 'high-text')
         .attr(
           'x',
-          (d) => xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+          (d) => xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
         )
-        .attr('y', (d) => yScale(d.low) + 20)
+        .attr('y', (d) => yScale(d.high) - 10)
         .attr('text-anchor', 'middle')
         //     .attr('font-size', '14px')
-        //     .attr('fill', '#444')
-        .text((d) => `${d.low}°`)
-    }
+        .attr('fill', themeColors.lineTopText)
+        .text(
+          (d) =>
+            `${convertTemperature(
+              d.high,
+              '°C',
+              weather.weatherData.units.temperature
+            )}°`
+        )
 
-    if (config.type === 'Hourly') {
-      // 添加日期标签
-      svg
-        .selectAll('.day-top-label')
-        .data(data)
-        .enter()
-        .append('text')
-        // .attr('x', (d) => {
-        //   return xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-        // })
-        // .attr('y', 0)
-        .attr('class', 'day-top-label')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '14px')
-        .attr('fill', '#666')
-        .html((d) => {
-          const x =
-            xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-
-          let topEmojiEm = '1.8em'
-          let bottomTextEm = '7.1em'
-
-          if (d.precipitationProbabilityMax) {
-            topEmojiEm = '1.5em'
-            bottomTextEm = '6.1em'
-          }
-
-          const wcode = Number(d.weatherCode || 0)
-
-          // console.log('dddddddd', d, weatherInfo.airQuality)
-
-          const aq = formatAirQuality(
-            weatherInfo,
-            moment(d.date).format('YYYY-MM-DD HH:mm'),
-            'Hourly'
+      if (config.type === 'Daily') {
+        const lineLow = d3
+          .line<WeatherData>()
+          .x(
+            (d) =>
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
           )
+          .y((d) => yScale(d.low))
+          .curve(d3.curveCatmullRom.alpha(0.5))
 
-          const aqiDesc = getAqiDescription(aq.european_aqi)
+        // 绘制低温折线 - 第一段虚线
+        svg
+          .append('path')
+          .datum([data[0], data[1]])
+          .attr('class', 'line-low')
+          .attr('d', lineLow)
+          .attr('fill', 'none')
+          .attr('stroke', weatherLineColor)
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '3,3')
 
-          return `
+        // 绘制低温折线 - 其余部分实线
+        svg
+          .append('path')
+          .datum(data.slice(1))
+          .attr('class', 'line-low')
+          .attr('d', lineLow)
+          .attr('fill', 'none')
+          .attr('stroke', weatherLineColor)
+          .attr('stroke-width', 2)
+        // 添加低温数据点
+        svg
+          .selectAll('.dot-low')
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('class', 'dot-low')
+          .attr(
+            'cx',
+            (d) =>
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+          )
+          .attr('cy', (d) => yScale(d.low))
+          .attr('r', 3)
+          .attr('stroke', '#ccc')
+          .attr('fill', '#fff')
+
+        // 在低温点下方添加温度文字
+        svg
+          .selectAll('.low-text')
+          .data(data)
+          .enter()
+          .append('text')
+          .attr('class', 'low-text')
+          .attr(
+            'x',
+            (d) =>
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+          )
+          .attr('y', (d) => yScale(d.low) + 20)
+          .attr('text-anchor', 'middle')
+          //     .attr('font-size', '14px')
+          .attr('fill', themeColors.lineTopText)
+          .text(
+            (d) =>
+              `${convertTemperature(
+                d.low,
+                '°C',
+                weather.weatherData.units.temperature
+              )}°`
+          )
+      }
+
+      if (config.type === 'Hourly') {
+        // 添加日期标签
+        svg
+          .selectAll('.day-top-label')
+          .data(data)
+          .enter()
+          .append('text')
+          // .attr('x', (d) => {
+          //   return xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+          // })
+          // .attr('y', 0)
+          .attr('class', 'day-top-label')
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '14px')
+          // .attr('fill', '#666')
+          .attr('fill', themeColors.labelText)
+          .html((d) => {
+            const x =
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+
+            let topEmojiEm = '1.8em'
+            let bottomTextEm = '7.1em'
+
+            if (d.precipitationProbabilityMax) {
+              topEmojiEm = '1.5em'
+              bottomTextEm = '6.1em'
+            }
+
+            const wcode = Number(d.weatherCode || 0)
+
+            // console.log('dddddddd', d, weatherInfo.airQuality)
+
+            const aq = formatAirQuality(
+              weatherInfo,
+              moment(d?.date).format('YYYY-MM-DD HH:mm'),
+              'Hourly'
+            )
+
+            const aqiDesc = getAqiDescription(aq.european_aqi)
+
+            return `
         <tspan x="${x}" dy="-95">${d.hour}</tspan>
         <tspan font-size="20px"  x="${x}" dy="${topEmojiEm}">
-            ${openWeatherWMOToEmoji(wcode)?.value || ''}</tspan>
+            ${getWeatherIcon(wcode) || ''}</tspan>
         ${
           d.precipitationProbabilityMax
             ? `
@@ -2670,162 +2949,168 @@ export function createWeatherChart(options: WeatherChartOptions) {
             </tspan>`
             : ``
         }
-        <tspan x="${x}" dy="1.5em">${t('weather' + wcode, {
-            ns: 'weather',
-          })}</tspan>
+        <tspan x="${x}" dy="1.5em">${t(
+              (i18n.language === 'en-US' ? 'shortWeather' : 'weather') + wcode,
+              {
+                ns: 'sakiuiWeather',
+              }
+            )}</tspan>
         <tspan x="${x}" dy="${bottomTextEm}">${getWindDirectionText(
-            d.wind_direction_10m || 0,
-            true
-          )}</tspan>
+              d.wind_direction_10m || 0,
+              true
+            )}</tspan>
         <tspan x="${x}" dy="1.3em">${t('windLevelNum', {
-            ns: 'weather',
-            num: getWindForceLevel(
-              d.wind_speed_10m || 0,
-              weatherInfo.current_units.wind_speed_10m
-            ),
-          })}</tspan>
+              ns: 'sakiuiWeather',
+              num: getWindForceLevel(
+                d.wind_speed_10m || 0,
+                weatherInfo.current_units.wind_speed_10m
+              ),
+            })}</tspan>
         <tspan 
          fill="${aqiDesc.color}" x="${x - 3}" dy="1.3em">${
-            // aq.european_aqi ? aqiDesc.aqiDesc : ''
-            ''
-          }</tspan>
+              // aq.european_aqi ? aqiDesc.aqiDesc : ''
+              ''
+            }</tspan>
         `
-        })
+          })
 
-      svg
-        .selectAll('.day-top-label-group')
-        .data(data)
-        .enter()
-        .append('g') // 创建一个 <g> 组来包含背景和文本
-        .attr('class', 'day-top-label-group')
-        .attr('y', '5.1em')
-        .each(function (d) {
-          const group = d3.select(this)
+        svg
+          .selectAll('.day-top-label-group')
+          .data(data)
+          .enter()
+          .append('g') // 创建一个 <g> 组来包含背景和文本
+          .attr('class', 'day-top-label-group')
+          .attr('y', '5.1em')
+          .each(function (d) {
+            const group = d3.select(this)
 
-          const x =
-            xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+            const x =
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
 
-          const paddingX = 6 // 水平 padding
-          const paddingY = 2 // 垂直 padding
+            const paddingX = 6 // 水平 padding
+            const paddingY = 2 // 垂直 padding
 
-          const aq = formatAirQuality(
-            weatherInfo,
-            moment(d.date).format('YYYY-MM-DD HH:mm'),
-            'Hourly'
-          )
-          const aqiDesc = getAqiDescription(aq.european_aqi)
-          const textContent = `${aqiDesc.aqi} ${aqiDesc.aqiDesc}`
+            const aq = formatAirQuality(
+              weatherInfo,
+              moment(d?.date).format('YYYY-MM-DD HH:mm'),
+              'Hourly'
+            )
+            const aqiDesc = getAqiDescription(aq.european_aqi)
+            const textContent = `${aqiDesc.aqi} ${aqiDesc.aqiDesc}`
 
-          if (!aqiDesc.aqi) return
-          // 添加背景矩形
-          const rect = group
-            .append('rect')
-            .attr('class', 'label-bg')
-            .attr('x', x - 20) // 初始 x，稍后调整
-            // .attr('y', (d) => yScale(aqiDesc.aqi) - 25)
-            .attr('width', 40)
-            .attr('height', 20)
-            .attr('rx', 10)
-            .attr('ry', 10)
-            .attr('fill', aqiDesc.color) // 背景色根据 AQI 值
-            .attr('opacity', 0.8) // 背景稍透明，可调整
-            .each(function () {
-              const rect = d3.select(this)
-              const text = group.select('text') // 稍后添加的 text 元素
-              const bbox = (text.node() as SVGTextElement)?.getBBox()
-              if (bbox) {
-                // 动态调整矩形大小，包含 padding
-                rect
-                  .attr('x', x - bbox.width / 2 - paddingX)
-                  .attr('width', bbox.width + 2 * paddingX)
-                  .attr('height', bbox.height + 2 * paddingY)
-              }
-            })
+            if (!aqiDesc.aqi) return
+            // 添加背景矩形
+            const rect = group
+              .append('rect')
+              .attr('class', 'label-bg')
+              .attr('x', x - 20) // 初始 x，稍后调整
+              // .attr('y', (d) => yScale(aqiDesc.aqi) - 25)
+              .attr('width', 40)
+              .attr('height', 20)
+              .attr('rx', 10)
+              .attr('ry', 10)
+              .attr('fill', aqiDesc.color) // 背景色根据 AQI 值
+              .attr('opacity', 0.8) // 背景稍透明，可调整
+              .each(function () {
+                const rect = d3.select(this)
+                const text = group.select('text') // 稍后添加的 text 元素
+                const bbox = (text.node() as SVGTextElement)?.getBBox()
+                if (bbox) {
+                  // 动态调整矩形大小，包含 padding
+                  rect
+                    .attr('x', x - bbox.width / 2 - paddingX)
+                    .attr('width', bbox.width + 2 * paddingX)
+                    .attr('height', bbox.height + 2 * paddingY)
+                }
+              })
 
-          // 添加文本
-          const text = group
-            .append('text')
-            .attr('class', 'aqi-label')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
-            .attr('fill', '#fff') // 文字颜色：白色，可根据需要调整
-            .append('tspan')
-            .attr('x', x)
-            .attr('y', 100)
-            .text(textContent)
+            // 添加文本
+            const text = group
+              .append('text')
+              .attr('class', 'aqi-label')
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '12px')
+              .attr('fill', '#fff') // 文字颜色：白色，可根据需要调整
+              .append('tspan')
+              .attr('x', x)
+              .attr('y', 100)
+              .text(textContent)
 
-          // 动态调整矩形大小
-          const bbox = (text.node() as SVGTextElement | null)?.getBBox()
-          if (bbox) {
-            // 矩形宽度根据文字宽度动态调整，加上两侧 padding
-            const w = bbox.width + 2 * paddingX
-            const h = bbox.height + 2 * paddingY
-            rect
-              .attr('x', x - bbox.width / 2 - paddingX) // 居中并留出左侧 padding
-              .attr('width', w) // 宽度 = 文字宽度 + 两侧 padding
-              .attr('height', h) // 高度 = 文字高度 + 两侧 padding
-              .attr('rx', h / 2)
-              .attr('ry', h / 2)
-              // .attr('y', 85)
-              .attr('y', bbox.y - paddingY)
-            // .attr('y', '6.1em')
-          }
-        })
-    }
+            // 动态调整矩形大小
+            const bbox = (text.node() as SVGTextElement | null)?.getBBox()
+            if (bbox) {
+              // 矩形宽度根据文字宽度动态调整，加上两侧 padding
+              const w = bbox.width + 2 * paddingX
+              const h = bbox.height + 2 * paddingY
+              rect
+                .attr('x', x - bbox.width / 2 - paddingX) // 居中并留出左侧 padding
+                .attr('width', w) // 宽度 = 文字宽度 + 两侧 padding
+                .attr('height', h) // 高度 = 文字高度 + 两侧 padding
+                .attr('rx', h / 2)
+                .attr('ry', h / 2)
+                // .attr('y', 85)
+                .attr('y', bbox.y - paddingY)
+              // .attr('y', '6.1em')
+            }
+          })
+      }
 
-    if (config.type === 'Daily') {
-      // 添加日期标签
-      svg
-        .selectAll('.day-top-label')
-        .data(data)
-        .enter()
-        .append('text')
-        // .attr('x', (d) => {
-        //   return xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-        // })
-        // .attr('y', 0)
-        .attr('class', 'day-top-label')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '14px')
-        .attr('fill', '#666')
-        .html((d) => {
-          const x =
-            xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
+      if (config.type === 'Daily') {
+        // 添加日期标签
+        svg
+          .selectAll('.day-top-label')
+          .data(data)
+          .enter()
+          .append('text')
+          // .attr('x', (d) => {
+          //   return xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+          // })
+          // .attr('y', 0)
+          .attr('class', 'day-top-label')
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '14px')
+          .attr('fill', themeColors.labelText)
+          .html((d) => {
+            const x =
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
 
-          let topEmojiEm = '1.8em'
-          let bottomEmojiEm = '7.4em'
-          let bottomTextEm = '2.6em'
+            let topEmojiEm = '1.8em'
+            let bottomEmojiEm = '7.4em'
+            let bottomTextEm = '2.6em'
 
-          if (d.precipitationProbabilityMax) {
-            topEmojiEm = '1.5em'
-            bottomEmojiEm = '6.8em'
-            bottomTextEm = '2.5em'
-          }
-          if (d.precipitationProbabilityMin) {
-            bottomEmojiEm = '7.2em'
-            bottomTextEm = '1.5em'
-          }
-          if (d.precipitationProbabilityMax && d.precipitationProbabilityMin) {
-            bottomEmojiEm = '6.5em'
-            bottomTextEm = '1.5em'
-          }
+            if (d.precipitationProbabilityMax) {
+              topEmojiEm = '1.5em'
+              bottomEmojiEm = '6.8em'
+              bottomTextEm = '2.5em'
+            }
+            if (d.precipitationProbabilityMin) {
+              bottomEmojiEm = '7.2em'
+              bottomTextEm = '1.5em'
+            }
+            if (
+              d.precipitationProbabilityMax &&
+              d.precipitationProbabilityMin
+            ) {
+              bottomEmojiEm = '6.5em'
+              bottomTextEm = '1.5em'
+            }
 
-          const maxWcode = Number(d.maxTempWeatherCode || 0)
-          const minWcode = Number(d.minTempWeatherCode || 0)
+            const maxWcode = Number(d.maxTempWeatherCode || 0)
+            const minWcode = Number(d.minTempWeatherCode || 0)
 
-          const aq = formatAirQuality(
-            weatherInfo,
-            moment(d.date).format('YYYY-MM-DD HH:mm'),
-            'Hourly'
-          )
-          const aqiDesc = getAqiDescription(aq.european_aqi)
+            const aq = formatAirQuality(
+              weatherInfo,
+              moment(d?.date).format('YYYY-MM-DD HH:mm'),
+              'Hourly'
+            )
+            const aqiDesc = getAqiDescription(aq.european_aqi)
 
-          return `
+            return `
         <tspan x="${x}" dy="-110">${d.week}</tspan>
-        <tspan x="${x}" dy="1.3em">${d.shortDate}</tspan>
+        <tspan x="${x}" dy="1.3em">${d?.shortDate}</tspan>
 
         <tspan font-size="20px"  x="${x}" dy="${topEmojiEm}">
-            ${openWeatherWMOToEmoji(maxWcode)?.value || ''}</tspan>
+            ${getWeatherIcon(maxWcode) || ''}</tspan>
         ${
           d.precipitationProbabilityMax
             ? `
@@ -2834,14 +3119,18 @@ export function createWeatherChart(options: WeatherChartOptions) {
             </tspan>`
             : ``
         }
-        <tspan x="${x}" dy="1.5em">${t('weather' + maxWcode, {
-            ns: 'weather',
-          })}</tspan>
+        <tspan x="${x}" dy="1.5em">${t(
+              (i18n.language === 'en-US' ? 'shortWeather' : 'weather') +
+                maxWcode,
+              {
+                ns: 'sakiuiWeather',
+              }
+            )}</tspan>
 
         
         <tspan font-size="20px" x="${x}" dy="${bottomEmojiEm}">${
-            openWeatherWMOToEmoji(minWcode)?.value || ''
-          }</tspan>
+              getWeatherIcon(minWcode) || ''
+            }</tspan>
         ${
           d.precipitationProbabilityMin
             ? `
@@ -2850,118 +3139,125 @@ export function createWeatherChart(options: WeatherChartOptions) {
             </tspan>`
             : ``
         }
-        <tspan x="${x}" dy="1.5em">${t('weather' + minWcode, {
-            ns: 'weather',
-          })}</tspan>
-        <tspan x="${x}" dy="${bottomTextEm}">${getWindDirectionText(
-            d.wind_direction_10m || 0,
-            true
-          )}</tspan>
-        <tspan x="${x}" dy="1.3em">${t('windLevelNum', {
-            ns: 'weather',
-            num: getWindForceLevel(
-              d.wind_speed_10m || 0,
-              weatherInfo.current_units.wind_speed_10m
-            ),
-          })}</tspan>
-        <tspan fill="${aqiDesc.color}" x="${x - 3}" dy="1.3em">${
-            // aq.european_aqi ? aqiDesc.aqiDesc : ''
-            ''
-          }</tspan>
-        `
-        })
-
-      svg
-        .selectAll('.day-top-label-group')
-        .data(data)
-        .enter()
-        .append('g') // 创建一个 <g> 组来包含背景和文本
-        .attr('class', 'day-top-label-group')
-        .each(function (d) {
-          const group = d3.select(this)
-
-          const x =
-            xScale(d.shortDate + '\n' + d.date)! + xScale.bandwidth() / 2
-
-          const paddingX = 4 // 水平 padding
-          const paddingY = 2 // 垂直 padding
-
-          const aq = formatAirQuality(
-            weatherInfo,
-            moment(d.date).format('YYYY-MM-DD'),
-            'Daily'
-          )
-          const aqiDesc = getAqiDescription(aq.european_aqi)
-          const textContent = `${aqiDesc.aqi} ${aqiDesc.aqiDesc}`
-
-          if (!aqiDesc.aqi) return
-          // 添加背景矩形
-          const rect = group
-            .append('rect')
-            .attr('class', 'label-bg')
-            .attr('x', x - 20) // 初始 x，稍后调整
-            // .attr('y', (d) => yScale(aqiDesc.aqi) - 25)
-            .attr('width', 40)
-            .attr('height', 20)
-            .attr('rx', 10)
-            .attr('ry', 10)
-            .attr('fill', aqiDesc.color) // 背景色根据 AQI 值
-            .attr('opacity', 0.8) // 背景稍透明，可调整
-            .each(function () {
-              const rect = d3.select(this)
-              const text = group.select('text') // 稍后添加的 text 元素
-              const bbox = (text.node() as SVGTextElement)?.getBBox()
-              if (bbox) {
-                // 动态调整矩形大小，包含 padding
-                rect
-                  .attr('x', x - bbox.width / 2 - paddingX)
-                  .attr('width', bbox.width + 2 * paddingX)
-                  .attr('height', bbox.height + 2 * paddingY)
+        <tspan x="${x}" dy="1.5em">${t(
+              (i18n.language === 'en-US' ? 'shortWeather' : 'weather') +
+                minWcode,
+              {
+                ns: 'sakiuiWeather',
               }
-            })
+            )}</tspan>
+        <tspan x="${x}" dy="${bottomTextEm}">${getWindDirectionText(
+              d.wind_direction_10m || 0,
+              true
+            )}</tspan>
+        <tspan x="${x}" dy="1.3em">${t('windLevelNum', {
+              ns: 'sakiuiWeather',
+              num: getWindForceLevel(
+                d.wind_speed_10m || 0,
+                weatherInfo.current_units.wind_speed_10m
+              ),
+            })}</tspan>
+        <tspan fill="${aqiDesc.color}" x="${x - 3}" dy="1.3em">${
+              // aq.european_aqi ? aqiDesc.aqiDesc : ''
+              ''
+            }</tspan>
+        `
+          })
 
-          // 添加文本
-          const text = group
-            .append('text')
-            .attr('class', 'aqi-label')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
-            .attr('fill', '#fff') // 文字颜色：白色，可根据需要调整
-            .append('tspan')
-            .attr('x', x)
-            // .attr('y', '16em')
-            .attr('y', 210)
-            // .attr('y', 0)
-            .text(textContent)
+        svg
+          .selectAll('.day-top-label-group')
+          .data(data)
+          .enter()
+          .append('g') // 创建一个 <g> 组来包含背景和文本
+          .attr('class', 'day-top-label-group')
+          .each(function (d) {
+            const group = d3.select(this)
 
-          // 动态调整矩形大小
-          const bbox = (text.node() as SVGTextElement | null)?.getBBox()
-          if (bbox) {
-            // 矩形宽度根据文字宽度动态调整，加上两侧 padding
-            const w = bbox.width + 2 * paddingX
-            const h = bbox.height + 2 * paddingY
-            rect
-              .attr('x', x - bbox.width / 2 - paddingX) // 居中并留出左侧 padding
-              .attr('width', w) // 宽度 = 文字宽度 + 两侧 padding
-              .attr('height', h) // 高度 = 文字高度 + 两侧 padding
-              .attr('rx', h / 2)
-              .attr('ry', h / 2)
-              // .attr('y', '12.2em')
-              .attr('y', bbox.y - paddingY)
-            // .attr('y', state.config.deviceType === 'Mobile' ? 198 : 195)
-          }
-        })
+            const x =
+              xScale(d?.shortDate + '\n' + d?.date)! + xScale.bandwidth() / 2
+
+            const paddingX = 4 // 水平 padding
+            const paddingY = 2 // 垂直 padding
+
+            const aq = formatAirQuality(
+              weatherInfo,
+              moment(d?.date).format('YYYY-MM-DD'),
+              'Daily'
+            )
+            const aqiDesc = getAqiDescription(aq.european_aqi)
+            const textContent = `${aqiDesc.aqi} ${aqiDesc.aqiDesc}`
+
+            if (!aqiDesc.aqi) return
+            // 添加背景矩形
+            const rect = group
+              .append('rect')
+              .attr('class', 'label-bg')
+              .attr('x', x - 20) // 初始 x，稍后调整
+              // .attr('y', (d) => yScale(aqiDesc.aqi) - 25)
+              .attr('width', 40)
+              .attr('height', 20)
+              .attr('rx', 10)
+              .attr('ry', 10)
+              .attr('fill', aqiDesc.color) // 背景色根据 AQI 值
+              .attr('opacity', 0.8) // 背景稍透明，可调整
+              .each(function () {
+                const rect = d3.select(this)
+                const text = group.select('text') // 稍后添加的 text 元素
+                const bbox = (text.node() as SVGTextElement)?.getBBox()
+                if (bbox) {
+                  // 动态调整矩形大小，包含 padding
+                  rect
+                    .attr('x', x - bbox.width / 2 - paddingX)
+                    .attr('width', bbox.width + 2 * paddingX)
+                    .attr('height', bbox.height + 2 * paddingY)
+                }
+              })
+
+            // 添加文本
+            const text = group
+              .append('text')
+              .attr('class', 'aqi-label')
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '12px')
+              .attr('fill', '#fff') // 文字颜色：白色，可根据需要调整
+              .append('tspan')
+              .attr('x', x)
+              // .attr('y', '16em')
+              .attr('y', 210)
+              // .attr('y', 0)
+              .text(textContent)
+
+            // 动态调整矩形大小
+            const bbox = (text.node() as SVGTextElement | null)?.getBBox()
+            if (bbox) {
+              // 矩形宽度根据文字宽度动态调整，加上两侧 padding
+              const w = bbox.width + 2 * paddingX
+              const h = bbox.height + 2 * paddingY
+              rect
+                .attr('x', x - bbox.width / 2 - paddingX) // 居中并留出左侧 padding
+                .attr('width', w) // 宽度 = 文字宽度 + 两侧 padding
+                .attr('height', h) // 高度 = 文字高度 + 两侧 padding
+                .attr('rx', h / 2)
+                .attr('ry', h / 2)
+                // .attr('y', '12.2em')
+                .attr('y', bbox.y - paddingY)
+              // .attr('y', state.config.deviceType === 'Mobile' ? 198 : 195)
+            }
+          })
+      }
     }
-  }
 
-  // 返回图表实例，可用于后续操作
-  return {
-    updateData: (newData: WeatherData[]) => {
-      // 更新数据的逻辑
-    },
-    destroy: () => {
-      container.innerHTML = ''
-    },
+    // 返回图表实例，可用于后续操作
+    return {
+      updateData: (newData: WeatherData[]) => {
+        // 更新数据的逻辑
+      },
+      destroy: () => {
+        container.innerHTML = ''
+      },
+    }
+  } catch (error) {
+    console.error(error)
   }
 }
 
@@ -3023,6 +3319,302 @@ export function calculateTwilightTimes(
   return result
 }
 
+export function getMaxMinTempWeatherCodes(data: typeof defaultWeatherInfo): {
+  maxTempWeatherCodes: number[]
+  minTempWeatherCodes: number[]
+} {
+  const maxTempWeatherCodes: number[] = []
+  const minTempWeatherCodes: number[] = []
+  const hoursPerDay = 24
+  const dayStartHour = 6 // 白天开始时间（06:00）
+  const dayEndHour = 18 // 白天结束时间（18:00）
+
+  // 遍历每天的日期
+  data.daily.time.forEach((day, dayIndex) => {
+    // 获取当天的每小时数据
+    const startIndex = dayIndex * hoursPerDay
+    const endIndex = startIndex + hoursPerDay
+    const dailyHourlyTemps = data.hourly.temperature_2m.slice(
+      startIndex,
+      endIndex
+    )
+    const dailyHourlyCodes = data.hourly.weathercode.slice(startIndex, endIndex)
+    const dailyHourlyTimes = data.hourly.time.slice(startIndex, endIndex)
+
+    // 获取当天的最高和最低温度
+    const maxTemp = data.daily.temperature_2m_max[dayIndex]
+    const minTemp = data.daily.temperature_2m_min[dayIndex]
+
+    // 找出最高温度的所有小时索引
+    const maxTempIndices = dailyHourlyTemps
+      .map((temp, index) => (temp === maxTemp ? index : -1))
+      .filter((index) => index !== -1)
+
+    // 找出最低温度的所有小时索引
+    const minTempIndices = dailyHourlyTemps
+      .map((temp, index) => (temp === minTemp ? index : -1))
+      .filter((index) => index !== -1)
+
+    // 获取白天时段（06:00-18:00）的索引
+    const dayIndices = dailyHourlyTimes
+      .map((time, index) => {
+        const hour = new Date(time).getHours()
+        return hour >= dayStartHour && hour < dayEndHour ? index : -1
+      })
+      .filter((index) => index !== -1)
+
+    // 获取最高温度的 weatherCode
+    const maxCode = getRepresentativeWeatherCode(
+      maxTempIndices,
+      dayIndices,
+      dailyHourlyCodes,
+      data.daily.weathercode[dayIndex]
+    )
+
+    // 获取最低温度的 weatherCode
+    const minCode = getRepresentativeWeatherCode(
+      minTempIndices,
+      dayIndices,
+      dailyHourlyCodes,
+      data.daily.weathercode[dayIndex]
+    )
+
+    maxTempWeatherCodes.push(maxCode)
+    minTempWeatherCodes.push(minCode)
+  })
+
+  return {
+    maxTempWeatherCodes,
+    minTempWeatherCodes,
+  }
+}
+
+// 辅助函数：选择最具代表性的 weatherCode
+export function getRepresentativeWeatherCode(
+  tempIndices: number[],
+  dayIndices: number[],
+  weatherCodes: number[],
+  dailyWeatherCode: number
+): number {
+  // 如果没有有效索引，返回 daily.weathercode
+  if (tempIndices.length === 0) return dailyWeatherCode
+
+  // 检查是否有温度索引在白天时段
+  const dayTempIndices = tempIndices.filter((index) =>
+    dayIndices.includes(index)
+  )
+
+  if (dayTempIndices.length > 0) {
+    // 如果最高/最低温度出现在白天，优先选择白天的 weatherCode
+    const dayTempCodes = dayTempIndices.map((index) => weatherCodes[index])
+    return getMostCommonWeatherCode(dayTempCodes, dailyWeatherCode)
+  } else {
+    // 如果温度不在白天，计算白天时段的 weatherCode 频率
+    const dayWeatherCodes = dayIndices.map((index) => weatherCodes[index])
+    return getMostCommonWeatherCode(dayWeatherCodes, dailyWeatherCode)
+  }
+}
+
+// 辅助函数：选择最常见的 weatherCode
+export function getMostCommonWeatherCode(
+  codes: number[],
+  dailyWeatherCode: number
+): number {
+  if (codes.length === 0) return dailyWeatherCode
+
+  const codeFrequency: { [key: number]: number } = {}
+  codes.forEach((code) => {
+    codeFrequency[code] = (codeFrequency[code] || 0) + 1
+  })
+
+  let selectedCode = codes[0]
+  let maxFrequency = 0
+  for (const [code, freq] of Object.entries(codeFrequency)) {
+    if (freq > maxFrequency) {
+      maxFrequency = freq
+      selectedCode = Number(code)
+    } else if (freq === maxFrequency && Number(code) === dailyWeatherCode) {
+      selectedCode = Number(code)
+    }
+  }
+
+  return selectedCode
+}
+
+let snowUrls = [
+  '/s/vid/snow4.mp4',
+  '/s/vid/snow5.mp4',
+  '/s/vid/snow3.mp4',
+  '/s/vid/snow1.mp4',
+]
+
+let rainUrls = [
+  '/s/vid/rain4.mp4',
+  // '/s/vid/rain2.mp4',
+  '/s/vid/rain3.mp4',
+  '/s/vid/56.mp4',
+]
+let overcastrls = [
+  '/s/vid/overcast.mp4',
+  '/s/vid/overcast2.mp4',
+  '/s/vid/overcast3.mp4',
+  '/s/vid/overcast4.mp4',
+]
+let clearUrls = [
+  // '/s/vid/clear7.mp4',
+  // '/s/vid/clear8.mp4',
+  '/s/vid/clear3.mp4',
+  '/s/vid/clear10.mp4',
+  '/s/vid/clear11.mp4',
+  // '/s/vid/clear5.mp4',
+]
+let cloudyUrls = [
+  '/s/vid/cloudy1.mp4',
+  '/s/vid/cloudy2.mp4',
+  '/s/vid/clear2.mp4',
+]
+let nightUrls = [
+  '/s/vid/night1.mp4',
+  '/s/vid/night2.mp4',
+  '/s/vid/night3.mp4',
+  // '/s/vid/night4.mp4',
+  '/s/vid/night5.mp4',
+]
+
+let twilightUrls = [
+  '/s/vid/clear4.mp4',
+  '/s/vid/twilight1.mp4',
+  '/s/vid/twilight2.mp4',
+]
+
+let morningUrls = ['/s/vid/clear9.mp4', '/s/vid/clear4.mp4']
+
+let snowUrl = snowUrls[Number(random(0, snowUrls.length))] || snowUrls[0]
+let rainUrl = rainUrls[Number(random(0, rainUrls.length))] || rainUrls[0]
+let overcastrl =
+  overcastrls[Number(random(0, overcastrls.length))] || overcastrls[0]
+
+let clearUrl = clearUrls[Number(random(0, clearUrls.length))] || clearUrls[0]
+let cloudyUrl =
+  cloudyUrls[Number(random(0, cloudyUrls.length))] || cloudyUrls[0]
+let nightUrl = nightUrls[Number(random(0, nightUrls.length))] || nightUrls[0]
+let twilightUrl =
+  twilightUrls[Number(random(0, twilightUrls.length))] || twilightUrls[0]
+let morningUrl =
+  morningUrls[Number(random(0, morningUrls.length))] || morningUrls[0]
+
+let curLatlng = ''
+
+export const getWeatherVideoUrl = (
+  weatherCode: number,
+  options: {
+    night: boolean
+    dusk: boolean
+    dawn: boolean
+    latlng: string
+  }
+) => {
+  let dUrl = {
+    url: '',
+  }
+
+  if (curLatlng !== options.latlng) {
+    snowUrl = snowUrls[Number(random(0, snowUrls.length))] || snowUrls[0]
+    rainUrl = rainUrls[Number(random(0, rainUrls.length))] || rainUrls[0]
+    overcastrl =
+      overcastrls[Number(random(0, overcastrls.length))] || overcastrls[0]
+
+    clearUrl = clearUrls[Number(random(0, clearUrls.length))] || clearUrls[0]
+    cloudyUrl =
+      cloudyUrls[Number(random(0, cloudyUrls.length))] || cloudyUrls[0]
+    nightUrl = nightUrls[Number(random(0, nightUrls.length))] || nightUrls[0]
+    twilightUrl =
+      twilightUrls[Number(random(0, twilightUrls.length))] || twilightUrls[0]
+
+    curLatlng = options.latlng
+  }
+
+  // weatherCode = 3
+
+  if ([0, 1].includes(weatherCode)) {
+    dUrl.url = clearUrl
+  }
+  if ([2].includes(weatherCode)) {
+    dUrl.url = cloudyUrl
+  }
+  if ([3].includes(weatherCode)) {
+    dUrl.url = overcastrl
+  }
+  if ([0, 1, 2, 3].includes(weatherCode) && options.night) {
+    dUrl.url = nightUrl
+  }
+  if ([0, 1, 2, 3].includes(weatherCode) && options.dusk) {
+    dUrl.url = twilightUrl
+  }
+  if ([0, 1, 2, 3].includes(weatherCode) && options.dawn) {
+    dUrl.url = morningUrl
+  }
+  if ([45, 48].includes(weatherCode)) {
+    dUrl.url = '/s/vid/fog.mp4'
+  }
+
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(weatherCode)) {
+    dUrl.url = rainUrl
+  }
+
+  if ([56, 57, 66, 67].includes(weatherCode)) {
+    dUrl.url = '/s/vid/562.mp4'
+  }
+
+  if ([71, 73, 75].includes(weatherCode)) {
+    dUrl.url = snowUrl
+  }
+
+  if ([85, 86].includes(weatherCode)) {
+    dUrl.url = snowUrl
+  }
+
+  if ([95].includes(weatherCode)) {
+    dUrl.url = '/s/vid/thunderstorm.mp4'
+  }
+  if ([96, 99].includes(weatherCode)) {
+    dUrl.url = '/s/vid/hail.mp4'
+  }
+
+  if (!dUrl.url && weatherCode >= 0) {
+    dUrl.url = '/s/vid/clear2.mp4'
+  }
+
+  if (dUrl.url) {
+    dUrl.url = server.url + dUrl.url
+  }
+  // console.log('getWeatherVideoUrl1', options, weatherCode, dUrl)
+
+  return dUrl
+}
+
+export const getWarningColor = (type: string) => {
+  if (type === 'Extreme') {
+    return 'Black'
+  }
+  if (type === 'Standard') {
+    return 'Blue'
+  }
+  if (type === 'Minor') {
+    return 'Green'
+  }
+  if (type === 'Moderate') {
+    return 'Yellow'
+  }
+  if (type === 'Major') {
+    return 'Orange'
+  }
+  if (type === 'Severe') {
+    return 'Red'
+  }
+  return 'White'
+}
+
 let name = 'weather'
 
 export interface WeatherSyncData {
@@ -3033,22 +3625,50 @@ export interface WeatherSyncData {
     cityInfo?: CityInfo
     weatherInfo?: typeof defaultWeatherInfo
     curPopsition: boolean
-    updateTime: number
+    updateCurTime: number
+    updateAllTime: number
     default: boolean
     sort: number
   }[]
+  units: {
+    temperature: TemperatureEnum
+    precipitation: PrecipitationEnum
+    windSpeed: WindSpeedEnum
+    pressure: PressureEnum
+    visibility: VisibilityEnum
+    timeFormat: TimeFormatEmum
+  }
   lastUpdateTime: number
+}
+
+const defaultUnits = {
+  temperature: '°C',
+  precipitation: 'mm',
+  windSpeed: 'km/h',
+  pressure: 'hPa',
+  visibility: 'km',
+  timeFormat: '24-hour',
 }
 
 export const weatherSlice = createSlice({
   name,
   initialState: {
-    lastUpdateTime: 0,
+    // lastUpdateTime: 0,
     weatherData: {
       cities: [],
+      units: defaultUnits,
       lastUpdateTime: 0,
     } as WeatherSyncData,
     allowSyncCloudData: true,
+
+    selectUnits: {
+      temperatureUnits: ['°C', '°F'],
+      precipitationUnits: ['mm', 'cm', 'in'],
+      windSpeedUnits: ['km/h', 'm/s', 'mph', 'kt', 'Beaufort'],
+      pressureUnits: ['hPa', 'kPa', 'mmHg', 'inHg', 'mbar', 'bar', 'psi'],
+      visibilityUnits: ['km', 'mile', 'm'],
+      timeFormatUnits: ['24-hour', '12-hour'],
+    },
   },
   reducers: {
     setAllowSyncCloudData: (
@@ -3057,15 +3677,18 @@ export const weatherSlice = createSlice({
     ) => {
       state.allowSyncCloudData = params.payload
     },
-    setLastUpdateTime: (
-      state,
-      params: ActionParams<(typeof state)['lastUpdateTime']>
-    ) => {
-      state.lastUpdateTime = params.payload
-    },
+    // setLastUpdateTime: (
+    //   state,
+    //   params: ActionParams<(typeof state)['lastUpdateTime']>
+    // ) => {
+    //   state.lastUpdateTime = params.payload
+    // },
     setWeatherData: (
       state,
-      params: ActionParams<(typeof state)['weatherData']>
+      params: ActionParams<{
+        cities: WeatherSyncData['cities']
+        lastUpdateTime?: WeatherSyncData['lastUpdateTime']
+      }>
     ) => {
       // console.log('params.payload.cities ', deepCopy(params.payload.cities))
 
@@ -3086,7 +3709,45 @@ export const weatherSlice = createSlice({
       })
 
       // console.log('params.payload.cities ', deepCopy(params.payload.cities))
-      state.weatherData = params.payload
+      state.weatherData.cities = params.payload.cities
+      if (params.payload.lastUpdateTime) {
+        state.weatherData.lastUpdateTime = params.payload.lastUpdateTime
+      }
+
+      const lTime = deepCopy(state.weatherData.lastUpdateTime)
+      const units = deepCopy(state.weatherData.units)
+
+      storage.global.getAndSet('WeatherData', async (sVal) => {
+        console.log('WeatherData set', sVal)
+        return {
+          cities: deepCopy(params.payload?.cities) || [],
+          units: units,
+          lastUpdateTime: lTime || 0,
+        }
+      })
+    },
+    setWeatherUnits: (
+      state,
+      params: ActionParams<WeatherSyncData['units']>
+    ) => {
+      state.weatherData.units = params.payload
+
+      const wd = deepCopy(state.weatherData)
+
+      storage.global.getAndSet('WeatherData', async (sVal) => {
+        const { weather } = store.getState()
+        store.dispatch(
+          weatherMethods.syncData({
+            data: {
+              cities: weather.weatherData.cities,
+            },
+          })
+        )
+        return {
+          ...sVal,
+          units: params.payload,
+        }
+      })
     },
   },
 })
@@ -3095,10 +3756,14 @@ const d = new Debounce()
 
 export const weatherMethods = {
   init: createAsyncThunk(name + '/init', async (_, thunkAPI) => {
-    const data = await storage.global.get('WeatherSyncData')
+    const data = await storage.global.get('WeatherData')
 
+    console.log('WeatherData init', storage.global, data)
     if (data?.lastUpdateTime) {
       thunkAPI.dispatch(weatherSlice.actions.setWeatherData(data))
+      thunkAPI.dispatch(
+        weatherSlice.actions.setWeatherUnits(data?.units || defaultUnits)
+      )
     }
   }),
 
@@ -3109,6 +3774,11 @@ export const weatherMethods = {
         const { user, weather } = store.getState()
 
         if (!weather.allowSyncCloudData) {
+          return
+        }
+
+        if (!user.isLogin) {
+          console.log('未登录')
           return
         }
 
@@ -3171,7 +3841,7 @@ export const weatherMethods = {
 
           // 检测线下对比是否更新
           if (
-            Number(data.lastUpdateTime) <= weather.weatherData.lastUpdateTime
+            Number(data?.lastUpdateTime) <= weather.weatherData.lastUpdateTime
           ) {
             console.log('开始下载并同步 老版本')
             thunkAPI.dispatch(
@@ -3212,6 +3882,9 @@ export const weatherMethods = {
               cities: data.cities,
               lastUpdateTime: data.lastUpdateTime,
             })
+          )
+          thunkAPI.dispatch(
+            weatherSlice.actions.setWeatherUnits(data?.units || defaultUnits)
           )
         } else {
           // store.dispatch(
@@ -3258,10 +3931,11 @@ export const weatherMethods = {
 
         const weatherSyncData: WeatherSyncData = {
           cities: data.cities,
+          units: weather.weatherData.units,
           lastUpdateTime: new Date().getTime(),
         }
 
-        storage.global.setSync('WeatherSyncData', weatherSyncData)
+        await storage.global.set('WeatherData', weatherSyncData)
 
         if (!user.isLogin) {
           console.log('未登录')

@@ -50,3 +50,4 @@ generateSiteMap.js
 /public/webworker-bundle.js
 
 /webworker/dist
+/tmp

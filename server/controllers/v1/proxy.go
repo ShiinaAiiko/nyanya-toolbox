@@ -39,6 +39,8 @@ func (ic *IpController) HttpProxy(c *gin.Context) {
 		return
 	}
 
+	// log.Info("data.Url", data.Url)
+
 	switch data.Method {
 	case "GET":
 

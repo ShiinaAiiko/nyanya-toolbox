@@ -1,0 +1,37 @@
+{
+  "short_name": "喵天气",
+  "name": "喵天气",
+  "icons": [
+    {
+      "src": "/weather-icons/icon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/weather-icons/256x256.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/weather-icons/256x256.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/weather-icons/512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "start_url": "/zh-CN/weather",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "description": "喵天气提供精准的实时天气预报服务，包括温度、湿度、气压、降水量、风速、空气质量等数据，支持24小时预报和15天天气趋势预测，为您的行程与生活提供可靠参考。"
+}
