@@ -19,7 +19,6 @@ import { webRTCSlice, webRTCMethods } from './webRTC'
 import { emojiSlice, emojiMethods } from './emoji'
 import { countdownDaysSlice, countdownDaysMethods } from './countdownDays'
 import { positionSlice, positionMethods } from './position'
-import { weatherSlice, weatherMethods } from './weather'
 
 export interface ActionParams<T = any> {
   type: string
@@ -38,7 +37,6 @@ const rootReducer = combineReducers({
   localUser: localUserSlice.reducer,
   countdownDays: countdownDaysSlice.reducer,
   position: positionSlice.reducer,
-  weather: weatherSlice.reducer,
 })
 
 const store = configureStore({
@@ -61,7 +59,6 @@ export {
   localUserSlice,
   countdownDaysSlice,
   positionSlice,
-  weatherSlice,
 }
 export const methods = {
   api: apiMethods,
@@ -75,7 +72,6 @@ export const methods = {
   localUser: localUserMethods,
   countdownDays: countdownDaysMethods,
   position: positionMethods,
-  weather: weatherMethods,
 }
 
 // console.log(store.getState())

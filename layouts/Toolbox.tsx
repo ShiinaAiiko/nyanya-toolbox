@@ -12,7 +12,6 @@ import store, {
   methods,
   configSlice,
   positionSlice,
-  weatherSlice,
 } from '../store'
 import { useTranslation } from 'react-i18next'
 // import { userAgent } from './userAgent'

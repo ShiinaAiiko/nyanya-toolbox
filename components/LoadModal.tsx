@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 import { eventListener } from '../store/config'
 import { Debounce } from '@nyanyajs/utils'
-import WeatherUnitsModal from './WeatherUnitsModal'
 // import FindLocationComponent from './FindLocation'
 // import CreateCustomTripComponent from './CreateCustomTrip'
 // import VisitedCitiesModal from './VisitedCities'
@@ -39,17 +38,17 @@ export const LoadModalsComponent = () => {
     name: any
     component: React.JSX.Element
   }[] = [
-    {
-      type: 'WeatherUnitsModal',
-      name: t('editTrip', {
-        ns: 'tripPage',
-      }),
-      component: (
-        <WeatherUnitsModal
-          visible={openModalType.includes('WeatherUnitsModal')}
-        />
-      ),
-    },
+    // {
+    //   type: 'WeatherUnitsModal',
+    //   name: t('editTrip', {
+    //     ns: 'tripPage',
+    //   }),
+    //   component: (
+    //     <WeatherUnitsModal
+    //       visible={openModalType.includes('WeatherUnitsModal')}
+    //     />
+    //   ),
+    // },
   ]
   useEffect(() => {
     components.forEach((v) => {

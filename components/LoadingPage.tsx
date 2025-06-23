@@ -17,6 +17,10 @@ const LoadingPage = (): JSX.Element => {
   const router = useRouter()
 
   useEffect(() => {
+    const htmlEl = document.querySelector('html')
+    if (htmlEl) {
+      htmlEl.style.overflow = 'hidden'
+    }
     setMounted(true)
     setProgressBar(progressBar + 0.2 >= 1 ? 1 : progressBar + 0.2)
   }, [])
@@ -60,15 +64,7 @@ const LoadingPage = (): JSX.Element => {
         ></saki-init>
       </NoSSR>
       <div className="loading-logo">
-        <img
-          src={
-            router.pathname.includes('/weather')
-              ? '/weather-icons/256x256.png'
-              : '/icons/256x256.png'
-          }
-          alt=""
-          crossOrigin="anonymous"
-        />
+        <img src={'/icons/256x256.png'} alt="" crossOrigin="anonymous" />
       </div>
       <div className="loading-progress-bar">
         <NoSSR>
@@ -108,6 +104,11 @@ const LoadingPage = (): JSX.Element => {
                     animation.onfinish = () => {
                       el.style.display = 'none'
                       // setHideLoading(true)
+
+                      const htmlEl = document.querySelector('html')
+                      if (htmlEl) {
+                        htmlEl.style.overflow = ''
+                      }
                       setHideLoading(true)
                     }
                   }
