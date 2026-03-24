@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine as BUILD_IMAGE
+FROM golang:1.23-alpine as build_image
 
 WORKDIR /app
 
@@ -17,8 +17,8 @@ RUN \
   apk add bash && \
   apk add openssh  && \
   apk add protoc && \
-  go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
-  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 
+  go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.1 && \
+  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1 
 
 COPY  .ssh/ \
   /root/.ssh/
@@ -46,10 +46,10 @@ FROM alpine:3.10
 
 WORKDIR /build
 
-COPY --from=BUILD_IMAGE \
+COPY --from=build_image \
   /app/nyanya-toolbox \
   /build
-COPY --from=BUILD_IMAGE \
+COPY --from=build_image \
   /app/services/i18n/ \
   /build/services/i18n/
 

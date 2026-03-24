@@ -310,6 +310,10 @@
     "24-hour": "24-hour system",
     "12-hour": "12-hour system"
   },
+  "readburnPage": {
+    "pageTitle": "Burn After Reading",
+    "subtitle": "Disappears instantly, leaving no trace"
+  },
   "prompt": {
     "next": "Next",
     "back": "Back",

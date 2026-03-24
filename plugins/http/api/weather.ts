@@ -12,45 +12,41 @@ const { ResponseDecode, ParamsEncode } = NRequest.protobuf
 
 export const Weather = () => {
   return {
-    async GetUploadToken(
-      params: protoRoot.weather.GetUploadTokenOfWeather.IRequest
-    ) {
-      const { api } = store.getState()
-
-      return await RequestProtobuf<protoRoot.weather.GetUploadTokenOfWeather.IResponse>(
-        {
-          method: 'GET',
-          url: getUrl(
-            api.apiUrls.v1.baseUrl,
-            api.apiUrls.v1.getUploadTokenOfWeather
-          ),
-
-          data: NRequest.protobuf.ParamsEncode<protoRoot.weather.GetUploadTokenOfWeather.IRequest>(
-            params,
-            protoRoot.weather.GetUploadTokenOfWeather.Request
-          ),
-        },
-        protoRoot.weather.GetUploadTokenOfWeather.Response
-      )
-    },
-    async GetFileUrls() {
-      const { api } = store.getState()
-
-      return await RequestProtobuf<protoRoot.weather.GetWeatherFileUrls.IResponse>(
-        {
-          method: 'GET',
-          url: getUrl(
-            api.apiUrls.v1.baseUrl,
-            api.apiUrls.v1.getWeatherFileUrls
-          ),
-
-          data: NRequest.protobuf.ParamsEncode<protoRoot.weather.GetWeatherFileUrls.IRequest>(
-            {},
-            protoRoot.weather.GetWeatherFileUrls.Request
-          ),
-        },
-        protoRoot.weather.GetWeatherFileUrls.Response
-      )
-    },
+    // async GetUploadToken(
+    //   params: protoRoot.weather.GetUploadTokenOfWeather.IRequest
+    // ) {
+    //   const { api } = store.getState()
+    //   return await RequestProtobuf<protoRoot.weather.GetUploadTokenOfWeather.IResponse>(
+    //     {
+    //       method: 'GET',
+    //       url: getUrl(
+    //         api.apiUrls.v1.baseUrl,
+    //         api.apiUrls.v1.getUploadTokenOfWeather
+    //       ),
+    //       data: NRequest.protobuf.ParamsEncode<protoRoot.weather.GetUploadTokenOfWeather.IRequest>(
+    //         params,
+    //         protoRoot.weather.GetUploadTokenOfWeather.Request
+    //       ),
+    //     },
+    //     protoRoot.weather.GetUploadTokenOfWeather.Response
+    //   )
+    // },
+    // async GetFileUrls() {
+    //   const { api } = store.getState()
+    //   return await RequestProtobuf<protoRoot.weather.GetWeatherFileUrls.IResponse>(
+    //     {
+    //       method: 'GET',
+    //       url: getUrl(
+    //         api.apiUrls.v1.baseUrl,
+    //         api.apiUrls.v1.getWeatherFileUrls
+    //       ),
+    //       data: NRequest.protobuf.ParamsEncode<protoRoot.weather.GetWeatherFileUrls.IRequest>(
+    //         {},
+    //         protoRoot.weather.GetWeatherFileUrls.Request
+    //       ),
+    //     },
+    //     protoRoot.weather.GetWeatherFileUrls.Response
+    //   )
+    // },
   }
 }

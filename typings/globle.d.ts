@@ -61,6 +61,7 @@ declare global {
       'saki-animation-loading': any
       'saki-linear-progress-bar': any
       'saki-template-header': any
+      'saki-sso-init': any
     }
   }
   namespace Window {

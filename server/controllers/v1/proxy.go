@@ -39,12 +39,15 @@ func (ic *IpController) HttpProxy(c *gin.Context) {
 		return
 	}
 
-	// log.Info("data.Url", data.Url)
+	log.Info("data.Url", data.Url)
 
 	switch data.Method {
 	case "GET":
 
-		resp, err := conf.RestyClient.R().SetQueryParams(map[string]string{}).
+		resp, err := conf.RestyClient.R().
+			// SetHeader("User-Agent", "MeowWeather/1.0 (shiina@aiiko.club)").
+			// SetHeader("Referer", "https://weather.aiiko.club").
+			SetQueryParams(map[string]string{}).
 			Get(
 				data.Url,
 			)
@@ -60,7 +63,10 @@ func (ic *IpController) HttpProxy(c *gin.Context) {
 		dataStr := `{"data":` + resp.String() + `}`
 		dataBytes := []byte(dataStr)
 
+		log.Info(dataStr, resp.String())
+
 		if err = json.Unmarshal(dataBytes, &respMap); err != nil {
+			log.Error(err)
 			res.Errors(err)
 			res.Code = 10001
 			res.Call(c)

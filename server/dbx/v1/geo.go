@@ -166,15 +166,14 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 
 	rgc := new(ReverseGeocodeByNominatim)
 
-	// log.Info("resp.Body()", resp.String())
+	log.Info("resp.Body()", resp.String())
 	if err = json.Unmarshal(resp.Body(), rgc); err != nil {
 		return nil, err
 	}
 
 	log.Info("rgc", rgc.DisplayName, rgc.Address.State, rgc.Name)
 
-	displayNameArr := make([]string, 6)
-	displayNameArr = narrays.Filter(strings.Split(rgc.DisplayName, ", "), func(value string, index int) bool {
+	displayNameArr := narrays.Filter(strings.Split(rgc.DisplayName, ", "), func(value string, index int) bool {
 
 		return nint.ToInt(value) == 0
 	})
@@ -206,7 +205,9 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 		geoInfo.Country = "中国"
 		geoInfo.State = displayNameArr[1]
 		geoInfo.Region = displayNameArr[2]
-		geoInfo.City = displayNameArr[3]
+		if len(displayNameArr) >= 4 {
+			geoInfo.City = displayNameArr[3]
+		}
 		if len(displayNameArr) >= 5 {
 			geoInfo.Town = displayNameArr[4]
 		}
@@ -214,8 +215,12 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 		geoInfo.Country = "中国"
 		geoInfo.State = displayNameArr[0]
 		geoInfo.Region = displayNameArr[1]
-		geoInfo.City = displayNameArr[2]
-		geoInfo.Town = displayNameArr[3]
+		if len(displayNameArr) >= 3 {
+			geoInfo.City = displayNameArr[2]
+		}
+		if len(displayNameArr) >= 4 {
+			geoInfo.Town = displayNameArr[3]
+		}
 		// geoInfo.Region = nstrings.StringOr(rgc.Address.City, rgc.Address.County)
 		// geoInfo.City = nstrings.StringOr(rgc.Address.Suburb, rgc.Address.Town)
 		// geoInfo.Town = nstrings.StringOr(rgc.Address.Neighbourhood, rgc.Address.CityDistrict, rgc.Address.Suburb)
@@ -470,7 +475,7 @@ func (d *GeoDbx) GetChinaCityDistrictsByAmap(country string) (map[string]([]*Cit
 	}
 
 	err = cdFile.JSON(amapRes)
-	log.Info(amapRes, amapRes.CreateTime, err)
+	log.Info(amapRes, amapRes.CreateTime, err, basePath, fileName)
 
 	if err != nil || amapRes == nil || amapRes.CreateTime == 0 || amapRes.CreateTime < time.Now().Unix() {
 		if err != nil {

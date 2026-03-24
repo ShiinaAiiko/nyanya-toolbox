@@ -211,7 +211,7 @@ func (ic *GeoController) Geo(c *gin.Context) {
 				res.Call(c)
 				return
 			}
-			// log.Info("resp.Body()", *amapRes)
+			log.Info("resp.Body()", *amapRes)
 
 			// log.Info("street", nstrings.ToString(amapRes.Regeocode.AddressComponent.StreetNumber.(map[string]any)["street"]))
 

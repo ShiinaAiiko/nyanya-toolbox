@@ -313,6 +313,10 @@
     "24-hour": "24小时制",
     "12-hour": "12小时制"
   },
+  "readburnPage": {
+    "pageTitle": "阅后即焚",
+    "subtitle": "一看就没，私密不留痕"
+  },
   "prompt": {
     "next": "下一步",
     "back": "返回",

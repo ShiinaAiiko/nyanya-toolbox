@@ -126,6 +126,15 @@
       },
       "logoText": "WebScreenRecording",
       "url": "https://tools.aiiko.club/webScreenRecording"
+    },
+    {
+      "title": {
+        "zh-CN": "阅后即焚",
+        "zh-TW": "閱後即焚",
+        "en-US": "Burn After Reading"
+      },
+      "logoText": "Bar",
+      "url": "https://tools.aiiko.club/readburn"
     }
   ]
 }
