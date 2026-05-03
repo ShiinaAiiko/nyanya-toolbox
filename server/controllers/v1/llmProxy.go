@@ -11,21 +11,19 @@ import (
 
 // "github.com/cherrai/nyanyago-utils/validation"
 
-type ProxyController struct {
+type LlmProxyController struct {
 }
 
-func (ic *IpController) HttpProxy(c *gin.Context) {
+func (ic *LlmProxyController) HttpProxy(c *gin.Context) {
 	// 1、请求体
 	var res response.ResponseType
 
 	data := struct {
-		Url     string
-		Method  string
-		Headers string
+		Url    string
+		Method string
 	}{
-		Url:     c.Query("url"),
-		Method:  c.Query("method"),
-		Headers: c.Query("headers"),
+		Url:    c.Query("url"),
+		Method: c.Query("method"),
 	}
 
 	var err error
@@ -34,7 +32,6 @@ func (ic *IpController) HttpProxy(c *gin.Context) {
 		validation.Parameter(&data.Url, validation.Type("string"), validation.Required()),
 		validation.Parameter(&data.Method,
 			validation.Enum([]string{"GET"}), validation.Type("string"), validation.Required()),
-		validation.Parameter(&data.Headers, validation.Type("string")),
 	); err != nil {
 		res.Errors(err)
 		res.Code = 10002
@@ -43,34 +40,17 @@ func (ic *IpController) HttpProxy(c *gin.Context) {
 	}
 
 	log.Info("data.Url", data.Url)
-	log.Info("data.Headers", data.Headers)
-
-	headerMap := map[string]string{}
-
-	if data.Headers != "" {
-		if err = json.Unmarshal([]byte(data.Headers), &headerMap); err != nil {
-			res.Errors(err)
-			res.Code = 10001
-			res.Call(c)
-			return
-		}
-
-	}
-	log.Info("headerMap", headerMap)
 
 	switch data.Method {
 	case "GET":
 
-		client := conf.RestyClient.R()
-		client.
-			SetHeaders(headerMap).
+		resp, err := conf.RestyClient.R().
 			// SetHeader("User-Agent", "MeowWeather/1.0 (shiina@aiiko.club)").
 			// SetHeader("Referer", "https://weather.aiiko.club").
-			SetQueryParams(map[string]string{})
-
-		resp, err := client.Get(
-			data.Url,
-		)
+			SetQueryParams(map[string]string{}).
+			Get(
+				data.Url,
+			)
 		if err != nil {
 			log.Error(err)
 			res.Errors(err)

@@ -73,12 +73,13 @@ func (ic *GeoController) Regeo(c *gin.Context) {
 
 	cache := true
 
-	log.Info(err, geoInfo)
+	// log.Info(err, geoInfo, geoInfo.Latlng.Lat)
 
 	if err != nil || geoInfo.Country == "" || geoInfo.Address == "" {
 		cache = false
 		geoInfo, err = geoDbx.RegeoByNominatim(data.Latitude, data.Longitude, 0)
 
+		log.Info(geoInfo, err)
 		if err != nil {
 			res.Errors(err)
 			log.Error(err)
@@ -87,7 +88,7 @@ func (ic *GeoController) Regeo(c *gin.Context) {
 			return
 		}
 
-		log.Info("geoInfo", geoInfo)
+		// log.Info("geoInfo", geoInfo.Latlng)
 
 		if geoInfo.Country == "中国" && !(geoInfo.State == "香港" || geoInfo.State == "澳門") && (geoInfo.Address == "" || geoInfo.Town == "") {
 			geoInfo, err = geoDbx.RegeoByAmap(data.Latitude, data.Longitude)
@@ -100,13 +101,17 @@ func (ic *GeoController) Regeo(c *gin.Context) {
 				return
 			}
 		}
+		// log.Info("geoInfo", geoInfo.Latlng)
+
 	}
 
-	if err = conf.Redisdb.SetStruct(key.GetKey(latlng), geoInfo, key.GetExpiration()); err != nil {
-		res.Errors(err)
-		res.Code = 10001
-		res.Call(c)
-		return
+	if geoInfo.Address != "" {
+		if err = conf.Redisdb.SetStruct(key.GetKey(latlng), geoInfo, key.GetExpiration()); err != nil {
+			res.Errors(err)
+			res.Code = 10001
+			res.Call(c)
+			return
+		}
 	}
 
 	res.Data = response.H{
@@ -118,8 +123,11 @@ func (ic *GeoController) Regeo(c *gin.Context) {
 		"road":     geoInfo.Road,
 		"address":  geoInfo.Address,
 		"platform": geoInfo.Platform,
-		"latlng":   geoInfo.Latlng,
-		"cache":    cache,
+		"latlng": response.H{
+			"lat": data.Latitude,
+			"lng": data.Longitude,
+		},
+		"cache": cache,
 	}
 
 	res.Code = 200

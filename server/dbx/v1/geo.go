@@ -146,6 +146,10 @@ type GeoJSON struct {
 
 func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) {
 	geoInfo := new(GeoInfo)
+	geoInfo.Latlng = &CityDistrictsLatlng{
+		Lat: lat,
+		Lng: lng,
+	}
 
 	if zoom == 0 {
 		zoom = 14
@@ -166,7 +170,7 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 
 	rgc := new(ReverseGeocodeByNominatim)
 
-	log.Info("resp.Body()", resp.String())
+	log.Info("resp.Body() NominatimApiUrl", resp.String())
 	if err = json.Unmarshal(resp.Body(), rgc); err != nil {
 		return nil, err
 	}
@@ -235,10 +239,13 @@ func (d *GeoDbx) RegeoByNominatim(lat, lng float64, zoom int) (*GeoInfo, error) 
 	d.formatAddress(geoInfo)
 
 	geoInfo.Platform = "Nominatim"
-	geoInfo.Latlng = &CityDistrictsLatlng{
-		Lat: nfloat.ToFloat64(rgc.Lat),
-		Lng: nfloat.ToFloat64(rgc.Lon),
-	}
+
+	// geoInfo.Latlng = &CityDistrictsLatlng{
+	// 	Lat: lat,
+	// 	Lng: lng,
+	// 	// Lat: nfloat.ToFloat64(rgc.Lat),
+	// 	// Lng: nfloat.ToFloat64(rgc.Lon),
+	// }
 
 	// log.Info("street", nstrings.ToString(amapRes.Regeocode.AddressComponent.StreetNumber.(map[string]any)["street"]))
 
@@ -275,8 +282,8 @@ func (d *GeoDbx) RegeoByAmap(lat, lng float64) (*GeoInfo, error) {
 
 	key := conf.Redisdb.GetKey("RegeoByAmap")
 
-	err := conf.Redisdb.GetStruct(key.GetKey("amap"), geoInfo)
-	if true || err != nil {
+	err := conf.Redisdb.GetStruct(key.GetKey(latlng), geoInfo)
+	if err != nil {
 
 		resp, err := conf.RestyClient.R().SetQueryParams(map[string]string{}).
 			Get(
@@ -320,6 +327,10 @@ func (d *GeoDbx) RegeoByAmap(lat, lng float64) (*GeoInfo, error) {
 		if err := conf.Redisdb.SetStruct(key.GetKey("amap"), geoInfo, key.GetExpiration()); err != nil {
 			return nil, err
 		}
+	}
+	geoInfo.Latlng = &CityDistrictsLatlng{
+		Lat: lat,
+		Lng: lng,
 	}
 
 	return geoInfo, nil

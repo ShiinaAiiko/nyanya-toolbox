@@ -86,12 +86,11 @@ func main() {
 		socketio_service.Init()
 
 		ntimer.SetTimeout(func() {
-
 			geoDbx.InitCity()
 			// methods.GetCityBoundaries(conf.Config.CityVersion)
 
 			log.Info("Done.")
-		}, 1500)
+		}, 1000)
 
 		gin_service.Init()
 		return nil
